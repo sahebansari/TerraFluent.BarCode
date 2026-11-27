@@ -30,7 +30,7 @@ public class StyleTests
     [Fact]
     public void Logo_qr_keeps_modules_outside_the_logo_and_switches_to_level_h()
     {
-        var logo = Barcode.QrCode("logo").Gradient("#E53935", "#FDD835").ToPng();
+        var logo = Barcode.QrCode("logo").Gradient("#E53935", "#FDD835").AllowLowContrast().ToPng();
         var plain = Barcode.QrCode(Url).Encode();
         var builder = Barcode.QrCode(Url).ModuleSize(8).Logo(logo, 0.25);
 
