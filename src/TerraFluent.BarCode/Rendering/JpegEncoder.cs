@@ -97,6 +97,12 @@ internal static class JpegEncoder
     // sample(x, y, c): component c (Y, Cb, Cr; or grey) of pixel (x, y), 0-255.
     private static byte[] Encode(int width, int height, bool greyscale, int quality, Func<int, int, int, double> sample)
     {
+        // The frame header stores 16-bit dimensions.
+        if (width > ushort.MaxValue || height > ushort.MaxValue)
+        {
+            throw new ArgumentException($"JPEG images are limited to {ushort.MaxValue} pixels per side; this one would be {width} x {height}.");
+        }
+
         var componentCount = greyscale ? 1 : 3;
         var quant = new[] { Scale(LuminanceQuant, quality), Scale(ChrominanceQuant, quality) };
 

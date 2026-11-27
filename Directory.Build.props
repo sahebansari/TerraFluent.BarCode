@@ -4,14 +4,15 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <WarningsAsErrors>nullable</WarningsAsErrors>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
 
     <Authors>Saheb Ansari</Authors>
     <Company>Saheb Ansari</Company>
     <Product>TerraFluent.BarCode</Product>
-    <Version>0.1.0</Version>
+    <Version>1.0.0</Version>
+    <!-- Strong-named assemblies keep AssemblyVersion at major.0.0.0 so minor and patch upgrades need no binding redirects. -->
+    <AssemblyVersion>$([System.Version]::Parse($(Version.Split('-')[0])).Major).0.0.0</AssemblyVersion>
     <Copyright>Copyright (c) 2026 Saheb Ansari</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>barcode;qrcode;qr;code128;code39;ean13;upc;png;jpeg;svg;base64;fluent</PackageTags>
@@ -20,6 +21,14 @@
     <PackageProjectUrl>https://github.com/sahebansari/TerraFluent.BarCode</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageReleaseNotes>https://github.com/sahebansari/TerraFluent.BarCode/blob/main/CHANGELOG.md</PackageReleaseNotes>
+
+    <!--
+      Strong naming for consumers that require it (.NET Framework, signed applications).
+      The key is public on purpose, as Microsoft's guidance for open-source libraries recommends:
+      a strong name is an identity, not a security boundary.
+    -->
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)TerraFluent.BarCode.snk</AssemblyOriginatorKeyFile>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

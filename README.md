@@ -7,7 +7,8 @@ PNG, JPEG, SVG, `byte[]`, `Stream`, base64 or a `data:` URI.
 Every encoder and image writer is implemented in the library itself: no
 System.Drawing, no SkiaSharp, no ImageSharp, no web service. It runs the same
 on Windows, Linux, macOS, containers and serverless. The library targets
-`netstandard2.0` and `net10.0`.
+`netstandard2.0` (.NET Framework 4.6.1+, .NET Core 2.0+, Mono, Unity) and
+`net10.0` (trimming and Native AOT compatible), and the assembly is strong-named.
 
 ## Install
 
@@ -51,15 +52,31 @@ await Barcode.Code128("X1").WriteToAsync(response.Body, BarcodeImageFormat.Png);
 
 | Method | Standard | Input |
 | --- | --- | --- |
-| `Barcode.Code128(value)` | ISO/IEC 15417 | ASCII 0-127. Code sets A/B/C chosen automatically. |
-| `Barcode.Code39(value)` | ISO/IEC 16388 | `0-9 A-Z`, space, `- . $ / + %`. Optional `.WithChecksum()`. |
+| `Barcode.Code128(value)` | ISO/IEC 15417 | ASCII 0-127, up to 256 characters. Code sets A/B/C chosen automatically. |
+| `Barcode.Code39(value)` | ISO/IEC 16388 | `0-9 A-Z`, space, `- . $ / + %`, up to 128 characters. Optional `.WithChecksum()`. |
 | `Barcode.Ean13(value)` | ISO/IEC 15420 | 12 digits (check digit added) or 13 (validated). |
 | `Barcode.Ean8(value)` | ISO/IEC 15420 | 7 digits (check digit added) or 8 (validated). |
 | `Barcode.UpcA(value)` | ISO/IEC 15420 | 11 digits (check digit added) or 12 (validated). |
-| `Barcode.QrCode(value)` | ISO/IEC 18004 | Any text. Numeric, alphanumeric or UTF-8 byte mode picked automatically; versions 1-40; levels L/M/Q/H. |
+| `Barcode.QrCode(value)` | ISO/IEC 18004 | Any text. Numeric, alphanumeric or UTF-8 byte mode picked automatically (non-ASCII text carries a UTF-8 ECI header so scanners decode it correctly); versions 1-40; levels L/M/Q/H. |
 
-Invalid input throws `ArgumentException` with a message that says what was
-wrong (for example `Invalid EAN-13 check digit: '8' should be '7'.`).
+## Errors, Limits and Thread Safety
+
+- An invalid value or setting throws `ArgumentException` (or one of its
+  subclasses, `ArgumentNullException` and `ArgumentOutOfRangeException`;
+  hex colours throw `FormatException`) with a message that says what was
+  wrong, for example `Invalid EAN-13 check digit: '8' should be '7'.`
+- Options that cannot be combined throw `InvalidOperationException`: an option
+  for another symbology (such as `Height` on a QR code) when it is set, and a
+  logo with too little error correction or colours with too little contrast
+  when rendering.
+- Images are limited to 32,768 pixels per side and 64 megapixels in total
+  (`BarcodeBuilder.MaxImageDimension`, `BarcodeBuilder.MaxImagePixels`), so
+  size settings taken from user input cannot exhaust memory.
+- Foreground, gradient and eye colours need a WCAG contrast ratio of at least
+  3:1 against the background. Light-on-dark is allowed. Call
+  `AllowLowContrast()` to turn the check off for codes you have tested.
+- The static `Barcode` methods are thread-safe. Configure a `BarcodeBuilder`
+  on one thread; after that, its output methods can be called concurrently.
 
 ## Outputs
 
@@ -91,6 +108,7 @@ two-colour images, so prefer PNG or SVG: JPEG compression softens bar edges.
 | `ErrorCorrection(level)` | `M` | QR codes only. |
 | `WithChecksum()` | off | Code 39 only. |
 | `JpegQuality(1-100)` | 90 | JPEG output only. |
+| `AllowLowContrast()` | off | Skips the contrast check. |
 
 ## Fancy Styles
 
@@ -126,7 +144,7 @@ byte[] bars = Barcode.Code128("ABC-12345").ModuleSize(3).RoundedBars()
 | `ModuleStyle(style)` | QR | `Square` (default), `Rounded`, `Dots`, `Connected` |
 | `EyeStyle(style)` | QR | `Square` (default), `Rounded`, `Circle` |
 | `EyeColor(color)` | QR | colour of the three corner eyes |
-| `Logo(png, scale)` | QR | PNG bytes; `scale` 0.05-0.3 of the code width (default 0.2) |
+| `Logo(png, scale)` | QR | PNG bytes; `scale` 0.05-0.3 of the code width (default 0.2). Needs level H (automatic) or Q with scale up to 0.25. |
 | `Gradient(start, end, direction)` | all | `Horizontal`, `Vertical`, `Diagonal` (default), `Radial` |
 | `RoundedBars()` | linear | rounded bar ends |
 
@@ -141,12 +159,25 @@ output as before.
 Human-readable text under linear barcodes, GS1-128 (FNC1), Code 39 full
 ASCII, ITF, Data Matrix, PDF417, QR Kanji mode and structured append.
 
+## Versioning
+
+The library follows [Semantic Versioning](https://semver.org). The public API
+is tracked in `src/TerraFluent.BarCode/PublicAPI.*.txt` and checked on every
+build, so it cannot change by accident. `AssemblyVersion` stays at
+`major.0.0.0` so upgrades within a major version need no binding redirects.
+Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+
 ## Repository Layout
 
 - `src/TerraFluent.BarCode` – the library.
 - `tests/TerraFluent.BarCode.Tests` – xUnit tests.
 - `samples/TerraFluent.BarCode.Sample` – writes every symbology in every format
   plus an `index.html` preview: `dotnet run --project samples/TerraFluent.BarCode.Sample`.
+
+## Contributing and Security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Please report vulnerabilities privately
+as described in [SECURITY.md](SECURITY.md).
 
 ## License
 
