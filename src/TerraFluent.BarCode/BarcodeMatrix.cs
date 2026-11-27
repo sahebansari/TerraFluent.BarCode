@@ -44,11 +44,14 @@ public sealed class BarcodeMatrix
 
     internal bool Get(int x, int y) => _modules[y * Width + x];
 
-    internal static BarcodeMatrix FromLinear(IReadOnlyList<bool> bars, int recommendedQuietZone)
+    /// <summary>Text placement for linear barcodes; <c>null</c> for 2D symbols.</summary>
+    internal Encoding.LinearLayout? Layout { get; set; }
+
+    internal static BarcodeMatrix FromLinear(IReadOnlyList<bool> bars, int recommendedQuietZone, Encoding.LinearLayout? layout = null)
     {
         var modules = new bool[bars.Count];
         for (var i = 0; i < modules.Length; i++) modules[i] = bars[i];
-        return new BarcodeMatrix(modules.Length, 1, modules, isLinear: true, recommendedQuietZone);
+        return new BarcodeMatrix(modules.Length, 1, modules, isLinear: true, recommendedQuietZone) { Layout = layout ?? new Encoding.LinearLayout() };
     }
 
     /// <summary>Renders the matrix as text, one line per row, for debugging (<c>#</c> = dark).</summary>

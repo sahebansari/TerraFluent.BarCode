@@ -4,9 +4,9 @@ namespace TerraFluent.BarCode.Encoding;
 
 /// <summary>
 /// QR code model 2 (ISO/IEC 18004), versions 1-40, all four error-correction
-/// levels. The whole value is encoded as one segment in the most compact mode
-/// that covers it: numeric, alphanumeric, or byte (UTF-8). Byte-mode values
-/// containing non-ASCII characters are preceded by an ECI 26 (UTF-8) header so
+/// levels. The value is split into numeric, alphanumeric and byte (UTF-8)
+/// segments, whichever mix needs the fewest bits. Values containing non-ASCII
+/// characters are preceded by an ECI 26 (UTF-8) header so
 /// readers do not fall back to ISO-8859-1 or Shift JIS. The mask with the
 /// lowest penalty score is chosen automatically.
 /// </summary>
@@ -44,19 +44,38 @@ internal static class QrCodeEncoder
 
     public static BarcodeMatrix Encode(string value, QrErrorCorrectionLevel level, int? fixedVersion = null, int? fixedMask = null)
     {
-        var (mode, payload, count, utf8Eci) = SelectMode(value);
-        var eciBits = utf8Eci ? EciHeaderBits : 0;
         var lvl = (int)level;
+        var utf8Eci = value.Any(c => c >= 0x80);
+        var eciBits = utf8Eci ? EciHeaderBits : 0;
 
+        // The cheapest segmentation depends on the character-count field widths, which change at versions 10 and 27.
         var version = 0;
+        List<Segment>? segments = null;
         var firstVersion = fixedVersion ?? 1;
         var lastVersion = fixedVersion ?? 40;
+        List<Segment>? rangeSegments = null;
+        var rangeOf = -1;
         for (var v = firstVersion; v <= lastVersion; v++)
         {
-            var bits = eciBits + 4 + CountBits(mode, v) + payload.Count;
-            if (count < 1 << CountBits(mode, v) && bits <= DataCodewords(v, lvl) * 8)
+            var range = VersionRange(v);
+            if (range != rangeOf)
+            {
+                rangeSegments = Segmenter.Split(value, v);
+                rangeOf = range;
+            }
+
+            var bits = eciBits;
+            var fits = true;
+            foreach (var segment in rangeSegments!)
+            {
+                bits += 4 + CountBits(segment.Mode, v) + segment.Bits.Count;
+                fits &= segment.Count < 1 << CountBits(segment.Mode, v);
+            }
+
+            if (fits && bits <= DataCodewords(v, lvl) * 8)
             {
                 version = v;
+                segments = rangeSegments;
                 break;
             }
         }
@@ -79,9 +98,13 @@ internal static class QrCodeEncoder
             buffer.Append(Utf8EciDesignator, 8);
         }
 
-        buffer.Append((int)mode, 4);
-        buffer.Append(count, CountBits(mode, version));
-        buffer.AppendBits(payload);
+        foreach (var segment in segments!)
+        {
+            buffer.Append((int)segment.Mode, 4);
+            buffer.Append(segment.Count, CountBits(segment.Mode, version));
+            buffer.AppendBits(segment.Bits);
+        }
+
         buffer.Append(0, Math.Min(4, capacityBits - buffer.Count));
         buffer.Append(0, (8 - buffer.Count % 8) % 8);
         for (var pad = 0xEC; buffer.Count < capacityBits; pad ^= 0xEC ^ 0x11) buffer.Append(pad, 8);
@@ -165,9 +188,11 @@ internal static class QrCodeEncoder
         return (Mode.Byte, bits.Bits, bytes.Length, nonAscii);
     }
 
+    private static int VersionRange(int version) => version <= 9 ? 0 : version <= 26 ? 1 : 2;
+
     internal static int CountBits(Mode mode, int version)
     {
-        var range = version <= 9 ? 0 : version <= 26 ? 1 : 2;
+        var range = VersionRange(version);
         return mode switch
         {
             Mode.Numeric => new[] { 10, 12, 14 }[range],
@@ -238,6 +263,164 @@ internal static class QrCodeEncoder
         }
 
         return result.ToArray();
+    }
+
+    /// <summary>One run of the value in a single mode.</summary>
+    internal sealed class Segment
+    {
+        public Segment(Mode mode, int count, List<bool> bits)
+        {
+            Mode = mode;
+            Count = count;
+            Bits = bits;
+        }
+
+        public Mode Mode { get; }
+
+        /// <summary>Characters (numeric, alphanumeric) or bytes (byte mode), as written in the count field.</summary>
+        public int Count { get; }
+
+        public List<bool> Bits { get; }
+    }
+
+    /// <summary>
+    /// Splits a value into numeric, alphanumeric and byte segments with the
+    /// fewest bits in total, by dynamic programming over its code points.
+    /// </summary>
+    internal static class Segmenter
+    {
+        private static readonly Mode[] Modes = { Mode.Numeric, Mode.Alphanumeric, Mode.Byte };
+
+        public static List<Segment> Split(string value, int version)
+        {
+            // Code points, so a surrogate pair is never split between segments.
+            var points = new List<string>(value.Length);
+            for (var i = 0; i < value.Length; i++)
+            {
+                if (char.IsHighSurrogate(value[i]) && i + 1 < value.Length && char.IsLowSurrogate(value[i + 1]))
+                {
+                    points.Add(value.Substring(i, 2));
+                    i++;
+                }
+                else
+                {
+                    points.Add(value.Substring(i, 1));
+                }
+            }
+
+            var utf8 = new UTF8Encoding(false, true);
+            var byteLengths = new int[points.Count];
+            for (var i = 0; i < points.Count; i++)
+            {
+                try
+                {
+                    byteLengths[i] = utf8.GetByteCount(points[i]);
+                }
+                catch (EncoderFallbackException ex)
+                {
+                    throw new ArgumentException("The value contains an unpaired surrogate character and is not valid Unicode text.", nameof(value), ex);
+                }
+            }
+
+            // Costs in sixths of a bit: numeric 10 bits per 3 characters, alphanumeric 11 per 2, byte 8 per byte.
+            const int Inf = int.MaxValue / 4;
+            var n = points.Count;
+            var cost = new int[3];
+            var from = new int[n, 3];
+            for (var i = 0; i < n; i++)
+            {
+                var next = new int[3];
+                for (var m = 0; m < 3; m++)
+                {
+                    next[m] = Inf;
+                    from[i, m] = -1;
+                    if (!Allowed(Modes[m], points[i])) continue;
+                    var charCost = Modes[m] switch
+                    {
+                        Mode.Numeric => 20,
+                        Mode.Alphanumeric => 33,
+                        _ => 48 * byteLengths[i],
+                    };
+                    for (var pm = 0; pm < 3; pm++)
+                    {
+                        var previous = i == 0 ? 0 : cost[pm];
+                        if (previous >= Inf) continue;
+                        var header = i > 0 && pm == m ? 0 : (4 + CountBits(Modes[m], version)) * 6;
+                        var total = previous + header + charCost;
+                        if (total < next[m])
+                        {
+                            next[m] = total;
+                            from[i, m] = pm;
+                        }
+                    }
+                }
+
+                cost = next;
+            }
+
+            var result = new List<Segment>();
+            if (n == 0) return result;
+
+            var modes = new int[n];
+            var best = 0;
+            for (var m = 1; m < 3; m++)
+            {
+                if (cost[m] < cost[best]) best = m;
+            }
+
+            for (var i = n - 1; i >= 0; i--)
+            {
+                modes[i] = best;
+                best = from[i, best];
+            }
+
+            var start = 0;
+            for (var i = 1; i <= n; i++)
+            {
+                if (i < n && modes[i] == modes[start]) continue;
+                result.Add(Build(Modes[modes[start]], string.Concat(points.Skip(start).Take(i - start))));
+                start = i;
+            }
+
+            return result;
+        }
+
+        private static bool Allowed(Mode mode, string point) => mode switch
+        {
+            Mode.Numeric => point.Length == 1 && point[0] >= '0' && point[0] <= '9',
+            Mode.Alphanumeric => point.Length == 1 && AlphanumericCharset.IndexOf(point[0]) >= 0,
+            _ => true,
+        };
+
+        private static Segment Build(Mode mode, string text)
+        {
+            var bits = new BitBuffer();
+            switch (mode)
+            {
+                case Mode.Numeric:
+                    for (var i = 0; i < text.Length; i += 3)
+                    {
+                        var n = Math.Min(3, text.Length - i);
+                        bits.Append(int.Parse(text.Substring(i, n), System.Globalization.CultureInfo.InvariantCulture), n * 3 + 1);
+                    }
+
+                    return new Segment(mode, text.Length, bits.Bits);
+
+                case Mode.Alphanumeric:
+                    for (var i = 0; i + 1 < text.Length; i += 2)
+                    {
+                        bits.Append(AlphanumericCharset.IndexOf(text[i]) * 45 + AlphanumericCharset.IndexOf(text[i + 1]), 11);
+                    }
+
+                    if (text.Length % 2 == 1) bits.Append(AlphanumericCharset.IndexOf(text[text.Length - 1]), 6);
+                    return new Segment(mode, text.Length, bits.Bits);
+
+                default:
+                    var bytes = new UTF8Encoding(false, true).GetBytes(text);
+                    foreach (var b in bytes) bits.Append(b, 8);
+                    return new Segment(mode, bytes.Length, bits.Bits);
+            }
+        }
     }
 
     private sealed class BitBuffer

@@ -9,7 +9,7 @@ namespace TerraFluent.BarCode.Rendering;
 /// </summary>
 internal static class SvgRenderer
 {
-    public static string Render(BarcodeMatrix matrix, RenderOptions options)
+    public static string Render(BarcodeMatrix matrix, RenderOptions options, bool transparent = false)
     {
         var (width, height) = options.ImageSize(matrix);
         var m = options.ModuleSize;
@@ -48,7 +48,7 @@ internal static class SvgRenderer
             .Append(" width=\"").Append(Num(width)).Append("\" height=\"").Append(Num(height)).Append('"')
             .Append(" viewBox=\"0 0 ").Append(Num(width)).Append(' ').Append(Num(height)).Append('"')
             .Append(" shape-rendering=\"crispEdges\">");
-        sb.Append("<rect width=\"100%\" height=\"100%\" fill=\"").Append(options.Background.ToHex()).Append("\"/>");
+        if (!transparent) sb.Append("<rect width=\"100%\" height=\"100%\" fill=\"").Append(options.Background.ToHex()).Append("\"/>");
         if (path.Length > 0)
         {
             sb.Append("<path fill=\"").Append(options.Foreground.ToHex()).Append("\" d=\"").Append(path).Append("\"/>");
@@ -103,18 +103,20 @@ internal static class SvgRenderer
         }
 
         if (gradients.Length > 0) sb.Append("<defs>").Append(gradients).Append("</defs>");
-        sb.Append("<rect width=\"100%\" height=\"100%\" fill=\"").Append(scene.Background.ToHex()).Append("\"/>");
+        if (!scene.Transparent) sb.Append("<rect width=\"100%\" height=\"100%\" fill=\"").Append(scene.Background.ToHex()).Append("\"/>");
 
         for (var i = 0; i < scene.Layers.Count; i++)
         {
             var layer = scene.Layers[i];
-            if (layer.Shapes.Count == 0) continue;
+            if (layer.Shapes.Count == 0 && layer.Paths.Count == 0) continue;
             var d = new StringBuilder();
             foreach (var shape in layer.Shapes)
             {
                 AppendShape(d, shape, clockwise: true);
                 if (shape.Hole is { } hole) AppendShape(d, hole, clockwise: false);
             }
+
+            foreach (var glyph in layer.Paths) d.Append(glyph.SvgPath);
 
             sb.Append("<path fill=\"").Append(fills[i]).Append("\" d=\"").Append(d).Append("\"/>");
         }

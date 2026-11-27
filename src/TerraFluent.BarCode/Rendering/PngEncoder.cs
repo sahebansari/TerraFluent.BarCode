@@ -11,7 +11,7 @@ internal static class PngEncoder
     private static readonly byte[] Signature = { 137, 80, 78, 71, 13, 10, 26, 10 };
     private static readonly uint[] CrcTable = BuildCrcTable();
 
-    public static byte[] Encode(BarcodeMatrix matrix, RenderOptions options)
+    public static byte[] Encode(BarcodeMatrix matrix, RenderOptions options, bool transparent = false)
     {
         var (width, height) = options.ImageSize(matrix);
         var stride = (width + 7) / 8;
@@ -56,26 +56,38 @@ internal static class PngEncoder
         var bg = options.Background;
         var fg = options.Foreground;
         WriteChunk(output, "PLTE", new[] { bg.R, bg.G, bg.B, fg.R, fg.G, fg.B });
+        if (transparent) WriteChunk(output, "tRNS", new byte[] { 0 }); // palette entry 0 (background) fully transparent
         WriteChunk(output, "IDAT", ZlibCompress(raw));
         WriteChunk(output, "IEND", Array.Empty<byte>());
         return output.ToArray();
     }
 
-    /// <summary>Writes a full-colour image (styled barcodes) as an 8-bit RGB PNG, using the Sub filter.</summary>
+    /// <summary>Writes a full-colour image (styled barcodes) as an 8-bit RGB or RGBA PNG, using the Sub filter.</summary>
     public static byte[] Encode(RgbImage image)
     {
-        var stride = image.Width * 3;
+        var channels = image.Alpha is null ? 3 : 4;
+        var stride = image.Width * channels;
         var raw = new byte[image.Height * (stride + 1)];
         var px = image.Pixels;
+        var alpha = image.Alpha;
+        var row = new byte[stride];
         for (var y = 0; y < image.Height; y++)
         {
             var offset = y * (stride + 1);
-            var source = y * stride;
+            for (var x = 0; x < image.Width; x++)
+            {
+                var source = (y * image.Width + x) * 3;
+                row[x * channels] = px[source];
+                row[x * channels + 1] = px[source + 1];
+                row[x * channels + 2] = px[source + 2];
+                if (alpha is not null) row[x * channels + 3] = alpha[y * image.Width + x];
+            }
+
             raw[offset] = 1; // filter: sub
             for (var i = 0; i < stride; i++)
             {
-                var left = i >= 3 ? px[source + i - 3] : 0;
-                raw[offset + 1 + i] = (byte)(px[source + i] - left);
+                var left = i >= channels ? row[i - channels] : 0;
+                raw[offset + 1 + i] = (byte)(row[i] - left);
             }
         }
 
@@ -86,7 +98,7 @@ internal static class PngEncoder
         WriteUInt32(ihdr, 0, (uint)image.Width);
         WriteUInt32(ihdr, 4, (uint)image.Height);
         ihdr[8] = 8; // bit depth
-        ihdr[9] = 2; // colour type: RGB
+        ihdr[9] = (byte)(channels == 4 ? 6 : 2); // colour type: RGBA or RGB
         WriteChunk(output, "IHDR", ihdr);
         WriteChunk(output, "IDAT", ZlibCompress(raw));
         WriteChunk(output, "IEND", Array.Empty<byte>());

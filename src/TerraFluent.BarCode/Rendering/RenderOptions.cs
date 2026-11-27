@@ -3,14 +3,33 @@ namespace TerraFluent.BarCode.Rendering;
 /// <summary>Resolved layout and colour settings shared by all renderers.</summary>
 internal sealed class RenderOptions
 {
-    public RenderOptions(int moduleSize, int barHeight, int quietZone, BarcodeColor foreground, BarcodeColor background)
+    public RenderOptions(int moduleSize, int barHeight, int quietZone, BarcodeColor foreground, BarcodeColor background, int fontSize = 0)
     {
         ModuleSize = moduleSize;
         BarHeight = barHeight;
         QuietZone = quietZone;
         Foreground = foreground;
         Background = background;
+        FontSize = fontSize;
     }
+
+    /// <summary>Size of human-readable text in pixels per em, or 0 for no text.</summary>
+    public int FontSize { get; }
+
+    /// <summary>Extra height below the bars for human-readable text.</summary>
+    public int TextBand => FontSize == 0 ? 0 : (int)Math.Ceiling(FontSize * 1.05);
+
+    /// <summary>Baseline of text under the bars.</summary>
+    public double TextBaseline => BarHeight + FontSize * (0.15 + Rendering.TextFont.CapHeightRatio);
+
+    /// <summary>Bottom of EAN/UPC guard bars, which extend beside the digits.</summary>
+    public double GuardBottom => BarHeight + FontSize * 0.5;
+
+    /// <summary>Baseline of add-on digits, which sit above the add-on bars.</summary>
+    public double AddOnBaseline => FontSize * (0.1 + Rendering.TextFont.CapHeightRatio);
+
+    /// <summary>Top of the add-on bars when add-on digits are shown above them.</summary>
+    public double AddOnTop => FontSize * 0.95;
 
     public int ModuleSize { get; }
     public int BarHeight { get; }
@@ -28,7 +47,7 @@ internal sealed class RenderOptions
     public (int Width, int Height) ImageSize(BarcodeMatrix matrix)
     {
         var width = ((long)matrix.Width + 2L * QuietZone) * ModuleSize;
-        var height = matrix.IsLinear ? BarHeight : ((long)matrix.Height + 2L * QuietZone) * ModuleSize;
+        var height = matrix.IsLinear ? BarHeight + (long)TextBand : ((long)matrix.Height + 2L * QuietZone) * ModuleSize;
         if (width > BarcodeBuilder.MaxImageDimension || height > BarcodeBuilder.MaxImageDimension || width * height > BarcodeBuilder.MaxImagePixels)
         {
             throw new ArgumentException(

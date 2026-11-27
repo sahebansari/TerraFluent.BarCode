@@ -11,6 +11,11 @@ internal sealed class StyleOptions
     public RgbaImage? Logo { get; init; }
     public byte[]? LogoPng { get; init; }
     public double LogoScale { get; init; }
+
+    /// <summary>The symbol has QR finder patterns (eyes); other 2D symbols are drawn as plain modules.</summary>
+    public bool IsQr { get; init; }
+
+    public bool Transparent { get; init; }
 }
 
 /// <summary>Turns a module matrix plus layout and style settings into a <see cref="Scene"/>.</summary>
@@ -32,24 +37,71 @@ internal static class SceneBuilder
             ? Paint.Gradient(g.Start, g.End, g.Direction, originX, originY, symbolWidth, symbolHeight)
             : Paint.Solid(options.Foreground);
 
-        var scene = new Scene(width, height, options.Background);
+        var scene = new Scene(width, height, options.Background, style.Transparent);
         var main = new Layer(paint);
         scene.Layers.Add(main);
 
         if (matrix.IsLinear)
         {
-            AddBars(matrix, main, originX, m, options.BarHeight, style.RoundedBars);
+            AddBars(matrix, main, originX, m, options, style.RoundedBars);
+            if (options.FontSize > 0) AddText(matrix, main, originX, m, options);
+        }
+        else if (style.IsQr)
+        {
+            AddQr(matrix, scene, main, style, originX, originY, m);
         }
         else
         {
-            AddQr(matrix, scene, main, style, originX, originY, m);
+            AddModules(matrix, main, originX, originY, m);
         }
 
         return scene;
     }
 
-    private static void AddBars(BarcodeMatrix matrix, Layer layer, double originX, double m, int barHeight, bool rounded)
+    private static void AddModules(BarcodeMatrix matrix, Layer layer, double originX, double originY, double m)
     {
+        // Horizontal runs keep the shape count low; their union is filled, so it looks the same as single modules.
+        for (var y = 0; y < matrix.Height; y++)
+        {
+            var x = 0;
+            while (x < matrix.Width)
+            {
+                if (!matrix.Get(x, y))
+                {
+                    x++;
+                    continue;
+                }
+
+                var start = x;
+                while (x < matrix.Width && matrix.Get(x, y)) x++;
+                layer.Shapes.Add(Shape.Rounded(originX + start * m, originY + y * m, (x - start) * m, m, 0));
+            }
+        }
+    }
+
+    private static void AddText(BarcodeMatrix matrix, Layer layer, double originX, double m, RenderOptions options)
+    {
+        var layout = matrix.Layout;
+        if (layout is null) return;
+        if (layout.CentredText is { Length: > 0 } text)
+        {
+            // Shrink long text so it never runs past the bars.
+            var size = Math.Min(options.FontSize, matrix.Width * m / (text.Length * TextFont.AdvanceRatio));
+            layer.Paths.AddRange(TextFont.Layout(text, originX + matrix.Width * m / 2, options.TextBaseline, size));
+        }
+
+        foreach (var item in layout.Items)
+        {
+            var size = item.Small ? options.FontSize * 0.75 : options.FontSize;
+            var baseline = item.AboveAddOn ? options.AddOnBaseline : options.TextBaseline;
+            layer.Paths.AddRange(TextFont.Layout(item.Text, originX + item.CentreModule * m, baseline, size));
+        }
+    }
+
+    private static void AddBars(BarcodeMatrix matrix, Layer layer, double originX, double m, RenderOptions options, bool rounded)
+    {
+        var layout = matrix.Layout;
+        var text = options.FontSize > 0;
         var x = 0;
         while (x < matrix.Width)
         {
@@ -62,7 +114,15 @@ internal static class SceneBuilder
             var start = x;
             while (x < matrix.Width && matrix.Get(x, 0)) x++;
             var barWidth = (x - start) * m;
-            layer.Shapes.Add(Shape.Rounded(originX + start * m, 0, barWidth, barHeight, rounded ? barWidth / 2 : 0));
+            double top = 0, bottom = options.BarHeight;
+            if (text && layout is not null)
+            {
+                var isAddOn = layout.AddOnStart >= 0 && start >= layout.AddOnStart;
+                if (isAddOn) top = options.AddOnTop;
+                if (isAddOn || layout.IsExtended(start)) bottom = options.GuardBottom;
+            }
+
+            layer.Shapes.Add(Shape.Rounded(originX + start * m, top, barWidth, bottom - top, rounded ? barWidth / 2 : 0));
         }
     }
 
