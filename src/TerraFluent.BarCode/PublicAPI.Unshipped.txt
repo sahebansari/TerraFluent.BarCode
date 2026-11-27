@@ -166,6 +166,7 @@ static TerraFluent.BarCode.Barcode.Create(TerraFluent.BarCode.BarcodeType type, 
 static TerraFluent.BarCode.Barcode.DataMatrix(string! value) -> TerraFluent.BarCode.BarcodeBuilder!
 static TerraFluent.BarCode.Barcode.Ean13(string! value) -> TerraFluent.BarCode.BarcodeBuilder!
 static TerraFluent.BarCode.Barcode.Ean8(string! value) -> TerraFluent.BarCode.BarcodeBuilder!
+static TerraFluent.BarCode.Barcode.Gs1Code128(params (string! Ai, string! Data)[]! elements) -> TerraFluent.BarCode.BarcodeBuilder!
 static TerraFluent.BarCode.Barcode.Gs1Code128(string! value) -> TerraFluent.BarCode.BarcodeBuilder!
 static TerraFluent.BarCode.Barcode.Pdf417(string! value) -> TerraFluent.BarCode.BarcodeBuilder!
 static TerraFluent.BarCode.Barcode.QrCode(string! value) -> TerraFluent.BarCode.BarcodeBuilder!
