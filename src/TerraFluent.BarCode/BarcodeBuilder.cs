@@ -94,11 +94,19 @@ public sealed class BarcodeBuilder
     private DataMatrixShape _dataMatrixShape;
     private int? _pdf417Columns;
     private int? _pdf417ErrorCorrection;
+    private readonly IReadOnlyList<(string Ai, string Data)>? _gs1Elements;
 
     internal BarcodeBuilder(BarcodeType type, string value)
     {
         Type = type;
         Value = value;
+    }
+
+    internal BarcodeBuilder(IReadOnlyList<(string Ai, string Data)> gs1Elements)
+    {
+        Type = BarcodeType.Gs1Code128;
+        _gs1Elements = gs1Elements;
+        Value = string.Concat(gs1Elements.Select(e => "(" + e.Ai + ")" + e.Data));
     }
 
     /// <summary>The symbology.</summary>
@@ -403,7 +411,7 @@ public sealed class BarcodeBuilder
 
             case BarcodeType.Gs1Code128:
             {
-                var gs1 = Gs1.Parse(Value, "value");
+                var gs1 = _gs1Elements is null ? Gs1.Parse(Value, "value") : Gs1.Build(_gs1Elements, "elements");
                 var matrix = Code128Encoder.Encode(gs1.Encoded, allowFnc1: true);
                 matrix.Layout!.CentredText = gs1.HumanReadable;
                 return matrix;

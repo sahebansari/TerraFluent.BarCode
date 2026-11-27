@@ -58,7 +58,7 @@ await Barcode.Code128("X1").WriteToAsync(response.Body, BarcodeImageFormat.Png);
 | `Barcode.Ean8(value)` | ISO/IEC 15420 | 7 digits (check digit added) or 8 (validated). |
 | `Barcode.UpcA(value)` | ISO/IEC 15420 | 11 digits (check digit added) or 12 (validated). |
 | `Barcode.QrCode(value)` | ISO/IEC 18004 | Any text. Split into numeric, alphanumeric and UTF-8 byte segments for the smallest code (non-ASCII text carries a UTF-8 ECI header so scanners decode it correctly); versions 1-40; levels L/M/Q/H. |
-| `Barcode.Gs1Code128(value)` | GS1 General Specifications | Element string such as `(01)09501101530003(17)250101(10)ABC123`. FNC1 inserted where needed; lengths, character set and GTIN/SSCC/GLN check digits validated; up to 48 data characters. |
+| `Barcode.Gs1Code128(value)` | GS1 General Specifications | Element string such as `(01)09501101530003(17)250101(10)ABC123`. FNC1 inserted where needed. Every AI must be one GS1 defines, and its data is checked for length, digits, check digit and dates; up to 48 data characters. Use `Barcode.Gs1Code128(("01", "09501101530003"), ("10", "LOT(A)"))` when data contains parentheses. |
 | `Barcode.DataMatrix(value)` | ISO/IEC 16022 | Any text (UTF-8 via ECI when needed). ECC 200, 30 square and rectangular sizes; `.DataMatrixShape(...)` picks square (default), rectangle or any. |
 | `Barcode.Pdf417(value)` | ISO/IEC 15438 | Any text (UTF-8 via ECI when needed). Text, numeric and byte compaction; `.Pdf417Columns(1-30)` and `.Pdf417ErrorCorrection(0-8)`. |
 
@@ -202,7 +202,7 @@ The library follows [Semantic Versioning](https://semver.org). The public API
 is tracked in `src/TerraFluent.BarCode/PublicAPI.*.txt` and checked on every
 build, so it cannot change by accident. `AssemblyVersion` stays at
 `major.0.0.0` so upgrades within a major version need no binding redirects.
-Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+Changes are listed in [CHANGELOG.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/CHANGELOG.md).
 
 ## Repository Layout
 
@@ -213,11 +213,11 @@ Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## Contributing and Security
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Please report vulnerabilities privately
-as described in [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/CONTRIBUTING.md). Please report vulnerabilities privately
+as described in [SECURITY.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/SECURITY.md).
 
 ## License
 
-MIT. See [LICENSE](LICENSE). The human-readable text uses glyph outlines from
+MIT. See [LICENSE](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/LICENSE). The human-readable text uses glyph outlines from
 JetBrains Mono (SIL Open Font License 1.1) and the PDF417 tables come from
-pdf417gen (MIT); see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+pdf417gen (MIT); see [THIRD-PARTY-NOTICES.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/THIRD-PARTY-NOTICES.md).
