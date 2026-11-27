@@ -1,0 +1,15 @@
+name: Feature request
+description: A symbology, output format or option you need.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you need and why?
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: How would you like to call it?
+      render: csharp
