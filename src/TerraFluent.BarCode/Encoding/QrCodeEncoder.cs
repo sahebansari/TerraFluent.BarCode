@@ -5,7 +5,9 @@ namespace TerraFluent.BarCode.Encoding;
 /// <summary>
 /// QR code model 2 (ISO/IEC 18004), versions 1-40, all four error-correction
 /// levels. The whole value is encoded as one segment in the most compact mode
-/// that covers it: numeric, alphanumeric, or byte (UTF-8). The mask with the
+/// that covers it: numeric, alphanumeric, or byte (UTF-8). Byte-mode values
+/// containing non-ASCII characters are preceded by an ECI 26 (UTF-8) header so
+/// readers do not fall back to ISO-8859-1 or Shift JIS. The mask with the
 /// lowest penalty score is chosen automatically.
 /// </summary>
 internal static class QrCodeEncoder
@@ -15,6 +17,10 @@ internal static class QrCodeEncoder
     internal const string AlphanumericCharset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:";
 
     internal enum Mode { Numeric = 1, Alphanumeric = 2, Byte = 4 }
+
+    private const int EciMode = 7;
+    private const int Utf8EciDesignator = 26;
+    private const int EciHeaderBits = 4 + 8;
 
     // Indexed [level L/M/Q/H][version]; index 0 is unused.
     private static readonly int[][] EccCodewordsPerBlock =
@@ -38,7 +44,8 @@ internal static class QrCodeEncoder
 
     public static BarcodeMatrix Encode(string value, QrErrorCorrectionLevel level, int? fixedVersion = null, int? fixedMask = null)
     {
-        var (mode, payload, count) = SelectMode(value);
+        var (mode, payload, count, utf8Eci) = SelectMode(value);
+        var eciBits = utf8Eci ? EciHeaderBits : 0;
         var lvl = (int)level;
 
         var version = 0;
@@ -46,7 +53,7 @@ internal static class QrCodeEncoder
         var lastVersion = fixedVersion ?? 40;
         for (var v = firstVersion; v <= lastVersion; v++)
         {
-            var bits = 4 + CountBits(mode, v) + payload.Count;
+            var bits = eciBits + 4 + CountBits(mode, v) + payload.Count;
             if (count < 1 << CountBits(mode, v) && bits <= DataCodewords(v, lvl) * 8)
             {
                 version = v;
@@ -66,6 +73,12 @@ internal static class QrCodeEncoder
         // Header, payload, terminator, byte padding and pad codewords.
         var capacityBits = DataCodewords(version, lvl) * 8;
         var buffer = new BitBuffer();
+        if (utf8Eci)
+        {
+            buffer.Append(EciMode, 4);
+            buffer.Append(Utf8EciDesignator, 8);
+        }
+
         buffer.Append((int)mode, 4);
         buffer.Append(count, CountBits(mode, version));
         buffer.AppendBits(payload);
@@ -107,7 +120,7 @@ internal static class QrCodeEncoder
         return new BarcodeMatrix(symbol.Size, symbol.Size, symbol.Modules, isLinear: false, QuietZone);
     }
 
-    internal static (Mode Mode, List<bool> Payload, int Count) SelectMode(string value)
+    internal static (Mode Mode, List<bool> Payload, int Count, bool Utf8Eci) SelectMode(string value)
     {
         var bits = new BitBuffer();
         if (value.All(c => c >= '0' && c <= '9'))
@@ -118,7 +131,7 @@ internal static class QrCodeEncoder
                 bits.Append(int.Parse(value.Substring(i, n), System.Globalization.CultureInfo.InvariantCulture), n * 3 + 1);
             }
 
-            return (Mode.Numeric, bits.Bits, value.Length);
+            return (Mode.Numeric, bits.Bits, value.Length, false);
         }
 
         if (value.All(c => AlphanumericCharset.IndexOf(c) >= 0))
@@ -129,12 +142,27 @@ internal static class QrCodeEncoder
             }
 
             if (value.Length % 2 == 1) bits.Append(AlphanumericCharset.IndexOf(value[value.Length - 1]), 6);
-            return (Mode.Alphanumeric, bits.Bits, value.Length);
+            return (Mode.Alphanumeric, bits.Bits, value.Length, false);
         }
 
-        var bytes = new UTF8Encoding(false, true).GetBytes(value);
-        foreach (var b in bytes) bits.Append(b, 8);
-        return (Mode.Byte, bits.Bits, bytes.Length);
+        byte[] bytes;
+        try
+        {
+            bytes = new UTF8Encoding(false, true).GetBytes(value);
+        }
+        catch (EncoderFallbackException ex)
+        {
+            throw new ArgumentException("The value contains an unpaired surrogate character and is not valid Unicode text.", nameof(value), ex);
+        }
+
+        var nonAscii = false;
+        foreach (var b in bytes)
+        {
+            bits.Append(b, 8);
+            nonAscii |= b >= 0x80;
+        }
+
+        return (Mode.Byte, bits.Bits, bytes.Length, nonAscii);
     }
 
     internal static int CountBits(Mode mode, int version)

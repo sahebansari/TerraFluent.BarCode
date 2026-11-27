@@ -24,8 +24,12 @@ internal static class Code39Encoder
 
     public const int QuietZone = 10;
 
+    /// <summary>Longest accepted value, in characters.</summary>
+    public const int MaxLength = 128;
+
     public static BarcodeMatrix Encode(string value, bool includeChecksum)
     {
+        Compatibility.Guard.MaxLength(value, MaxLength, "Code 39", nameof(value));
         var indices = new List<int>(value.Length + 1);
         for (var i = 0; i < value.Length; i++)
         {

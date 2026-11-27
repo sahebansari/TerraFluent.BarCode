@@ -21,12 +21,12 @@ internal static class PngDecoder
         using var idat = new MemoryStream();
         var pos = 8;
         var sawEnd = false;
-        while (pos + 8 <= data.Length)
+        while ((long)pos + 8 <= data.Length)
         {
             var length = ReadInt32(data, pos);
             var type = System.Text.Encoding.ASCII.GetString(data, pos + 4, 4);
             pos += 8;
-            if (length < 0 || pos + length + 4 > data.Length) throw new ArgumentException("The PNG file is truncated.", paramName);
+            if (length < 0 || (long)pos + length + 4 > data.Length) throw new ArgumentException("The PNG file is truncated.", paramName);
 
             switch (type)
             {
@@ -73,7 +73,7 @@ internal static class PngDecoder
 
         var bitsPerPixel = channels * bitDepth;
         var bytesPerPixel = Math.Max(1, bitsPerPixel / 8);
-        var stride = (width * bitsPerPixel + 7) / 8;
+        var stride = (int)(((long)width * bitsPerPixel + 7) / 8);
         var raw = Inflate(idat.ToArray(), (stride + 1) * height, paramName);
 
         var rgba = new byte[width * height * 4];
