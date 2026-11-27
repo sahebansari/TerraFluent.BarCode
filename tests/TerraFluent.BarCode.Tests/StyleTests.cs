@@ -10,9 +10,9 @@ public class StyleTests
     public static TheoryData<QrModuleStyle, QrEyeStyle> AllQrStyles()
     {
         var data = new TheoryData<QrModuleStyle, QrEyeStyle>();
-        foreach (var module in Enum.GetValues<QrModuleStyle>())
+        foreach (var module in Enum.GetValues(typeof(QrModuleStyle)).Cast<QrModuleStyle>())
         {
-            foreach (var eye in Enum.GetValues<QrEyeStyle>()) data.Add(module, eye);
+            foreach (var eye in Enum.GetValues(typeof(QrEyeStyle)).Cast<QrEyeStyle>()) data.Add(module, eye);
         }
 
         return data;
