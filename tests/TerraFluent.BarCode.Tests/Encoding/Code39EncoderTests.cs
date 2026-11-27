@@ -30,7 +30,7 @@ public class Code39EncoderTests
     public void Lower_case_is_rejected_with_a_hint()
     {
         var ex = Assert.Throws<ArgumentException>(() => Code39Encoder.Encode("abc", false));
-        Assert.Contains("upper case", ex.Message);
+        Assert.Contains("FullAscii()", ex.Message);
     }
 
     [Fact]

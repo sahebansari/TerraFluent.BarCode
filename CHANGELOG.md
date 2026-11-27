@@ -5,6 +5,28 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-27
+
+### Added
+- New symbologies: `Barcode.Gs1Code128` (GS1-128 with FNC1 and validated
+  application identifiers), `Barcode.DataMatrix` (ECC 200, square and
+  rectangular) and `Barcode.Pdf417`, with `DataMatrixShape(...)`,
+  `Pdf417Columns(...)` and `Pdf417ErrorCorrection(...)`.
+- `HumanReadableText()` and `TextSize(px)`: digits under EAN-13, EAN-8 and
+  UPC-A in their standard positions with extended guard bars, and the value
+  centred under Code 128, Code 39 and GS1-128. Text is drawn from embedded
+  glyph outlines, so output is identical on every platform.
+- `AddOn(digits)`: EAN-2 and EAN-5 add-ons for EAN-13 and UPC-A.
+- `FullAscii()`: Code 39 full ASCII extension.
+- `TransparentBackground()` for PNG and SVG output.
+- `SaveAsync(path)` and `SaveAsync(path, format)`.
+- `IBarcodeGenerator`, `BarcodeGenerator` and `BarcodeOptions` for dependency
+  injection.
+
+### Changed
+- QR codes are split into numeric, alphanumeric and byte segments, so mixed
+  content such as a URL followed by a long number gives a smaller code.
+
 ## [1.0.0] - 2026-11-27
 
 ### Added
@@ -75,6 +97,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Encode()` returns the raw `BarcodeMatrix` for custom renderers.
 - Targets `netstandard2.0` and `net10.0` (trimming and Native AOT compatible).
 
-[Unreleased]: https://github.com/sahebansari/TerraFluent.BarCode/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/sahebansari/TerraFluent.BarCode/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/sahebansari/TerraFluent.BarCode/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sahebansari/TerraFluent.BarCode/compare/v0.1.0...v1.0.0
 [0.1.0]: https://github.com/sahebansari/TerraFluent.BarCode/releases/tag/v0.1.0

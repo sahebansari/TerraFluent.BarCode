@@ -31,6 +31,18 @@ var samples = new (string Name, BarcodeBuilder Builder)[]
     ("code128-fancy", Barcode.Code128("TerraFluent-2026").ModuleSize(3).Height(90).RoundedBars()
         .Gradient("#0D47A1", "#7B1FA2", GradientDirection.Horizontal)),
     ("ean13-fancy", Barcode.Ean13("590123412345").ModuleSize(3).RoundedBars().Gradient("#B71C1C", "#E65100", GradientDirection.Vertical)),
+    ("ean13-text", Barcode.Ean13("590123412345").HumanReadableText()),
+    ("ean13-addon", Barcode.Ean13("978123456789").AddOn("52495").HumanReadableText()),
+    ("upca-text", Barcode.UpcA("03600029145").HumanReadableText()),
+    ("ean8-text", Barcode.Ean8("9638507").HumanReadableText()),
+    ("code128-text", Barcode.Code128("TerraFluent-2026").HumanReadableText()),
+    ("code39-full-ascii", Barcode.Code39("Mixed Case").FullAscii().HumanReadableText()),
+    ("gs1-128", Barcode.Gs1Code128("(01)09501101530003(17)250101(10)ABC123").HumanReadableText()),
+    ("datamatrix", Barcode.DataMatrix("TerraFluent.BarCode Data Matrix")),
+    ("datamatrix-rect", Barcode.DataMatrix("TF-2026").DataMatrixShape(DataMatrixShape.Rectangle)),
+    ("pdf417", Barcode.Pdf417("TerraFluent.BarCode PDF417 sample: https://github.com/sahebansari/TerraFluent.BarCode")),
+    ("qr-mixed", Barcode.QrCode("https://example.com/track/" + "123456789012345678901234567890")),
+    ("qr-transparent", Barcode.QrCode(RepoUrl).TransparentBackground()),
 };
 
 var html = new System.Text.StringBuilder()
@@ -40,17 +52,24 @@ var html = new System.Text.StringBuilder()
 
 foreach (var (name, builder) in samples)
 {
-    builder.Save(Path.Combine(outputDir, name + ".png"));
-    builder.Save(Path.Combine(outputDir, name + ".jpg"));
-    builder.Save(Path.Combine(outputDir, name + ".svg"));
+    // JPEG has no transparency, so transparent samples skip it.
+    var formats = name.EndsWith("transparent", StringComparison.Ordinal)
+        ? new[] { BarcodeImageFormat.Png, BarcodeImageFormat.Svg }
+        : new[] { BarcodeImageFormat.Png, BarcodeImageFormat.Jpeg, BarcodeImageFormat.Svg };
+    foreach (var format in formats)
+    {
+        await builder.SaveAsync(Path.Combine(outputDir, name + format.ToFileExtension()));
+    }
 
     var (width, height) = builder.GetImageSize();
-    Console.WriteLine($"{name,-16} {builder.Type,-8} {width}x{height}px  \"{builder.Value}\"");
+    Console.WriteLine($"{name,-18} {builder.Type,-11} {width}x{height}px  \"{builder.Value}\"");
 
     html.Append("<tr><td>").Append(WebUtility.HtmlEncode($"{name} ({builder.Type})")).Append("</td>");
     foreach (var format in new[] { BarcodeImageFormat.Png, BarcodeImageFormat.Jpeg, BarcodeImageFormat.Svg })
     {
-        html.Append("<td><img alt=\"").Append(format).Append("\" src=\"").Append(builder.ToDataUri(format)).Append("\"></td>");
+        html.Append(formats.Contains(format)
+            ? $"<td><img alt=\"{format}\" src=\"{builder.ToDataUri(format)}\"></td>"
+            : "<td></td>");
     }
 
     html.Append("</tr>");
@@ -65,5 +84,8 @@ using (var stream = Barcode.Code128("STREAM").ToStream(BarcodeImageFormat.Png))
     Console.WriteLine($"Stream output: {stream.Length} bytes");
 }
 
+// Dependency injection: register one BarcodeGenerator as IBarcodeGenerator.
+IBarcodeGenerator generator = new BarcodeGenerator(new BarcodeOptions { HumanReadableText = true });
+Console.WriteLine($"IBarcodeGenerator PNG: {generator.Generate(BarcodeType.Code128, "DI-123").Length} bytes");
 Console.WriteLine($"Base64 (first 40 chars): {Barcode.QrCode("base64").ToBase64()[..40]}...");
 Console.WriteLine($"Wrote samples to {outputDir}");

@@ -30,8 +30,11 @@ public sealed class BarcodeBuilder
     /// <summary>Default width of one module (the narrowest bar) for linear barcodes, in pixels.</summary>
     public const int DefaultLinearModuleSize = 2;
 
-    /// <summary>Default size of one QR module, in pixels.</summary>
+    /// <summary>Default size of one QR or Data Matrix module, in pixels.</summary>
     public const int DefaultQrModuleSize = 4;
+
+    /// <summary>Default width of one PDF417 module, in pixels (rows are three modules high).</summary>
+    public const int DefaultPdf417ModuleSize = 2;
 
     /// <summary>Default bar height for linear barcodes, in pixels.</summary>
     public const int DefaultBarHeight = 80;
@@ -83,6 +86,14 @@ public sealed class BarcodeBuilder
     private byte[]? _logoPng;
     private double _logoScale = DefaultLogoScale;
     private bool _allowLowContrast;
+    private bool _fullAscii;
+    private string? _addOn;
+    private bool _humanReadable;
+    private int? _fontSize;
+    private bool _transparent;
+    private DataMatrixShape _dataMatrixShape;
+    private int? _pdf417Columns;
+    private int? _pdf417ErrorCorrection;
 
     internal BarcodeBuilder(BarcodeType type, string value)
     {
@@ -96,11 +107,14 @@ public sealed class BarcodeBuilder
     /// <summary>The value being encoded, as passed in.</summary>
     public string Value { get; }
 
-    private bool IsLinear => Type != BarcodeType.QrCode;
+    private bool IsLinear => Type is not (BarcodeType.QrCode or BarcodeType.DataMatrix or BarcodeType.Pdf417);
+
+    private bool IsEanUpc => Type is BarcodeType.Ean13 or BarcodeType.Ean8 or BarcodeType.UpcA;
 
     /// <summary>
     /// Size of one module in pixels: the narrowest bar of a linear barcode, or
-    /// one square of a QR code. Defaults to 2 for linear barcodes and 4 for QR codes.
+    /// one square of a 2D code. Defaults to 2 for linear barcodes and PDF417,
+    /// and 4 for QR codes and Data Matrix.
     /// </summary>
     public BarcodeBuilder ModuleSize(int pixels)
     {
@@ -108,10 +122,13 @@ public sealed class BarcodeBuilder
         return this;
     }
 
-    /// <summary>Bar height of a linear barcode in pixels (default 80). Not allowed for QR codes, which are square.</summary>
+    /// <summary>
+    /// Bar height of a linear barcode in pixels (default 80), not counting
+    /// human-readable text. Not allowed for 2D codes, whose size follows from ModuleSize.
+    /// </summary>
     public BarcodeBuilder Height(int pixels)
     {
-        if (!IsLinear) throw new InvalidOperationException("Height applies to linear barcodes only; a QR code's size follows from ModuleSize.");
+        if (!IsLinear) throw new InvalidOperationException("Height applies to linear barcodes only; a 2D code's size follows from ModuleSize.");
         _barHeight = Guard.InRange(pixels, 1, MaxImageDimension, nameof(pixels));
         return this;
     }
@@ -119,8 +136,8 @@ public sealed class BarcodeBuilder
     /// <summary>
     /// Blank margin in modules on each side (linear barcodes: left and right only).
     /// Defaults to what the symbology's specification asks for: 10 for Code 128/39,
-    /// 11 for EAN-13, 9 for UPC-A, 7 for EAN-8 and 4 for QR codes. Scanners may
-    /// fail with a smaller value.
+    /// 11 for EAN-13, 9 for UPC-A, 7 for EAN-8, 4 for QR codes and 2 for Data
+    /// Matrix and PDF417. Scanners may fail with a smaller value.
     /// </summary>
     public BarcodeBuilder QuietZone(int modules)
     {
@@ -155,6 +172,101 @@ public sealed class BarcodeBuilder
         if (level < QrErrorCorrectionLevel.L || level > QrErrorCorrectionLevel.H) throw new ArgumentOutOfRangeException(nameof(level));
         _errorCorrection = level;
         _errorCorrectionSet = true;
+        _matrix = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Encodes all 128 ASCII characters, including lower case, using the Code 39
+    /// full ASCII extension (each extra character takes two symbol characters).
+    /// The scanner must have full ASCII mode turned on. Code 39 only.
+    /// </summary>
+    public BarcodeBuilder FullAscii(bool enable = true)
+    {
+        if (Type != BarcodeType.Code39) throw new InvalidOperationException("FullAscii applies to Code 39 only.");
+        _fullAscii = enable;
+        _matrix = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Appends a 2-digit (EAN-2) or 5-digit (EAN-5) add-on, as used for periodical
+    /// issue numbers and book prices. EAN-13 and UPC-A only.
+    /// </summary>
+    /// <exception cref="ArgumentException"><paramref name="digits"/> is not 2 or 5 digits.</exception>
+    public BarcodeBuilder AddOn(string digits)
+    {
+        if (Type is not (BarcodeType.Ean13 or BarcodeType.UpcA)) throw new InvalidOperationException("AddOn applies to EAN-13 and UPC-A only.");
+        _addOn = EanUpcEncoder.ValidateAddOn(digits, nameof(digits));
+        _matrix = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Prints the human-readable text under a linear barcode: EAN/UPC digits in
+    /// their standard positions with extended guard bars, or the value centred
+    /// under Code 128, Code 39 and GS1-128 (with AIs in parentheses). The image
+    /// grows by about one text line. Linear barcodes only.
+    /// </summary>
+    public BarcodeBuilder HumanReadableText(bool show = true)
+    {
+        if (!IsLinear) throw new InvalidOperationException("HumanReadableText applies to linear barcodes only.");
+        _humanReadable = show;
+        return this;
+    }
+
+    /// <summary>
+    /// Font size of the human-readable text, in pixels per em. Defaults to 10
+    /// modules for EAN/UPC and 9 modules for other linear barcodes. Text that is
+    /// wider than the bars is shrunk to fit. Linear barcodes only.
+    /// </summary>
+    public BarcodeBuilder TextSize(int pixels)
+    {
+        if (!IsLinear) throw new InvalidOperationException("TextSize applies to linear barcodes only.");
+        _fontSize = Guard.InRange(pixels, 4, 1000, nameof(pixels));
+        return this;
+    }
+
+    /// <summary>
+    /// Leaves the background transparent in PNG and SVG output. The contrast
+    /// check still uses <see cref="Background(BarcodeColor)"/>, so set it to the
+    /// colour of the surface the code will be placed on. JPEG has no
+    /// transparency, so JPEG output then throws <see cref="InvalidOperationException"/>.
+    /// </summary>
+    public BarcodeBuilder TransparentBackground(bool transparent = true)
+    {
+        _transparent = transparent;
+        return this;
+    }
+
+    /// <summary>Which symbol shapes may be used (default <see cref="BarCode.DataMatrixShape.Square"/>). Data Matrix only.</summary>
+    public BarcodeBuilder DataMatrixShape(DataMatrixShape shape)
+    {
+        if (Type != BarcodeType.DataMatrix) throw new InvalidOperationException("DataMatrixShape applies to Data Matrix only.");
+        if (shape < BarCode.DataMatrixShape.Square || shape > BarCode.DataMatrixShape.Any) throw new ArgumentOutOfRangeException(nameof(shape));
+        _dataMatrixShape = shape;
+        _matrix = null;
+        return this;
+    }
+
+    /// <summary>Number of data columns, 1 to 30 (default: chosen for a roughly 3:1 symbol). PDF417 only.</summary>
+    public BarcodeBuilder Pdf417Columns(int columns)
+    {
+        if (Type != BarcodeType.Pdf417) throw new InvalidOperationException("Pdf417Columns applies to PDF417 only.");
+        _pdf417Columns = Guard.InRange(columns, Pdf417Encoder.MinColumns, Pdf417Encoder.MaxColumns, nameof(columns));
+        _matrix = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Error-correction level 0 to 8; level n adds 2^(n+1) error-correction
+    /// codewords (default: the level ISO/IEC 15438 recommends for the data size,
+    /// 2 to 6). PDF417 only.
+    /// </summary>
+    public BarcodeBuilder Pdf417ErrorCorrection(int level)
+    {
+        if (Type != BarcodeType.Pdf417) throw new InvalidOperationException("Pdf417ErrorCorrection applies to PDF417 only.");
+        _pdf417ErrorCorrection = Guard.InRange(level, 0, 8, nameof(level));
         _matrix = null;
         return this;
     }
@@ -276,16 +388,43 @@ public sealed class BarcodeBuilder
     /// result is cached until an encoding option changes.
     /// </summary>
     /// <exception cref="ArgumentException">The value cannot be encoded in this symbology.</exception>
-    public BarcodeMatrix Encode() => _matrix ??= Type switch
+    public BarcodeMatrix Encode() => _matrix ??= EncodeCore();
+
+    private BarcodeMatrix EncodeCore()
     {
-        BarcodeType.Code128 => Code128Encoder.Encode(Value),
-        BarcodeType.Code39 => Code39Encoder.Encode(Value, _code39Checksum),
-        BarcodeType.Ean13 => EanUpcEncoder.EncodeEan13(Value),
-        BarcodeType.Ean8 => EanUpcEncoder.EncodeEan8(Value),
-        BarcodeType.UpcA => EanUpcEncoder.EncodeUpcA(Value),
-        BarcodeType.QrCode => QrCodeEncoder.Encode(Value, EffectiveErrorCorrection),
-        _ => throw new InvalidOperationException($"Unsupported barcode type {Type}."),
-    };
+        switch (Type)
+        {
+            case BarcodeType.Code128:
+            {
+                var matrix = Code128Encoder.Encode(Value);
+                matrix.Layout!.CentredText = new string(Value.Select(c => c < ' ' || c == 127 ? ' ' : c).ToArray());
+                return matrix;
+            }
+
+            case BarcodeType.Gs1Code128:
+            {
+                var gs1 = Gs1.Parse(Value, "value");
+                var matrix = Code128Encoder.Encode(gs1.Encoded, allowFnc1: true);
+                matrix.Layout!.CentredText = gs1.HumanReadable;
+                return matrix;
+            }
+
+            case BarcodeType.Code39:
+            {
+                var matrix = Code39Encoder.Encode(Value, _code39Checksum, _fullAscii);
+                matrix.Layout!.CentredText = new string(Value.Select(c => c < ' ' || c == 127 ? ' ' : c).ToArray());
+                return matrix;
+            }
+
+            case BarcodeType.Ean13: return EanUpcEncoder.EncodeEan13(Value, _addOn);
+            case BarcodeType.Ean8: return EanUpcEncoder.EncodeEan8(Value);
+            case BarcodeType.UpcA: return EanUpcEncoder.EncodeUpcA(Value, _addOn);
+            case BarcodeType.QrCode: return QrCodeEncoder.Encode(Value, EffectiveErrorCorrection);
+            case BarcodeType.DataMatrix: return DataMatrixEncoder.Encode(Value, _dataMatrixShape);
+            case BarcodeType.Pdf417: return Pdf417Encoder.Encode(Value, _pdf417Columns, _pdf417ErrorCorrection);
+            default: throw new InvalidOperationException($"Unsupported barcode type {Type}.");
+        }
+    }
 
     /// <summary>The output image size in pixels with the current settings.</summary>
     public (int Width, int Height) GetImageSize() => CreateRenderOptions().ImageSize(Encode());
@@ -296,17 +435,21 @@ public sealed class BarcodeBuilder
     /// </summary>
     public byte[] ToPng() => CreateScene() is { } scene
         ? PngEncoder.Encode(Rasterizer.Render(scene))
-        : PngEncoder.Encode(Encode(), CreateRenderOptions());
+        : PngEncoder.Encode(Encode(), CreateRenderOptions(), _transparent);
 
     /// <summary>Renders a baseline JPEG at the configured <see cref="JpegQuality"/>.</summary>
-    public byte[] ToJpeg() => CreateScene() is { } scene
-        ? JpegEncoder.Encode(Rasterizer.Render(scene), _jpegQuality)
-        : JpegEncoder.Encode(Encode(), CreateRenderOptions(), _jpegQuality);
+    public byte[] ToJpeg()
+    {
+        if (_transparent) throw new InvalidOperationException("JPEG has no transparency; use PNG or SVG, or remove TransparentBackground().");
+        return CreateScene() is { } scene
+            ? JpegEncoder.Encode(Rasterizer.Render(scene), _jpegQuality)
+            : JpegEncoder.Encode(Encode(), CreateRenderOptions(), _jpegQuality);
+    }
 
     /// <summary>Renders an SVG document.</summary>
     public string ToSvg() => CreateScene() is { } scene
         ? SvgRenderer.Render(scene)
-        : SvgRenderer.Render(Encode(), CreateRenderOptions());
+        : SvgRenderer.Render(Encode(), CreateRenderOptions(), _transparent);
 
     /// <summary>Renders the image in <paramref name="format"/> as bytes (SVG as UTF-8 without BOM).</summary>
     public byte[] ToBytes(BarcodeImageFormat format = BarcodeImageFormat.Png) => format switch
@@ -352,12 +495,28 @@ public sealed class BarcodeBuilder
         File.WriteAllBytes(path, ToBytes(format));
     }
 
+    /// <summary>
+    /// Saves the image to <paramref name="path"/> asynchronously, choosing the
+    /// format from its extension (.png, .jpg, .jpeg, .svg).
+    /// </summary>
+    public Task SaveAsync(string path, CancellationToken cancellationToken = default) =>
+        SaveAsync(path, BarcodeImageFormatExtensions.FromFilePath(path), cancellationToken);
+
+    /// <summary>Saves the image to <paramref name="path"/> in <paramref name="format"/> asynchronously.</summary>
+    public async Task SaveAsync(string path, BarcodeImageFormat format, CancellationToken cancellationToken = default)
+    {
+        if (path is null) throw new ArgumentNullException(nameof(path));
+        var bytes = ToBytes(format);
+        using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+        await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
+    }
+
     private QrErrorCorrectionLevel EffectiveErrorCorrection =>
         _errorCorrectionSet || _logo is null ? _errorCorrection : QrErrorCorrectionLevel.H;
 
     private bool IsStyled =>
         _moduleStyle != QrModuleStyle.Square || _eyeStyle != QrEyeStyle.Square || _eyeColor is not null
-        || _gradient is not null || _roundedBars || _logo is not null;
+        || _gradient is not null || _roundedBars || _logo is not null || _humanReadable;
 
     private void RequireQr(string option)
     {
@@ -414,17 +573,27 @@ public sealed class BarcodeBuilder
             Logo = _logo,
             LogoPng = _logoPng,
             LogoScale = _logoScale,
+            IsQr = Type == BarcodeType.QrCode,
+            Transparent = _transparent,
         });
     }
 
     private RenderOptions CreateRenderOptions()
     {
         var matrix = Encode();
+        var moduleSize = _moduleSize ?? Type switch
+        {
+            BarcodeType.QrCode or BarcodeType.DataMatrix => DefaultQrModuleSize,
+            BarcodeType.Pdf417 => DefaultPdf417ModuleSize,
+            _ => DefaultLinearModuleSize,
+        };
+        var fontSize = !_humanReadable ? 0 : _fontSize ?? Math.Max(8, moduleSize * (IsEanUpc ? 10 : 9));
         return new RenderOptions(
-            _moduleSize ?? (IsLinear ? DefaultLinearModuleSize : DefaultQrModuleSize),
+            moduleSize,
             _barHeight,
             _quietZone ?? matrix.RecommendedQuietZone,
             _foreground,
-            _background);
+            _background,
+            fontSize);
     }
 }

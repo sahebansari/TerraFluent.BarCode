@@ -1,18 +1,22 @@
 namespace TerraFluent.BarCode.Rendering;
 
-/// <summary>An 8-bit RGB pixel buffer, row by row.</summary>
+/// <summary>An 8-bit RGB pixel buffer, row by row, with an optional alpha channel.</summary>
 internal sealed class RgbImage
 {
-    public RgbImage(int width, int height)
+    public RgbImage(int width, int height, bool withAlpha = false)
     {
         Width = width;
         Height = height;
         Pixels = new byte[checked(width * height * 3)];
+        if (withAlpha) Alpha = new byte[width * height];
     }
 
     public int Width { get; }
     public int Height { get; }
     public byte[] Pixels { get; }
+
+    /// <summary>Straight (non-premultiplied) alpha per pixel, or <c>null</c> for an opaque image.</summary>
+    public byte[]? Alpha { get; }
 
     public BarcodeColor this[int x, int y]
     {
@@ -60,7 +64,7 @@ internal static class Rasterizer
 
     public static RgbImage Render(Scene scene)
     {
-        var image = new RgbImage(scene.Width, scene.Height);
+        var image = new RgbImage(scene.Width, scene.Height, scene.Transparent);
         var px = image.Pixels;
         var bg = scene.Background;
         for (var i = 0; i < px.Length; i += 3)
@@ -70,12 +74,15 @@ internal static class Rasterizer
             px[i + 2] = bg.B;
         }
 
+        if (image.Alpha is not null) Array.Clear(image.Alpha, 0, image.Alpha.Length);
+
         // One bit per sample point; the union of a layer's shapes is OR-ed together, so shared edges leave no seams.
         var coverage = new ushort[scene.Width * scene.Height];
         foreach (var layer in scene.Layers)
         {
             Array.Clear(coverage, 0, coverage.Length);
             foreach (var shape in layer.Shapes) Cover(shape, coverage, scene.Width, scene.Height);
+            foreach (var path in layer.Paths) Cover(path, coverage, scene.Width, scene.Height);
             Composite(image, coverage, layer.Paint);
         }
 
@@ -122,6 +129,34 @@ internal static class Rasterizer
         }
     }
 
+    private static void Cover(PathShape path, ushort[] coverage, int width, int height)
+    {
+        var x0 = Math.Max(0, (int)Math.Floor(path.MinX));
+        var y0 = Math.Max(0, (int)Math.Floor(path.MinY));
+        var x1 = Math.Min(width, (int)Math.Ceiling(path.MaxX) + 1);
+        var y1 = Math.Min(height, (int)Math.Ceiling(path.MaxY) + 1);
+        for (var y = y0; y < y1; y++)
+        {
+            for (var x = x0; x < x1; x++)
+            {
+                var index = y * width + x;
+                if (coverage[index] == Full) continue;
+                var bits = 0;
+                var bit = 0;
+                for (var sy = 0; sy < Samples; sy++)
+                {
+                    var sampleY = y + (sy + 0.5) / Samples;
+                    for (var sx = 0; sx < Samples; sx++, bit++)
+                    {
+                        if (path.Contains(x + (sx + 0.5) / Samples, sampleY)) bits |= 1 << bit;
+                    }
+                }
+
+                coverage[index] |= (ushort)bits;
+            }
+        }
+    }
+
     private static void Composite(RgbImage image, ushort[] coverage, Paint paint)
     {
         var px = image.Pixels;
@@ -133,6 +168,12 @@ internal static class Rasterizer
                 if (c == 0) continue;
                 var color = paint.At(x + 0.5, y + 0.5);
                 var i = (y * image.Width + x) * 3;
+                if (image.Alpha is { } alphaChannel)
+                {
+                    Over(px, alphaChannel, i, color.R, color.G, color.B, PopCount(c) / (double)(Samples * Samples));
+                    continue;
+                }
+
                 if (c == Full)
                 {
                     px[i] = color.R;
@@ -166,6 +207,12 @@ internal static class Rasterizer
                 var (r, g, b, a) = Sample(src, tx * scaleX, ty * scaleY, (tx + 1) * scaleX, (ty + 1) * scaleY);
                 if (a <= 0) continue;
                 var i = (y * image.Width + x) * 3;
+                if (image.Alpha is { } alphaChannel)
+                {
+                    Over(px, alphaChannel, i, r / a, g / a, b / a, a);
+                    continue;
+                }
+
                 // Sample returns premultiplied colour.
                 px[i] = ClampByte(px[i] * (1 - a) + r);
                 px[i + 1] = ClampByte(px[i + 1] * (1 - a) + g);
@@ -231,6 +278,19 @@ internal static class Rasterizer
         Add(xa, yb, (1 - fx) * fy);
         Add(xb, yb, fx * fy);
         return (r, g, b, a);
+    }
+
+    /// <summary>Porter-Duff "over" onto a pixel with straight alpha.</summary>
+    private static void Over(byte[] px, byte[] alpha, int i, double r, double g, double b, double a)
+    {
+        var dstA = alpha[i / 3] / 255.0;
+        var outA = a + dstA * (1 - a);
+        if (outA <= 0) return;
+        var keep = dstA * (1 - a);
+        px[i] = ClampByte((r * a + px[i] * keep) / outA);
+        px[i + 1] = ClampByte((g * a + px[i + 1] * keep) / outA);
+        px[i + 2] = ClampByte((b * a + px[i + 2] * keep) / outA);
+        alpha[i / 3] = ClampByte(outA * 255);
     }
 
     private static byte Blend(byte under, byte over, double alpha) => ClampByte(under + (over - under) * alpha);
