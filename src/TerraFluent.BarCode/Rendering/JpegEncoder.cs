@@ -68,12 +68,36 @@ internal static class JpegEncoder
         var fg = options.Foreground;
         var bg = options.Background;
         var greyscale = fg.R == fg.G && fg.G == fg.B && bg.R == bg.G && bg.G == bg.B;
-        var componentCount = greyscale ? 1 : 3;
 
         // Per-component sample value for a dark and a light pixel.
         var darkSample = ToComponents(fg, greyscale);
         var lightSample = ToComponents(bg, greyscale);
+        return Encode(width, height, greyscale, quality, (x, y, c) => options.IsDark(matrix, x, y) ? darkSample[c] : lightSample[c]);
+    }
 
+    /// <summary>Encodes a full-colour image (styled barcodes).</summary>
+    public static byte[] Encode(RgbImage image, int quality)
+    {
+        var greyscale = image.IsGreyscale();
+        var px = image.Pixels;
+        return Encode(image.Width, image.Height, greyscale, quality, (x, y, c) =>
+        {
+            var i = (y * image.Width + x) * 3;
+            double r = px[i], g = px[i + 1], b = px[i + 2];
+            if (greyscale) return r;
+            return c switch
+            {
+                0 => 0.299 * r + 0.587 * g + 0.114 * b,
+                1 => -0.168736 * r - 0.331264 * g + 0.5 * b + 128,
+                _ => 0.5 * r - 0.418688 * g - 0.081312 * b + 128,
+            };
+        });
+    }
+
+    // sample(x, y, c): component c (Y, Cb, Cr; or grey) of pixel (x, y), 0-255.
+    private static byte[] Encode(int width, int height, bool greyscale, int quality, Func<int, int, int, double> sample)
+    {
+        var componentCount = greyscale ? 1 : 3;
         var quant = new[] { Scale(LuminanceQuant, quality), Scale(ChrominanceQuant, quality) };
 
         using var output = new MemoryStream();
@@ -122,8 +146,7 @@ internal static class JpegEncoder
                         for (var x = 0; x < 8; x++)
                         {
                             var px = Math.Min(bx + x, width - 1);
-                            var dark = options.IsDark(matrix, px, py);
-                            block[y * 8 + x] = (dark ? darkSample[c] : lightSample[c]) - 128.0;
+                            block[y * 8 + x] = sample(px, py, c) - 128.0;
                         }
                     }
 
