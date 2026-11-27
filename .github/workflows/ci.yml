@@ -41,7 +41,14 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
+      # Coverage is collected on Linux only: coverlet rewrites the assemblies it instruments, which breaks
+      # their strong-name signature, and .NET Framework (net48, Windows) refuses to load them.
       - name: Test
+        if: matrix.os != 'ubuntu-latest'
+        run: dotnet test tests/TerraFluent.BarCode.Tests/TerraFluent.BarCode.Tests.csproj --configuration Release --no-build
+
+      - name: Test with coverage
+        if: matrix.os == 'ubuntu-latest'
         run: dotnet test tests/TerraFluent.BarCode.Tests/TerraFluent.BarCode.Tests.csproj --configuration Release --no-build --collect "XPlat Code Coverage" --results-directory test-results
 
       - name: Upload coverage
