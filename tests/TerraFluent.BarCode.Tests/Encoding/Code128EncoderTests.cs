@@ -10,7 +10,7 @@ public class Code128EncoderTests
         var values = Code128Encoder.EncodeValues("1234567890");
         Assert.Equal(105, values[0]); // Start C
         Assert.Equal(new[] { 12, 34, 56, 78, 90 }, values.Skip(1).Take(5));
-        Assert.Equal(106, values[^1]);
+        Assert.Equal(106, values[values.Count - 1]);
     }
 
     [Fact]

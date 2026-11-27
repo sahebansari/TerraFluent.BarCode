@@ -241,7 +241,7 @@ public sealed class BarcodeBuilder
         RequireQr(nameof(Logo));
         if (double.IsNaN(scale) || scale < 0.05 || scale > MaxLogoScale)
         {
-            throw new ArgumentOutOfRangeException(nameof(scale), scale, $"Logo scale must be between 0.05 and {MaxLogoScale}.");
+            throw new ArgumentOutOfRangeException(nameof(scale), scale, FormattableString.Invariant($"Logo scale must be between 0.05 and {MaxLogoScale}."));
         }
 
         _logo = PngDecoder.Decode(png, nameof(png));
@@ -377,8 +377,8 @@ public sealed class BarcodeBuilder
 
             if (level == QrErrorCorrectionLevel.Q && _logoScale > MaxLogoScaleAtQ)
             {
-                throw new InvalidOperationException(
-                    $"At error-correction level Q the logo scale can be at most {MaxLogoScaleAtQ}; it is {_logoScale}. Use level H or a smaller logo.");
+                throw new InvalidOperationException(FormattableString.Invariant(
+                    $"At error-correction level Q the logo scale can be at most {MaxLogoScaleAtQ}; it is {_logoScale}. Use level H or a smaller logo."));
             }
         }
 
@@ -393,8 +393,8 @@ public sealed class BarcodeBuilder
         var ratio = BarcodeColor.ContrastRatio(color, _background);
         if (ratio < MinContrastRatio)
         {
-            throw new InvalidOperationException(
-                $"{option} {color} on background {_background} has a contrast ratio of {ratio:0.0}:1, below the {MinContrastRatio:0.0}:1 scanners need. " +
+            throw new InvalidOperationException(FormattableString.Invariant(
+                $"{option} {color} on background {_background} has a contrast ratio of {ratio:0.0}:1, below the {MinContrastRatio:0.0}:1 scanners need. ") +
                 "Use a darker or lighter colour, or call AllowLowContrast() if you have tested it.");
         }
     }
