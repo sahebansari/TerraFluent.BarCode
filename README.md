@@ -65,7 +65,7 @@ wrong (for example `Invalid EAN-13 check digit: '8' should be '7'.`).
 
 | Method | Returns |
 | --- | --- |
-| `ToPng()` | `byte[]`, 1-bit indexed PNG (smallest lossless form) |
+| `ToPng()` | `byte[]`, 1-bit indexed PNG (smallest lossless form); 8-bit RGB when styled |
 | `ToJpeg()` | `byte[]`, baseline JPEG (`JpegQuality`, default 90) |
 | `ToSvg()` | `string`, SVG document |
 | `ToBytes(format)` | `byte[]` in any format |
@@ -91,6 +91,50 @@ two-colour images, so prefer PNG or SVG: JPEG compression softens bar edges.
 | `ErrorCorrection(level)` | `M` | QR codes only. |
 | `WithChecksum()` | off | Code 39 only. |
 | `JpegQuality(1-100)` | 90 | JPEG output only. |
+
+## Fancy Styles
+
+Rounded and dotted modules, shaped eyes, gradients, logos and rounded bars
+work in every output format: SVG gets real gradients and curves, PNG and JPEG
+are anti-aliased.
+
+```csharp
+// Dotted QR code with circular eyes and a diagonal gradient
+byte[] dots = Barcode.QrCode("https://terrafluent.dev")
+    .ModuleSize(8)
+    .ModuleStyle(QrModuleStyle.Dots)
+    .EyeStyle(QrEyeStyle.Circle)
+    .Gradient("#1A3C8F", "#7B1FA2", GradientDirection.Diagonal)
+    .ToPng();
+
+// Logo in the centre (PNG bytes, transparency kept). Level H is used automatically.
+string svg = Barcode.QrCode("https://terrafluent.dev")
+    .ModuleStyle(QrModuleStyle.Connected)
+    .EyeStyle(QrEyeStyle.Rounded)
+    .EyeColor("#E65100")
+    .Logo(File.ReadAllBytes("logo.png"), scale: 0.25)
+    .ToSvg();
+
+// Pill-shaped bars with a horizontal gradient
+byte[] bars = Barcode.Code128("ABC-12345").ModuleSize(3).RoundedBars()
+    .Gradient("#0D47A1", "#7B1FA2", GradientDirection.Horizontal)
+    .ToPng();
+```
+
+| Option | Applies to | Values |
+| --- | --- | --- |
+| `ModuleStyle(style)` | QR | `Square` (default), `Rounded`, `Dots`, `Connected` |
+| `EyeStyle(style)` | QR | `Square` (default), `Rounded`, `Circle` |
+| `EyeColor(color)` | QR | colour of the three corner eyes |
+| `Logo(png, scale)` | QR | PNG bytes; `scale` 0.05-0.3 of the code width (default 0.2) |
+| `Gradient(start, end, direction)` | all | `Horizontal`, `Vertical`, `Diagonal` (default), `Radial` |
+| `RoundedBars()` | linear | rounded bar ends |
+
+Every style keeps each module's centre where a scanner reads it, and the
+logo is kept clear of the eyes, timing and format modules. Keep gradient
+colours dark against a light background, and test-scan styled codes on the
+devices you target. Barcodes without any style produce exactly the same
+output as before.
 
 ## Not yet supported
 
