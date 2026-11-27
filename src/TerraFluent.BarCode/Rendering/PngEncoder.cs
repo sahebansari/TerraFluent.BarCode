@@ -61,6 +61,38 @@ internal static class PngEncoder
         return output.ToArray();
     }
 
+    /// <summary>Writes a full-colour image (styled barcodes) as an 8-bit RGB PNG, using the Sub filter.</summary>
+    public static byte[] Encode(RgbImage image)
+    {
+        var stride = image.Width * 3;
+        var raw = new byte[image.Height * (stride + 1)];
+        var px = image.Pixels;
+        for (var y = 0; y < image.Height; y++)
+        {
+            var offset = y * (stride + 1);
+            var source = y * stride;
+            raw[offset] = 1; // filter: sub
+            for (var i = 0; i < stride; i++)
+            {
+                var left = i >= 3 ? px[source + i - 3] : 0;
+                raw[offset + 1 + i] = (byte)(px[source + i] - left);
+            }
+        }
+
+        using var output = new MemoryStream();
+        output.Write(Signature, 0, Signature.Length);
+
+        var ihdr = new byte[13];
+        WriteUInt32(ihdr, 0, (uint)image.Width);
+        WriteUInt32(ihdr, 4, (uint)image.Height);
+        ihdr[8] = 8; // bit depth
+        ihdr[9] = 2; // colour type: RGB
+        WriteChunk(output, "IHDR", ihdr);
+        WriteChunk(output, "IDAT", ZlibCompress(raw));
+        WriteChunk(output, "IEND", Array.Empty<byte>());
+        return output.ToArray();
+    }
+
     private static byte[] ZlibCompress(byte[] data)
     {
         using var ms = new MemoryStream();

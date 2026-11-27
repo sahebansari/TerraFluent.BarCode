@@ -5,6 +5,7 @@ using TerraFluent.BarCode;
 // index.html that shows them side by side using data URIs.
 var outputDir = args.Length > 0 ? args[0] : Path.Combine(Environment.CurrentDirectory, "barcode-samples");
 Directory.CreateDirectory(outputDir);
+const string RepoUrl = "https://github.com/sahebansari/TerraFluent.BarCode";
 
 var samples = new (string Name, BarcodeBuilder Builder)[]
 {
@@ -17,6 +18,19 @@ var samples = new (string Name, BarcodeBuilder Builder)[]
     ("qr", Barcode.QrCode("https://github.com/sahebansari/TerraFluent.BarCode")),
     ("qr-high-ecc", Barcode.QrCode("WIFI:T:WPA;S:Guest;P:welcome123;;").ErrorCorrection(QrErrorCorrectionLevel.H).ModuleSize(6)),
     ("qr-coloured", Barcode.QrCode("Grüße — こんにちは").Foreground("#1A3C8F").Background("#FFF8E0")),
+
+    // Fancy styles: rounded/dotted/connected modules, eye shapes, gradients, logos and rounded bars.
+    ("qr-dots", Barcode.QrCode(RepoUrl).ModuleSize(8).ModuleStyle(QrModuleStyle.Dots).EyeStyle(QrEyeStyle.Circle)
+        .Gradient("#1A3C8F", "#7B1FA2", GradientDirection.Diagonal)),
+    ("qr-rounded", Barcode.QrCode(RepoUrl).ModuleSize(8).ModuleStyle(QrModuleStyle.Rounded).EyeStyle(QrEyeStyle.Rounded)
+        .Foreground("#00695C").EyeColor("#E65100").Background("#F1F8E9")),
+    ("qr-connected", Barcode.QrCode(RepoUrl).ModuleSize(8).ModuleStyle(QrModuleStyle.Connected).EyeStyle(QrEyeStyle.Rounded)
+        .Gradient("#0D47A1", "#00838F", GradientDirection.Radial)),
+    ("qr-logo", Barcode.QrCode(RepoUrl).ModuleSize(8).ModuleStyle(QrModuleStyle.Dots).EyeStyle(QrEyeStyle.Rounded)
+        .Gradient("#1A3C8F", "#7B1FA2").Logo(File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "logo.png")), 0.25)),
+    ("code128-fancy", Barcode.Code128("TerraFluent-2026").ModuleSize(3).Height(90).RoundedBars()
+        .Gradient("#0D47A1", "#7B1FA2", GradientDirection.Horizontal)),
+    ("ean13-fancy", Barcode.Ean13("590123412345").ModuleSize(3).RoundedBars().Gradient("#B71C1C", "#E65100", GradientDirection.Vertical)),
 };
 
 var html = new System.Text.StringBuilder()

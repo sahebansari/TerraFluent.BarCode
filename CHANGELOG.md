@@ -5,6 +5,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- Fancy styling, in every output format (PNG, JPEG, SVG and everything built
+  on them):
+  - QR codes: `ModuleStyle(QrModuleStyle.Rounded | Dots | Connected)`,
+    `EyeStyle(QrEyeStyle.Rounded | Circle)` for the corner eyes, `EyeColor(...)`
+    and `Logo(png, scale)` to put a PNG logo in the centre (the code switches
+    to error-correction level H unless one is set explicitly).
+  - Linear barcodes: `RoundedBars()` for pill-shaped bars.
+  - All symbologies: `Gradient(start, end, GradientDirection.Horizontal |
+    Vertical | Diagonal | Radial)`.
+- Styled raster output is anti-aliased (8-bit RGB PNG); plain barcodes keep
+  the 1-bit PNG and are byte-for-byte unchanged.
+
 ## [0.1.0] - 2026-11-27
 
 ### Added
