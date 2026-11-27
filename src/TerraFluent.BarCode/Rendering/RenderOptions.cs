@@ -18,12 +18,25 @@ internal sealed class RenderOptions
     public BarcodeColor Foreground { get; }
     public BarcodeColor Background { get; }
 
-    /// <summary>Output size in pixels. Linear codes get the quiet zone left and right only.</summary>
+    /// <summary>
+    /// Output size in pixels. Linear codes get the quiet zone left and right only.
+    /// </summary>
+    /// <exception cref="ArgumentException">
+    /// The image would exceed <see cref="BarcodeBuilder.MaxImageDimension"/> on a side
+    /// or <see cref="BarcodeBuilder.MaxImagePixels"/> in total.
+    /// </exception>
     public (int Width, int Height) ImageSize(BarcodeMatrix matrix)
     {
-        var width = checked((matrix.Width + 2 * QuietZone) * ModuleSize);
-        var height = matrix.IsLinear ? BarHeight : checked((matrix.Height + 2 * QuietZone) * ModuleSize);
-        return (width, height);
+        var width = ((long)matrix.Width + 2L * QuietZone) * ModuleSize;
+        var height = matrix.IsLinear ? BarHeight : ((long)matrix.Height + 2L * QuietZone) * ModuleSize;
+        if (width > BarcodeBuilder.MaxImageDimension || height > BarcodeBuilder.MaxImageDimension || width * height > BarcodeBuilder.MaxImagePixels)
+        {
+            throw new ArgumentException(
+                $"The image would be {width} x {height} pixels, which exceeds the limit of {BarcodeBuilder.MaxImageDimension} pixels per side " +
+                $"and {BarcodeBuilder.MaxImagePixels} pixels in total. Reduce ModuleSize, Height or QuietZone, or encode a shorter value.");
+        }
+
+        return ((int)width, (int)height);
     }
 
     /// <summary>Whether the output pixel (<paramref name="px"/>, <paramref name="py"/>) is dark.</summary>
