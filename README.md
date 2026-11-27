@@ -57,7 +57,13 @@ await Barcode.Code128("X1").WriteToAsync(response.Body, BarcodeImageFormat.Png);
 | `Barcode.Ean13(value)` | ISO/IEC 15420 | 12 digits (check digit added) or 13 (validated). |
 | `Barcode.Ean8(value)` | ISO/IEC 15420 | 7 digits (check digit added) or 8 (validated). |
 | `Barcode.UpcA(value)` | ISO/IEC 15420 | 11 digits (check digit added) or 12 (validated). |
-| `Barcode.QrCode(value)` | ISO/IEC 18004 | Any text. Numeric, alphanumeric or UTF-8 byte mode picked automatically (non-ASCII text carries a UTF-8 ECI header so scanners decode it correctly); versions 1-40; levels L/M/Q/H. |
+| `Barcode.QrCode(value)` | ISO/IEC 18004 | Any text. Split into numeric, alphanumeric and UTF-8 byte segments for the smallest code (non-ASCII text carries a UTF-8 ECI header so scanners decode it correctly); versions 1-40; levels L/M/Q/H. |
+| `Barcode.Gs1Code128(value)` | GS1 General Specifications | Element string such as `(01)09501101530003(17)250101(10)ABC123`. FNC1 inserted where needed; lengths, character set and GTIN/SSCC/GLN check digits validated; up to 48 data characters. |
+| `Barcode.DataMatrix(value)` | ISO/IEC 16022 | Any text (UTF-8 via ECI when needed). ECC 200, 30 square and rectangular sizes; `.DataMatrixShape(...)` picks square (default), rectangle or any. |
+| `Barcode.Pdf417(value)` | ISO/IEC 15438 | Any text (UTF-8 via ECI when needed). Text, numeric and byte compaction; `.Pdf417Columns(1-30)` and `.Pdf417ErrorCorrection(0-8)`. |
+
+EAN-13 and UPC-A take a 2- or 5-digit add-on with `.AddOn("52495")`, and Code 39
+encodes all 128 ASCII characters with `.FullAscii()`.
 
 ## Errors, Limits and Thread Safety
 
@@ -91,6 +97,7 @@ await Barcode.Code128("X1").WriteToAsync(response.Body, BarcodeImageFormat.Png);
 | `ToBase64(format)` | base64 `string` |
 | `ToDataUri(format)` | `data:image/...;base64,...` |
 | `Save(path)` / `Save(path, format)` | writes a file |
+| `SaveAsync(path)` / `SaveAsync(path, format)` | writes a file asynchronously |
 | `GetImageSize()` | output `(Width, Height)` in pixels |
 | `Encode()` | the raw `BarcodeMatrix` for custom rendering |
 
@@ -101,12 +108,18 @@ two-colour images, so prefer PNG or SVG: JPEG compression softens bar edges.
 
 | Option | Default | Notes |
 | --- | --- | --- |
-| `ModuleSize(px)` | 2 (linear), 4 (QR) | Width of the narrowest bar, or one QR square. |
-| `Height(px)` | 80 | Linear barcodes only. |
-| `QuietZone(modules)` | per spec | 10 for Code 128/39, 11 for EAN-13, 9 for UPC-A, 7 for EAN-8, 4 for QR. |
+| `ModuleSize(px)` | 2 (linear, PDF417), 4 (QR, Data Matrix) | Width of the narrowest bar, or one 2D square. |
+| `Height(px)` | 80 | Linear barcodes only; excludes the text line. |
+| `QuietZone(modules)` | per spec | 10 for Code 128/39, 11 for EAN-13, 9 for UPC-A, 7 for EAN-8, 4 for QR, 2 for Data Matrix and PDF417. |
 | `Foreground(color)` / `Background(color)` | black / white | `BarcodeColor` or `"#RRGGBB"`/`"#RGB"`. Keep strong contrast. |
+| `TransparentBackground()` | off | PNG and SVG only; JPEG output throws. Set `Background` to the surface colour for the contrast check. |
+| `HumanReadableText()` | off | Linear barcodes. EAN/UPC digits in their standard positions with extended guard bars; the value centred under Code 128/39 and GS1-128. |
+| `TextSize(px)` | 10 modules (EAN/UPC), 9 (others) | Font size of the human-readable text; long text shrinks to fit. |
 | `ErrorCorrection(level)` | `M` | QR codes only. |
-| `WithChecksum()` | off | Code 39 only. |
+| `WithChecksum()` / `FullAscii()` | off | Code 39 only. |
+| `AddOn(digits)` | none | EAN-13 and UPC-A: 2 or 5 digits. |
+| `DataMatrixShape(shape)` | `Square` | Data Matrix only: `Square`, `Rectangle` or `Any`. |
+| `Pdf417Columns(n)` / `Pdf417ErrorCorrection(n)` | automatic | PDF417 only. |
 | `JpegQuality(1-100)` | 90 | JPEG output only. |
 | `AllowLowContrast()` | off | Skips the contrast check. |
 
@@ -154,10 +167,34 @@ colours dark against a light background, and test-scan styled codes on the
 devices you target. Barcodes without any style produce exactly the same
 output as before.
 
+## Dependency Injection
+
+`IBarcodeGenerator` wraps the fluent API in a service you can inject and mock.
+`BarcodeGenerator` is thread-safe; register one instance with your defaults:
+
+```csharp
+services.AddSingleton<IBarcodeGenerator>(new BarcodeGenerator(new BarcodeOptions
+{
+    ModuleSize = 3,
+    HumanReadableText = true,
+}));
+
+public class LabelController(IBarcodeGenerator barcodes)
+{
+    public IActionResult Get(string sku) =>
+        File(barcodes.Generate(BarcodeType.Code128, sku), "image/png");
+}
+```
+
+Options that do not apply to a symbology (such as `Height` for a QR code) are
+ignored, so one `BarcodeOptions` serves every type. Options passed to a call
+replace the defaults. `Create(type, value)` returns a `BarcodeBuilder` with
+the options applied, for gradients, logos and other styles.
+
 ## Not yet supported
 
-Human-readable text under linear barcodes, GS1-128 (FNC1), Code 39 full
-ASCII, ITF, Data Matrix, PDF417, QR Kanji mode and structured append.
+ITF, Aztec, QR Kanji mode, structured append and Data Matrix C40/Text/EDIFACT
+compaction (Data Matrix uses ASCII encodation, which pairs digits).
 
 ## Versioning
 
@@ -181,4 +218,6 @@ as described in [SECURITY.md](SECURITY.md).
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). The human-readable text uses glyph outlines from
+JetBrains Mono (SIL Open Font License 1.1) and the PDF417 tables come from
+pdf417gen (MIT); see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

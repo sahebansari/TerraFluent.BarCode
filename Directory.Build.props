@@ -10,12 +10,12 @@
     <Authors>Saheb Ansari</Authors>
     <Company>Saheb Ansari</Company>
     <Product>TerraFluent.BarCode</Product>
-    <Version>1.0.0</Version>
+    <Version>1.1.0</Version>
     <!-- Strong-named assemblies keep AssemblyVersion at major.0.0.0 so minor and patch upgrades need no binding redirects. -->
     <AssemblyVersion>$([System.Version]::Parse($(Version.Split('-')[0])).Major).0.0.0</AssemblyVersion>
     <Copyright>Copyright (c) 2026 Saheb Ansari</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>barcode;qrcode;qr;code128;code39;ean13;upc;png;jpeg;svg;base64;fluent</PackageTags>
+    <PackageLicenseExpression>MIT AND OFL-1.1</PackageLicenseExpression>
+    <PackageTags>barcode;qrcode;qr;code128;code39;ean13;upc;gs1-128;datamatrix;pdf417;png;jpeg;svg;base64;fluent</PackageTags>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/sahebansari/TerraFluent.BarCode</RepositoryUrl>
     <PackageProjectUrl>https://github.com/sahebansari/TerraFluent.BarCode</PackageProjectUrl>

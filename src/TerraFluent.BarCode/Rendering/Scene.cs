@@ -8,12 +8,16 @@ namespace TerraFluent.BarCode.Rendering;
 /// </summary>
 internal sealed class Scene
 {
-    public Scene(int width, int height, BarcodeColor background)
+    public Scene(int width, int height, BarcodeColor background, bool transparent = false)
     {
         Width = width;
         Height = height;
         Background = background;
+        Transparent = transparent;
     }
+
+    /// <summary>Leave the background unpainted (alpha 0) instead of filling it with <see cref="Background"/>.</summary>
+    public bool Transparent { get; }
 
     public int Width { get; }
     public int Height { get; }
@@ -22,7 +26,7 @@ internal sealed class Scene
     public LogoPlacement? Logo { get; set; }
 
     /// <summary>Whether any shape has rounded corners (SVG then needs anti-aliasing).</summary>
-    public bool HasCurves => Layers.Any(l => l.Shapes.Any(s => s.HasCurves));
+    public bool HasCurves => Layers.Any(l => l.Paths.Count > 0 || l.Shapes.Any(s => s.HasCurves));
 }
 
 /// <summary>Shapes filled with one paint. Their union is filled, so touching shapes leave no seams.</summary>
@@ -32,6 +36,9 @@ internal sealed class Layer
 
     public Paint Paint { get; }
     public List<Shape> Shapes { get; } = new();
+
+    /// <summary>Glyph outlines (human-readable text).</summary>
+    public List<PathShape> Paths { get; } = new();
 }
 
 /// <summary>A logo drawn over the centre of the symbol.</summary>

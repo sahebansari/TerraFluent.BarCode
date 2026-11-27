@@ -20,4 +20,13 @@ public enum BarcodeType
 
     /// <summary>QR code (ISO/IEC 18004), model 2, versions 1-40.</summary>
     QrCode,
+
+    /// <summary>GS1-128 (Code 128 with FNC1): GS1 application identifiers and data for logistics labels.</summary>
+    Gs1Code128,
+
+    /// <summary>Data Matrix ECC 200 (ISO/IEC 16022): compact 2D code, square or rectangular.</summary>
+    DataMatrix,
+
+    /// <summary>PDF417 (ISO/IEC 15438): stacked 2D code used on ID cards, boarding passes and shipping labels.</summary>
+    Pdf417,
 }

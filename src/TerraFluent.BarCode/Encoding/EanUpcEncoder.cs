@@ -19,9 +19,47 @@ internal static class EanUpcEncoder
     private const string EdgeGuard = "101";
     private const string CentreGuard = "01010";
 
-    public static BarcodeMatrix EncodeEan13(string value) => EncodeEan13Digits(Normalize(value, 13, "EAN-13"), quietZone: 11);
+    // EAN-5 add-on parity, indexed by its check value; EAN-2 parity is indexed by the value modulo 4.
+    private static readonly string[] Ean5Parity =
+    {
+        "GGLLL", "GLGLL", "GLLGL", "GLLLG", "LGGLL", "LLGGL", "LLLGG", "LGLGL", "LGLLG", "LLGLG",
+    };
 
-    public static BarcodeMatrix EncodeUpcA(string value) => EncodeEan13Digits("0" + Normalize(value, 12, "UPC-A"), quietZone: 9);
+    private static readonly string[] Ean2Parity = { "LL", "LG", "GL", "GG" };
+
+    /// <summary>Gap between the main symbol and an add-on, in modules (the standard allows 7-12).</summary>
+    internal const int AddOnGap = 9;
+
+    public static BarcodeMatrix EncodeEan13(string value, string? addOn = null)
+    {
+        var digits = Normalize(value, 13, "EAN-13");
+        var layout = new LinearLayout();
+        layout.ExtendedBars.Add((0, 3));
+        layout.ExtendedBars.Add((45, 50));
+        layout.ExtendedBars.Add((92, 95));
+        layout.Items.Add(new TextItem(digits.Substring(0, 1), -5));
+        for (var i = 0; i < 6; i++)
+        {
+            layout.Items.Add(new TextItem(digits.Substring(1 + i, 1), 3 + 7 * i + 3.5));
+            layout.Items.Add(new TextItem(digits.Substring(7 + i, 1), 50 + 7 * i + 3.5));
+        }
+
+        return EncodeEan13Digits(digits, quietZone: 11, layout, addOn);
+    }
+
+    public static BarcodeMatrix EncodeUpcA(string value, string? addOn = null)
+    {
+        var digits = Normalize(value, 12, "UPC-A");
+        var layout = new LinearLayout();
+        layout.ExtendedBars.Add((0, 10));  // start guard and the number-system digit
+        layout.ExtendedBars.Add((45, 50));
+        layout.ExtendedBars.Add((85, 95)); // check digit and end guard
+        layout.Items.Add(new TextItem(digits.Substring(0, 1), -4.5, small: true));
+        for (var i = 1; i < 6; i++) layout.Items.Add(new TextItem(digits.Substring(i, 1), 3 + 7 * i + 3.5));
+        for (var i = 0; i < 5; i++) layout.Items.Add(new TextItem(digits.Substring(6 + i, 1), 50 + 7 * i + 3.5));
+        layout.Items.Add(new TextItem(digits.Substring(11, 1), 95 + 4.5, small: true));
+        return EncodeEan13Digits("0" + digits, quietZone: 9, layout, addOn);
+    }
 
     public static BarcodeMatrix EncodeEan8(string value)
     {
@@ -32,7 +70,55 @@ internal static class EanUpcEncoder
         writer.AppendBits(CentreGuard);
         for (var i = 4; i < 8; i++) writer.AppendBits(RCode(digits[i] - '0'));
         writer.AppendBits(EdgeGuard);
-        return BarcodeMatrix.FromLinear(writer.Modules, 7);
+
+        var layout = new LinearLayout();
+        layout.ExtendedBars.Add((0, 3));
+        layout.ExtendedBars.Add((31, 36));
+        layout.ExtendedBars.Add((64, 67));
+        for (var i = 0; i < 4; i++)
+        {
+            layout.Items.Add(new TextItem(digits.Substring(i, 1), 3 + 7 * i + 3.5));
+            layout.Items.Add(new TextItem(digits.Substring(4 + i, 1), 36 + 7 * i + 3.5));
+        }
+
+        return BarcodeMatrix.FromLinear(writer.Modules, 7, layout);
+    }
+
+    /// <summary>Validates a 2- or 5-digit EAN/UPC add-on.</summary>
+    internal static string ValidateAddOn(string? addOn, string paramName)
+    {
+        if (addOn is null) throw new ArgumentNullException(paramName);
+        if ((addOn.Length != 2 && addOn.Length != 5) || addOn.Any(c => c < '0' || c > '9'))
+        {
+            throw new ArgumentException("An add-on must be exactly 2 or 5 digits (EAN-2 or EAN-5).", paramName);
+        }
+
+        return addOn;
+    }
+
+    private static void AppendAddOn(ModuleWriter writer, LinearLayout layout, string addOn)
+    {
+        writer.Append(false, AddOnGap);
+        layout.AddOnStart = writer.Count;
+        string parity;
+        if (addOn.Length == 2)
+        {
+            parity = Ean2Parity[int.Parse(addOn, System.Globalization.CultureInfo.InvariantCulture) % 4];
+        }
+        else
+        {
+            int Digit(int i) => addOn[i] - '0';
+            parity = Ean5Parity[(3 * (Digit(0) + Digit(2) + Digit(4)) + 9 * (Digit(1) + Digit(3))) % 10];
+        }
+
+        writer.AppendBits("1011");
+        for (var i = 0; i < addOn.Length; i++)
+        {
+            if (i > 0) writer.AppendBits("01");
+            var d = addOn[i] - '0';
+            layout.Items.Add(new TextItem(addOn.Substring(i, 1), writer.Count + 3.5, aboveAddOn: true));
+            writer.AppendBits(parity[i] == 'L' ? LCodes[d] : GCode(d));
+        }
     }
 
     /// <summary>
@@ -79,7 +165,7 @@ internal static class EanUpcEncoder
         return (char)('0' + (10 - sum % 10) % 10);
     }
 
-    private static BarcodeMatrix EncodeEan13Digits(string digits, int quietZone)
+    private static BarcodeMatrix EncodeEan13Digits(string digits, int quietZone, LinearLayout layout, string? addOn)
     {
         var parity = Ean13Parity[digits[0] - '0'];
         var writer = new ModuleWriter();
@@ -93,7 +179,8 @@ internal static class EanUpcEncoder
         writer.AppendBits(CentreGuard);
         for (var i = 7; i <= 12; i++) writer.AppendBits(RCode(digits[i] - '0'));
         writer.AppendBits(EdgeGuard);
-        return BarcodeMatrix.FromLinear(writer.Modules, quietZone);
+        if (addOn is not null) AppendAddOn(writer, layout, addOn);
+        return BarcodeMatrix.FromLinear(writer.Modules, quietZone, layout);
     }
 
     private static string RCode(int digit)
