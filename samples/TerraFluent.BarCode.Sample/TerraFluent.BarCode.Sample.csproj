@@ -11,4 +11,8 @@
     <ProjectReference Include="..\..\src\TerraFluent.BarCode\TerraFluent.BarCode.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="logo.png" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
