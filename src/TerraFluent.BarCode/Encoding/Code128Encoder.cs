@@ -33,6 +33,9 @@ internal static class Code128Encoder
 
     public const int QuietZone = 10;
 
+    /// <summary>Longest accepted value, in characters.</summary>
+    public const int MaxLength = 256;
+
     private enum CodeSet { A, B, C }
 
     public static BarcodeMatrix Encode(string value)
@@ -46,6 +49,7 @@ internal static class Code128Encoder
     /// <summary>Returns the symbol values: start, data, checksum and stop.</summary>
     internal static List<int> EncodeValues(string value)
     {
+        Compatibility.Guard.MaxLength(value, MaxLength, "Code 128", nameof(value));
         for (var i = 0; i < value.Length; i++)
         {
             if (value[i] > 127)

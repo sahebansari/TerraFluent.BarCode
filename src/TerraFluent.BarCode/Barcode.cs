@@ -13,14 +13,24 @@ namespace TerraFluent.BarCode;
 /// </summary>
 public static class Barcode
 {
+    /// <summary>Longest value accepted by <see cref="Code128"/>, in characters.</summary>
+    public const int MaxCode128Length = Encoding.Code128Encoder.MaxLength;
+
+    /// <summary>Longest value accepted by <see cref="Code39"/>, in characters.</summary>
+    public const int MaxCode39Length = Encoding.Code39Encoder.MaxLength;
+
     /// <summary>Starts a barcode of the given <paramref name="type"/>.</summary>
     public static BarcodeBuilder Create(BarcodeType type, string value) => new(type, Guard.NotNullOrEmpty(value, nameof(value)));
 
-    /// <summary>Code 128 for any ASCII text. Code sets are chosen automatically for the shortest symbol.</summary>
+    /// <summary>
+    /// Code 128 for any ASCII text, up to <see cref="MaxCode128Length"/> characters.
+    /// Code sets are chosen automatically for the shortest symbol.
+    /// </summary>
     public static BarcodeBuilder Code128(string value) => Create(BarcodeType.Code128, value);
 
     /// <summary>
-    /// Code 39 for digits, upper-case letters, space and <c>- . $ / + %</c>.
+    /// Code 39 for digits, upper-case letters, space and <c>- . $ / + %</c>, up to
+    /// <see cref="MaxCode39Length"/> characters.
     /// Call <see cref="BarcodeBuilder.WithChecksum"/> to add the optional modulo 43 check character.
     /// </summary>
     public static BarcodeBuilder Code39(string value) => Create(BarcodeType.Code39, value);
