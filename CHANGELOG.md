@@ -7,6 +7,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [1.1.0] - 2026-11-27
 
+First release published to NuGet.org. Versions 0.1.0 and 1.0.0 below were
+never published; their changes are included in this release.
+
 ### Added
 - New symbologies: `Barcode.Gs1Code128` (GS1-128 with FNC1 and validated
   application identifiers), `Barcode.DataMatrix` (ECC 200, square and
@@ -22,12 +25,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `SaveAsync(path)` and `SaveAsync(path, format)`.
 - `IBarcodeGenerator`, `BarcodeGenerator` and `BarcodeOptions` for dependency
   injection.
+- `Barcode.Gs1Code128(params (string Ai, string Data)[])` for GS1 data that
+  contains parentheses.
+- GS1-128 validation against the GS1 application identifier table: unknown
+  AIs, wrong lengths, non-digits in numeric fields, wrong check digits and
+  impossible dates (such as month 13) throw `ArgumentException`.
 
 ### Changed
 - QR codes are split into numeric, alphanumeric and byte segments, so mixed
   content such as a URL followed by a long number gives a smaller code.
 
-## [1.0.0] - 2026-11-27
+## 1.0.0 - 2026-11-27 (not published)
 
 ### Added
 - Fancy styling, in every output format (PNG, JPEG, SVG and everything built
@@ -76,7 +84,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   which no longer pulls `Microsoft.Build.Tasks.Git` with advisory
   GHSA-23fw-v26w-5fgq. It never shipped to consumers.
 
-## [0.1.0] - 2026-11-27
+## 0.1.0 - 2026-11-27 (not published)
 
 ### Added
 - Fluent entry point `Barcode` with `Code128`, `Code39`, `Ean13`, `Ean8`,
@@ -98,6 +106,4 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Targets `netstandard2.0` and `net10.0` (trimming and Native AOT compatible).
 
 [Unreleased]: https://github.com/sahebansari/TerraFluent.BarCode/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/sahebansari/TerraFluent.BarCode/compare/v1.0.0...v1.1.0
-[1.0.0]: https://github.com/sahebansari/TerraFluent.BarCode/compare/v0.1.0...v1.0.0
-[0.1.0]: https://github.com/sahebansari/TerraFluent.BarCode/releases/tag/v0.1.0
+[1.1.0]: https://github.com/sahebansari/TerraFluent.BarCode/releases/tag/v1.1.0

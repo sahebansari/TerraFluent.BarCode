@@ -75,10 +75,54 @@ public class NewFeatureTests
     [InlineData("(10)")]                           // no data
     [InlineData("(10)ABC~")]                       // outside the GS1 character set
     [InlineData("(01")]                            // unclosed
+    [InlineData("(9999)X")]                        // no such AI
+    [InlineData("(011)1234567890128")]             // no such AI
+    [InlineData("(17)991399")]                     // month 99
+    [InlineData("(17)250230")]                     // 30 February
+    [InlineData("(10)ABCDEFGHIJKLMNOPQRSTU")]      // 21 characters; AI 10 allows 20
+    [InlineData("(3103)12345")]                    // weight needs 6 digits
+    [InlineData("(3106)123456")]                   // no 6-decimal weight AI
+    [InlineData("(7003)2501012460")]               // hour 24
+    [InlineData("(402)95011015300000017")]         // GSIN check digit should be 0
+    [InlineData("(8003)1234567890123")]            // GRAI too short
+    [InlineData("(253)1234567890ABC")]             // GDTI document type must be digits
     public void Invalid_gs1_element_strings_throw(string value)
     {
         var ex = Assert.Throws<ArgumentException>(() => Barcode.Gs1Code128(value).Encode());
         Assert.Equal("value", ex.ParamName);
+    }
+
+    [Theory]
+    [InlineData("(17)250100")]                     // day 00 means the end of the month
+    [InlineData("(17)240229")]
+    [InlineData("(10)ABCDEFGHIJKLMNOPQRST")]       // exactly 20 characters
+    [InlineData("(3103)001250(15)261231")]
+    [InlineData("(3925)12345(8008)2501011230")]
+    [InlineData("(253)9501101530003")]             // GDTI without serial
+    [InlineData("(253)9501101530003ABC-1")]
+    [InlineData("(7003)2501012359")]
+    [InlineData("(402)95011015300000010")]
+    [InlineData("(90)internal(99)anything")]
+    public void Valid_gs1_element_strings_encode(string value) => Assert.True(Barcode.Gs1Code128(value).Encode().Width > 0);
+
+    [Fact]
+    public void Gs1_pairs_allow_parentheses_in_data()
+    {
+        var f = Code128Encoder.Fnc1;
+        var builder = Barcode.Gs1Code128(("01", "09501101530003"), ("10", "LOT(A)"), ("21", "S/1"));
+        Assert.Equal("(01)09501101530003(10)LOT(A)(21)S/1", builder.Value);
+        var matrix = builder.Encode();
+        Assert.Equal(Code128Encoder.Encode($"{f}0109501101530003" + $"10LOT(A){f}" + "21S/1", allowFnc1: true).ToString(), matrix.ToString());
+    }
+
+    [Fact]
+    public void Gs1_pairs_are_validated_like_element_strings()
+    {
+        var ex = Assert.Throws<ArgumentException>(() => Barcode.Gs1Code128(("17", "991399")).Encode());
+        Assert.Equal("elements", ex.ParamName);
+        Assert.Contains("YYMMDD", ex.Message, StringComparison.Ordinal);
+        Assert.Throws<ArgumentException>(() => Barcode.Gs1Code128(Array.Empty<(string, string)>()));
+        Assert.Throws<ArgumentNullException>(() => Barcode.Gs1Code128((ValueTuple<string, string>[])null!));
     }
 
     [Fact]
