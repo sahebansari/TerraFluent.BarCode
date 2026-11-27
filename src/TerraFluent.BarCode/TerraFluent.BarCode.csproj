@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
+    <RootNamespace>TerraFluent.BarCode</RootNamespace>
+    <AssemblyName>TerraFluent.BarCode</AssemblyName>
+    <PackageId>TerraFluent.BarCode</PackageId>
+    <Title>TerraFluent.BarCode — Dependency-free barcode and QR code generation for .NET</Title>
+    <Description>A fluent, zero-dependency .NET library that generates Code 128, Code 39, EAN-13, EAN-8, UPC-A and QR codes and outputs PNG, JPEG, SVG, byte arrays, streams, base64 and data URIs.</Description>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <EnablePackageValidation>true</EnablePackageValidation>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <IsTrimmable>true</IsTrimmable>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TerraFluent.BarCode.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>
