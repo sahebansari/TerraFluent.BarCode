@@ -14,6 +14,12 @@ public enum QrModuleShape
 
     /// <summary>Squares rotated 45 degrees.</summary>
     Diamond,
+
+    /// <summary>
+    /// Neighbouring modules join into smooth shapes: a module's corner is
+    /// rounded only where it has no neighbour on either side of that corner.
+    /// </summary>
+    Connected,
 }
 
 /// <summary>Shape of the three large corner squares (finder patterns) of a QR code.</summary>

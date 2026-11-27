@@ -77,7 +77,7 @@ Barcode.Code128("TF-2026")
 
 | Style option | Applies to | Values |
 | --- | --- | --- |
-| `ModuleShape(shape)` | QR | `Square`, `RoundedSquare`, `Circle`, `Diamond` |
+| `ModuleShape(shape)` | QR | `Square`, `RoundedSquare`, `Circle`, `Diamond`, `Connected` |
 | `FinderShape(shape)` | QR | `Square`, `Rounded`, `Circle` |
 | `FinderColor(color)` | QR | colour of the three corner squares |
 | `Logo(image, sizeRatio, clearBehind)` | QR | up to 0.3 of the symbol width, default 0.2 |
@@ -145,8 +145,7 @@ two-colour images, so prefer PNG or SVG: JPEG compression softens bar edges.
 ## Not yet supported
 
 Human-readable text under linear barcodes, GS1-128 (FNC1), Code 39 full
-ASCII, ITF, Data Matrix, PDF417, QR Kanji mode, structured append, and
-connected ("liquid") QR module styles.
+ASCII, ITF, Data Matrix, PDF417, QR Kanji mode and structured append.
 
 ## Repository Layout
 

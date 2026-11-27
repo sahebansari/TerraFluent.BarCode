@@ -88,6 +88,22 @@ internal static class SceneBuilder
                     continue;
                 }
 
+                if (moduleShape == QrModuleShape.Connected)
+                {
+                    bool Dark(int x, int y) => x >= 0 && y >= 0 && x < size && y < size &&
+                                               matrix.Get(x, y) && !InFinder(x, y) && !cleared[y * size + x];
+                    bool up = Dark(mx, my - 1), down = Dark(mx, my + 1), l = Dark(mx - 1, my), r = Dark(mx + 1, my);
+                    var corners = Corners.None;
+                    if (!up && !l) corners |= Corners.TopLeft;
+                    if (!up && !r) corners |= Corners.TopRight;
+                    if (!down && !r) corners |= Corners.BottomRight;
+                    if (!down && !l) corners |= Corners.BottomLeft;
+                    scene.Foreground.Add(corners == Corners.None
+                        ? new Shape(ShapeKind.Rect, left, top, m, m)
+                        : new Shape(ShapeKind.CornerRect, left, top, m, m, m / 2, rounded: corners));
+                    continue;
+                }
+
                 scene.Foreground.Add(moduleShape switch
                 {
                     QrModuleShape.RoundedSquare => new Shape(ShapeKind.RoundRect, left, top, m, m, m * 0.3),

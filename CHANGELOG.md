@@ -10,7 +10,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - `Style(s => ...)` on `BarcodeBuilder` for styled ("fancy") codes. Every
   option is off by default, and an unstyled code renders byte-for-byte as in 0.1.0.
-  - QR module shapes: `QrModuleShape.Square`, `RoundedSquare`, `Circle`, `Diamond`.
+  - QR module shapes: `QrModuleShape.Square`, `RoundedSquare`, `Circle`, `Diamond`,
+    and `Connected` (neighbouring modules join into smooth shapes).
   - QR corner (finder) shapes: `QrFinderShape.Square`, `Rounded`, `Circle`,
     and a separate `FinderColor`.
   - QR centre logo: `Logo(bytes or path, sizeRatio, clearBehind)`. The logo

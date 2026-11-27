@@ -31,6 +31,8 @@ var samples = new (string Name, BarcodeBuilder Builder)[]
     ("qr-logo", Barcode.QrCode("https://github.com/sahebansari/TerraFluent.BarCode").ModuleSize(8)
         .Style(s => s.Logo(SampleLogo.Create(), 0.22).ModuleShape(QrModuleShape.Circle)
                      .FinderShape(QrFinderShape.Rounded).FinderColor("#1A3C8F"))),
+    ("qr-connected", Barcode.QrCode("https://terrafluent.dev").ModuleSize(8)
+        .Style(s => s.ModuleShape(QrModuleShape.Connected).FinderShape(QrFinderShape.Rounded).FinderColor("#E65100"))),
     ("qr-transparent", Barcode.QrCode("Transparent background").ModuleSize(8)
         .Style(s => s.TransparentBackground().ModuleShape(QrModuleShape.RoundedSquare))),
     ("code128-rounded", Barcode.Code128("TerraFluent-2026").ModuleSize(3)

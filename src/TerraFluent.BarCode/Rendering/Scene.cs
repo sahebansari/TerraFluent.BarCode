@@ -1,12 +1,17 @@
 namespace TerraFluent.BarCode.Rendering;
 
-internal enum ShapeKind { Rect, RoundRect, Circle, Diamond }
+internal enum ShapeKind { Rect, RoundRect, Circle, Diamond, CornerRect }
+
+/// <summary>Which corners of a <see cref="ShapeKind.CornerRect"/> are rounded.</summary>
+[Flags]
+internal enum Corners { None = 0, TopLeft = 1, TopRight = 2, BottomRight = 4, BottomLeft = 8 }
 
 /// <summary>One filled shape in pixel coordinates, optionally with a hole cut out of it.</summary>
 internal sealed class Shape
 {
-    public Shape(ShapeKind kind, double x, double y, double w, double h, double radius = 0, Shape? hole = null)
+    public Shape(ShapeKind kind, double x, double y, double w, double h, double radius = 0, Shape? hole = null, Corners rounded = Corners.None)
     {
+        Rounded = rounded;
         Kind = kind;
         X = x;
         Y = y;
@@ -23,6 +28,7 @@ internal sealed class Shape
     public double H { get; }
     public double Radius { get; }
     public Shape? Hole { get; }
+    public Corners Rounded { get; }
 
     public bool Contains(double px, double py)
     {
@@ -42,6 +48,19 @@ internal sealed class Shape
                 var dx = Math.Max(Math.Max(X + Radius - px, px - (X + W - Radius)), 0);
                 var dy = Math.Max(Math.Max(Y + Radius - py, py - (Y + H - Radius)), 0);
                 return dx * dx + dy * dy <= Radius * Radius;
+            }
+            case ShapeKind.CornerRect:
+            {
+                var left = px < X + Radius;
+                var right = px > X + W - Radius;
+                var top = py < Y + Radius;
+                var bottom = py > Y + H - Radius;
+                Corners corner = top && left ? Corners.TopLeft : top && right ? Corners.TopRight
+                    : bottom && right ? Corners.BottomRight : bottom && left ? Corners.BottomLeft : Corners.None;
+                if (corner == Corners.None || (Rounded & corner) == 0) return true;
+                var cx = left ? X + Radius : X + W - Radius;
+                var cy = top ? Y + Radius : Y + H - Radius;
+                return (px - cx) * (px - cx) + (py - cy) * (py - cy) <= Radius * Radius;
             }
             case ShapeKind.Circle:
             {

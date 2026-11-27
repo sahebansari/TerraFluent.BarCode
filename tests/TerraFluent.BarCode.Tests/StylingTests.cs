@@ -85,6 +85,18 @@ public class StylingTests
     }
 
     [Fact]
+    public void Connected_modules_round_only_free_corners()
+    {
+        // A lone module rounds all four corners; a module inside a solid row rounds none.
+        var builder = Barcode.QrCode("connected").ModuleSize(10).Style(s => s.ModuleShape(QrModuleShape.Connected));
+        var svg = builder.ToSvg();
+        Assert.Contains("a5 5 0 0 1", svg);
+        var image = PngDecoder.Decode(builder.ToPng());
+        Assert.Equal(6, builder.ToPng()[25]);
+        Assert.True(image.Width > 0);
+    }
+
+    [Fact]
     public void Rounded_bars_use_arcs_in_svg()
     {
         var svg = Barcode.Ean13("590123412345").Style(s => s.BarShape(BarShape.Rounded)).ToSvg();

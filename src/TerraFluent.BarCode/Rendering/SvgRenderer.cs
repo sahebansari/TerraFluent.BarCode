@@ -159,6 +159,24 @@ internal static class SvgRenderer
                     .Append('z');
                 break;
             }
+            case ShapeKind.CornerRect:
+            {
+                var r = s.Radius;
+                var arc = "a" + Num(r) + " " + Num(r) + " 0 0 1 ";
+                double Rad(Corners c) => (s.Rounded & c) != 0 ? r : 0;
+                double tl = Rad(Corners.TopLeft), tr = Rad(Corners.TopRight), br = Rad(Corners.BottomRight), bl = Rad(Corners.BottomLeft);
+                d.Append('M').Append(Num(s.X + tl)).Append(' ').Append(Num(s.Y))
+                    .Append('h').Append(Num(s.W - tl - tr));
+                if (tr > 0) d.Append(arc).Append(Num(r)).Append(' ').Append(Num(r));
+                d.Append('v').Append(Num(s.H - tr - br));
+                if (br > 0) d.Append(arc).Append(Num(-r)).Append(' ').Append(Num(r));
+                d.Append('h').Append(Num(-(s.W - br - bl)));
+                if (bl > 0) d.Append(arc).Append(Num(-r)).Append(' ').Append(Num(-r));
+                d.Append('v').Append(Num(-(s.H - bl - tl)));
+                if (tl > 0) d.Append(arc).Append(Num(r)).Append(' ').Append(Num(-r));
+                d.Append('z');
+                break;
+            }
             case ShapeKind.Circle:
             {
                 var r = s.W / 2;
