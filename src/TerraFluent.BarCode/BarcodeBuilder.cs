@@ -9,6 +9,22 @@ namespace TerraFluent.BarCode;
 /// return the same builder; output methods (<c>To...</c>, <see cref="WriteTo"/>,
 /// <see cref="Save(string)"/>) can be called any number of times.
 /// </summary>
+/// <remarks>
+/// <para>
+/// <b>Thread safety:</b> configure a builder on one thread. Once configured, its
+/// output methods may be called from several threads at the same time. The
+/// static <see cref="Barcode"/> methods are thread-safe, so the simplest pattern
+/// is one builder per barcode.
+/// </para>
+/// <para>
+/// <b>Errors:</b> an invalid value or argument throws <see cref="ArgumentException"/>
+/// (or <see cref="ArgumentNullException"/>, <see cref="ArgumentOutOfRangeException"/>
+/// and <see cref="FormatException"/> for hex colours). Options that cannot be
+/// combined throw <see cref="InvalidOperationException"/>, either when set (an
+/// option for another symbology) or when rendering (a logo with too little error
+/// correction, or colours with too little contrast).
+/// </para>
+/// </remarks>
 public sealed class BarcodeBuilder
 {
     /// <summary>Default width of one module (the narrowest bar) for linear barcodes, in pixels.</summary>
@@ -29,6 +45,25 @@ public sealed class BarcodeBuilder
     /// <summary>Largest allowed logo size as a fraction of the QR code's width.</summary>
     public const double MaxLogoScale = 0.3;
 
+    /// <summary>
+    /// Largest allowed output width or height, in pixels. Rendering a bigger
+    /// image throws <see cref="ArgumentException"/>, so untrusted size settings
+    /// cannot exhaust memory.
+    /// </summary>
+    public const int MaxImageDimension = 32_768;
+
+    /// <summary>Largest allowed output area (width times height), in pixels: 64 megapixels.</summary>
+    public const long MaxImagePixels = 64L * 1024 * 1024;
+
+    /// <summary>
+    /// Smallest WCAG contrast ratio accepted between the background and the
+    /// bars, gradient stops or eye colour, unless <see cref="AllowLowContrast"/> is set.
+    /// </summary>
+    public const double MinContrastRatio = 3.0;
+
+    /// <summary>Largest logo scale allowed at error-correction level Q; level H allows up to <see cref="MaxLogoScale"/>.</summary>
+    public const double MaxLogoScaleAtQ = 0.25;
+
     private int? _moduleSize;
     private int _barHeight = DefaultBarHeight;
     private int? _quietZone;
@@ -47,6 +82,7 @@ public sealed class BarcodeBuilder
     private RgbaImage? _logo;
     private byte[]? _logoPng;
     private double _logoScale = DefaultLogoScale;
+    private bool _allowLowContrast;
 
     internal BarcodeBuilder(BarcodeType type, string value)
     {
@@ -68,7 +104,7 @@ public sealed class BarcodeBuilder
     /// </summary>
     public BarcodeBuilder ModuleSize(int pixels)
     {
-        _moduleSize = Guard.Positive(pixels, nameof(pixels));
+        _moduleSize = Guard.InRange(pixels, 1, MaxImageDimension, nameof(pixels));
         return this;
     }
 
@@ -76,7 +112,7 @@ public sealed class BarcodeBuilder
     public BarcodeBuilder Height(int pixels)
     {
         if (!IsLinear) throw new InvalidOperationException("Height applies to linear barcodes only; a QR code's size follows from ModuleSize.");
-        _barHeight = Guard.Positive(pixels, nameof(pixels));
+        _barHeight = Guard.InRange(pixels, 1, MaxImageDimension, nameof(pixels));
         return this;
     }
 
@@ -88,7 +124,7 @@ public sealed class BarcodeBuilder
     /// </summary>
     public BarcodeBuilder QuietZone(int modules)
     {
-        _quietZone = Guard.NonNegative(modules, nameof(modules));
+        _quietZone = Guard.InRange(modules, 0, MaxImageDimension, nameof(modules));
         return this;
     }
 
@@ -194,7 +230,10 @@ public sealed class BarcodeBuilder
     /// logo's size as a fraction of the code's width, from 0.05 to 0.3 (default 0.2);
     /// it is shrunk if needed so the corner eyes and format modules stay visible.
     /// Unless <see cref="ErrorCorrection"/> is set explicitly, the code switches to
-    /// level H so it still scans with the covered modules missing. QR codes only.
+    /// level H so it still scans with the covered modules missing. Rendering throws
+    /// <see cref="InvalidOperationException"/> if the error correction is set
+    /// explicitly to L or M, or to Q with a scale above <see cref="MaxLogoScaleAtQ"/>,
+    /// because such codes often fail to scan. QR codes only.
     /// </summary>
     /// <exception cref="ArgumentException"><paramref name="png"/> is not a readable PNG file.</exception>
     public BarcodeBuilder Logo(byte[] png, double scale = DefaultLogoScale)
@@ -202,13 +241,26 @@ public sealed class BarcodeBuilder
         RequireQr(nameof(Logo));
         if (double.IsNaN(scale) || scale < 0.05 || scale > MaxLogoScale)
         {
-            throw new ArgumentOutOfRangeException(nameof(scale), scale, $"Logo scale must be between 0.05 and {MaxLogoScale}.");
+            throw new ArgumentOutOfRangeException(nameof(scale), scale, FormattableString.Invariant($"Logo scale must be between 0.05 and {MaxLogoScale}."));
         }
 
         _logo = PngDecoder.Decode(png, nameof(png));
         _logoPng = (byte[])png.Clone();
         _logoScale = scale;
         _matrix = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Turns off the contrast check, which otherwise throws
+    /// <see cref="InvalidOperationException"/> when rendering if the background and
+    /// the bars, gradient stops or eye colour have a contrast ratio below
+    /// <see cref="MinContrastRatio"/>. Only use this for decorative output that
+    /// you have tested with your scanners.
+    /// </summary>
+    public BarcodeBuilder AllowLowContrast(bool allow = true)
+    {
+        _allowLowContrast = allow;
         return this;
     }
 
@@ -312,9 +364,45 @@ public sealed class BarcodeBuilder
         if (Type != BarcodeType.QrCode) throw new InvalidOperationException($"{option} applies to QR codes only.");
     }
 
+    private void ValidateCombination()
+    {
+        if (_logo is not null)
+        {
+            var level = EffectiveErrorCorrection;
+            if (level is QrErrorCorrectionLevel.L or QrErrorCorrectionLevel.M)
+            {
+                throw new InvalidOperationException(
+                    $"A logo needs error-correction level Q or H to scan reliably; level {level} is set. Remove the ErrorCorrection call (a logo selects H) or set Q or H.");
+            }
+
+            if (level == QrErrorCorrectionLevel.Q && _logoScale > MaxLogoScaleAtQ)
+            {
+                throw new InvalidOperationException(FormattableString.Invariant(
+                    $"At error-correction level Q the logo scale can be at most {MaxLogoScaleAtQ}; it is {_logoScale}. Use level H or a smaller logo."));
+            }
+        }
+
+        if (_allowLowContrast) return;
+        CheckContrast(_gradient is null ? _foreground : _gradient.Value.Start, _gradient is null ? "Foreground" : "Gradient start");
+        if (_gradient is { } g) CheckContrast(g.End, "Gradient end");
+        if (_eyeColor is { } eye) CheckContrast(eye, "EyeColor");
+    }
+
+    private void CheckContrast(BarcodeColor color, string option)
+    {
+        var ratio = BarcodeColor.ContrastRatio(color, _background);
+        if (ratio < MinContrastRatio)
+        {
+            throw new InvalidOperationException(FormattableString.Invariant(
+                $"{option} {color} on background {_background} has a contrast ratio of {ratio:0.0}:1, below the {MinContrastRatio:0.0}:1 scanners need. ") +
+                "Use a darker or lighter colour, or call AllowLowContrast() if you have tested it.");
+        }
+    }
+
     /// <summary>The vector scene for styled output, or <c>null</c> for a plain barcode.</summary>
     internal Scene? CreateScene()
     {
+        ValidateCombination();
         if (!IsStyled) return null;
         return SceneBuilder.Build(Encode(), CreateRenderOptions(), new StyleOptions
         {

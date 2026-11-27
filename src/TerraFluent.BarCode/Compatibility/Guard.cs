@@ -10,21 +10,13 @@ internal static class Guard
         return value;
     }
 
-    public static int Positive(int value, string paramName)
+    public static string MaxLength(string value, int max, string symbology, string paramName)
     {
-        if (value <= 0)
+        if (value.Length > max)
         {
-            throw new ArgumentOutOfRangeException(paramName, value, "Value must be greater than zero.");
-        }
-
-        return value;
-    }
-
-    public static int NonNegative(int value, string paramName)
-    {
-        if (value < 0)
-        {
-            throw new ArgumentOutOfRangeException(paramName, value, "Value must be zero or greater.");
+            throw new ArgumentException(
+                $"{symbology} values are limited to {max} characters (got {value.Length}); longer symbols are too wide for scanners to read reliably. Use a QR code for long data.",
+                paramName);
         }
 
         return value;

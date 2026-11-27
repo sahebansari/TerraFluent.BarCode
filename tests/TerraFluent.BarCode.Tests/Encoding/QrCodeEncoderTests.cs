@@ -70,7 +70,7 @@ public class QrCodeEncoderTests
     [Fact]
     public void Utf8_text_is_supported()
     {
-        var (mode, _, count) = QrCodeEncoder.SelectMode("こんにちは");
+        var (mode, _, count, _) = QrCodeEncoder.SelectMode("こんにちは");
         Assert.Equal(QrCodeEncoder.Mode.Byte, mode);
         Assert.Equal(15, count);
     }
