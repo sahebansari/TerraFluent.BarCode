@@ -46,4 +46,17 @@ public static class Barcode
 
     /// <summary>QR code for any text (UTF-8). The smallest version that fits is picked automatically.</summary>
     public static BarcodeBuilder QrCode(string value) => Create(BarcodeType.QrCode, value);
+
+    /// <summary>
+    /// GS1-128 from an element string with application identifiers in parentheses,
+    /// for example <c>(01)09501101530003(17)250101(10)ABC123</c>. FNC1 characters are
+    /// inserted where GS1 requires them, and GTIN, SSCC and GLN check digits are validated.
+    /// </summary>
+    public static BarcodeBuilder Gs1Code128(string value) => Create(BarcodeType.Gs1Code128, value);
+
+    /// <summary>Data Matrix ECC 200 for any text (UTF-8). The smallest symbol that fits is picked automatically.</summary>
+    public static BarcodeBuilder DataMatrix(string value) => Create(BarcodeType.DataMatrix, value);
+
+    /// <summary>PDF417 for any text (UTF-8). Columns and error correction are chosen automatically unless set.</summary>
+    public static BarcodeBuilder Pdf417(string value) => Create(BarcodeType.Pdf417, value);
 }

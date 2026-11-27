@@ -23,6 +23,10 @@ internal static class Code128Encoder
         "114131", "311141", "411131", "211412", "211214", "211232", "2331112",
     };
 
+    /// <summary>Stands for the FNC1 function character in values passed by the GS1-128 encoder.</summary>
+    internal const char Fnc1 = '\uF001';
+
+    private const int Fnc1Value = 102;
     private const int CodeC = 99;
     private const int CodeB = 100;
     private const int CodeA = 101;
@@ -38,21 +42,21 @@ internal static class Code128Encoder
 
     private enum CodeSet { A, B, C }
 
-    public static BarcodeMatrix Encode(string value)
+    public static BarcodeMatrix Encode(string value, bool allowFnc1 = false)
     {
-        var values = EncodeValues(value);
+        var values = EncodeValues(value, allowFnc1);
         var writer = new ModuleWriter();
         foreach (var v in values) writer.AppendWidths(Patterns[v]);
         return BarcodeMatrix.FromLinear(writer.Modules, QuietZone);
     }
 
     /// <summary>Returns the symbol values: start, data, checksum and stop.</summary>
-    internal static List<int> EncodeValues(string value)
+    internal static List<int> EncodeValues(string value, bool allowFnc1 = false)
     {
         Compatibility.Guard.MaxLength(value, MaxLength, "Code 128", nameof(value));
         for (var i = 0; i < value.Length; i++)
         {
-            if (value[i] > 127)
+            if (value[i] > 127 && !(allowFnc1 && value[i] == Fnc1))
             {
                 throw new ArgumentException(
                     $"Code 128 supports ASCII characters (0-127) only; '{value[i]}' at index {i} is not ASCII.",
@@ -67,6 +71,13 @@ internal static class Code128Encoder
         var pos = 0;
         while (pos < value.Length)
         {
+            if (value[pos] == Fnc1)
+            {
+                codes.Add(Fnc1Value); // FNC1 has the same value in every code set
+                pos++;
+                continue;
+            }
+
             if (set == CodeSet.C)
             {
                 if (DigitRun(value, pos) >= 2)
@@ -118,9 +129,11 @@ internal static class Code128Encoder
 
     private static CodeSet ChooseStartSet(string value)
     {
-        var run = DigitRun(value, 0);
-        if (run >= 4 || (run == 2 && value.Length == 2)) return CodeSet.C;
-        return NeedsSetA(value, 0) ? CodeSet.A : CodeSet.B;
+        var from = 0;
+        while (from < value.Length && value[from] == Fnc1) from++;
+        var run = DigitRun(value, from);
+        if (run >= 4 || (run == 2 && value.Length - from == 2)) return CodeSet.C;
+        return NeedsSetA(value, from) ? CodeSet.A : CodeSet.B;
     }
 
     /// <summary>Whether a control character appears before the next lower-case character.</summary>
@@ -128,6 +141,7 @@ internal static class Code128Encoder
     {
         for (var i = from; i < value.Length; i++)
         {
+            if (value[i] == Fnc1) continue;
             if (value[i] < 32) return true;
             if (value[i] >= 96) return false;
         }

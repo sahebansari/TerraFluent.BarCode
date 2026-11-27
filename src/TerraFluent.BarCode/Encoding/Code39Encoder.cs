@@ -27,16 +27,20 @@ internal static class Code39Encoder
     /// <summary>Longest accepted value, in characters.</summary>
     public const int MaxLength = 128;
 
-    public static BarcodeMatrix Encode(string value, bool includeChecksum)
+    // Full ASCII (extended) Code 39: each ASCII character as one or two Code 39 characters.
+    private static readonly string[] FullAsciiTable = BuildFullAsciiTable();
+
+    public static BarcodeMatrix Encode(string value, bool includeChecksum, bool fullAscii = false)
     {
         Compatibility.Guard.MaxLength(value, MaxLength, "Code 39", nameof(value));
+        if (fullAscii) value = ToFullAscii(value);
         var indices = new List<int>(value.Length + 1);
         for (var i = 0; i < value.Length; i++)
         {
             var index = Alphabet.IndexOf(value[i]);
             if (index < 0)
             {
-                var hint = char.IsLower(value[i]) ? " Code 39 has no lower-case letters; use upper case or Code 128." : string.Empty;
+                var hint = char.IsLower(value[i]) ? " Code 39 has no lower-case letters; call FullAscii() to encode them, or use Code 128." : string.Empty;
                 throw new ArgumentException(
                     $"Character '{value[i]}' at index {i} cannot be encoded in Code 39. Allowed: 0-9, A-Z, space and - . $ / + %.{hint}",
                     nameof(value));
@@ -58,6 +62,53 @@ internal static class Code39Encoder
         writer.Append(false, 1);
         AppendCharacter(writer, StartStop);
         return BarcodeMatrix.FromLinear(writer.Modules, QuietZone);
+    }
+
+    /// <summary>Maps ASCII text to the Code 39 character pairs of the full ASCII extension.</summary>
+    internal static string ToFullAscii(string value)
+    {
+        var sb = new System.Text.StringBuilder(value.Length * 2);
+        for (var i = 0; i < value.Length; i++)
+        {
+            var c = value[i];
+            if (c > 127)
+            {
+                throw new ArgumentException(
+                    $"Code 39 full ASCII supports ASCII characters (0-127) only; '{c}' at index {i} is not ASCII.", nameof(value));
+            }
+
+            sb.Append(FullAsciiTable[c]);
+        }
+
+        return sb.ToString();
+    }
+
+    private static string[] BuildFullAsciiTable()
+    {
+        var t = new string[128];
+        t[0] = "%U";
+        for (var c = 1; c <= 26; c++) t[c] = "$" + (char)('A' + c - 1);
+        for (var c = 27; c <= 31; c++) t[c] = "%" + (char)('A' + c - 27);
+        t[' '] = " ";
+        const string punct = "!\"#$%&'()*+,"; // 33-44 -> /A-/L
+        for (var i = 0; i < punct.Length; i++) t[punct[i]] = "/" + (char)('A' + i);
+        t['-'] = "-";
+        t['.'] = ".";
+        t['/'] = "/O";
+        for (var c = '0'; c <= '9'; c++) t[c] = c.ToString();
+        t[':'] = "/Z";
+        const string lowPunct = ";<=>?"; // 59-63 -> %F-%J
+        for (var i = 0; i < lowPunct.Length; i++) t[lowPunct[i]] = "%" + (char)('F' + i);
+        t['@'] = "%V";
+        for (var c = 'A'; c <= 'Z'; c++) t[c] = c.ToString();
+        const string brackets = "[\\]^_"; // 91-95 -> %K-%O
+        for (var i = 0; i < brackets.Length; i++) t[brackets[i]] = "%" + (char)('K' + i);
+        t['`'] = "%W";
+        for (var c = 'a'; c <= 'z'; c++) t[c] = "+" + (char)(c - 32);
+        const string braces = "{|}~"; // 123-126 -> %P-%S
+        for (var i = 0; i < braces.Length; i++) t[braces[i]] = "%" + (char)('P' + i);
+        t[127] = "%T";
+        return t;
     }
 
     /// <summary>The modulo 43 check character for <paramref name="value"/>.</summary>

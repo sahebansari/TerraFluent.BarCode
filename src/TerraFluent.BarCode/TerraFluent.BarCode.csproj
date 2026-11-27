@@ -16,12 +16,12 @@
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <!--
-      CA1510, CA1846, CA1865, CA2249: suggest APIs (ArgumentNullException.ThrowIfNull,
+      CA1510, CA1835, CA1845, CA1846, CA1865, CA2249: suggest APIs (ArgumentNullException.ThrowIfNull,
       span overloads, char overloads of string methods) that netstandard2.0 lacks.
       RS0026: Gradient has colour and hex overloads that both default the direction;
       they cannot be confused because the first two parameter types differ.
     -->
-    <NoWarn>$(NoWarn);CA1510;CA1846;CA1865;CA2249;RS0026</NoWarn>
+    <NoWarn>$(NoWarn);CA1510;CA1835;CA1845;CA1846;CA1865;CA2249;RS0026</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
@@ -37,6 +37,7 @@
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
