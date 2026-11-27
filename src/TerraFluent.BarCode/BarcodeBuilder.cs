@@ -29,7 +29,8 @@ public sealed class BarcodeBuilder
     private BarcodeColor _foreground = BarcodeColor.Black;
     private BarcodeColor _background = BarcodeColor.White;
     private int _jpegQuality = DefaultJpegQuality;
-    private QrErrorCorrectionLevel _errorCorrection = QrErrorCorrectionLevel.M;
+    private QrErrorCorrectionLevel? _errorCorrection;
+    private BarcodeStyle? _style;
     private bool _code39Checksum;
     private BarcodeMatrix? _matrix;
 
@@ -97,13 +98,37 @@ public sealed class BarcodeBuilder
     /// <summary>Background and quiet-zone colour as <c>#RRGGBB</c> or <c>#RGB</c>.</summary>
     public BarcodeBuilder Background(string hex) => Background(BarcodeColor.FromHex(hex));
 
-    /// <summary>QR error-correction level (default <see cref="QrErrorCorrectionLevel.M"/>). QR codes only.</summary>
+    /// <summary>
+    /// QR error-correction level. QR codes only. Defaults to <see cref="QrErrorCorrectionLevel.M"/>,
+    /// or <see cref="QrErrorCorrectionLevel.H"/> when a logo is set.
+    /// </summary>
     public BarcodeBuilder ErrorCorrection(QrErrorCorrectionLevel level)
     {
         if (Type != BarcodeType.QrCode) throw new InvalidOperationException("ErrorCorrection applies to QR codes only.");
         if (level < QrErrorCorrectionLevel.L || level > QrErrorCorrectionLevel.H) throw new ArgumentOutOfRangeException(nameof(level));
         _errorCorrection = level;
         _matrix = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Adds decorative styling: QR module and corner shapes, a finder colour,
+    /// gradients, rounded bars, a transparent background or a centre logo.
+    /// Calling it again adds to the existing style.
+    /// <code>
+    /// Barcode.QrCode("https://terrafluent.dev")
+    ///     .Style(s => s.ModuleShape(QrModuleShape.Circle)
+    ///                  .FinderShape(QrFinderShape.Rounded)
+    ///                  .Gradient("#1A3C8F", "#00897B"))
+    ///     .ToPng();
+    /// </code>
+    /// </summary>
+    public BarcodeBuilder Style(Action<BarcodeStyle> configure)
+    {
+        if (configure is null) throw new ArgumentNullException(nameof(configure));
+        _style ??= new BarcodeStyle(Type == BarcodeType.QrCode);
+        configure(_style);
+        _matrix = null; // a logo changes the default error-correction level
         return this;
     }
 
@@ -135,14 +160,16 @@ public sealed class BarcodeBuilder
         BarcodeType.Ean13 => EanUpcEncoder.EncodeEan13(Value),
         BarcodeType.Ean8 => EanUpcEncoder.EncodeEan8(Value),
         BarcodeType.UpcA => EanUpcEncoder.EncodeUpcA(Value),
-        BarcodeType.QrCode => QrCodeEncoder.Encode(Value, _errorCorrection),
+        BarcodeType.QrCode => _style?.LogoBytes is null
+            ? QrCodeEncoder.Encode(Value, EffectiveErrorCorrection())
+            : QrCodeEncoder.Encode(Value, EffectiveErrorCorrection(), size => LogoLayout.HiddenModules(size, _style.LogoSizeRatio)),
         _ => throw new InvalidOperationException($"Unsupported barcode type {Type}."),
     };
 
     /// <summary>The output image size in pixels with the current settings.</summary>
     public (int Width, int Height) GetImageSize() => CreateRenderOptions().ImageSize(Encode());
 
-    /// <summary>Renders a 1-bit indexed PNG.</summary>
+    /// <summary>Renders a PNG: 1-bit indexed when unstyled, 8-bit RGBA (anti-aliased) when styled.</summary>
     public byte[] ToPng() => PngEncoder.Encode(Encode(), CreateRenderOptions());
 
     /// <summary>Renders a baseline JPEG at the configured <see cref="JpegQuality"/>.</summary>
@@ -195,6 +222,18 @@ public sealed class BarcodeBuilder
         File.WriteAllBytes(path, ToBytes(format));
     }
 
+    private QrErrorCorrectionLevel EffectiveErrorCorrection()
+    {
+        if (_style?.LogoBytes is null) return _errorCorrection ?? QrErrorCorrectionLevel.M;
+        if (_errorCorrection is QrErrorCorrectionLevel.L or QrErrorCorrectionLevel.M)
+        {
+            throw new InvalidOperationException(
+                $"A logo hides part of the QR code, so it needs error-correction level Q or H; {_errorCorrection} was set. Remove the ErrorCorrection call to use H automatically.");
+        }
+
+        return _errorCorrection ?? QrErrorCorrectionLevel.H;
+    }
+
     private RenderOptions CreateRenderOptions()
     {
         var matrix = Encode();
@@ -203,6 +242,7 @@ public sealed class BarcodeBuilder
             _barHeight,
             _quietZone ?? matrix.RecommendedQuietZone,
             _foreground,
-            _background);
+            _background,
+            _style);
     }
 }

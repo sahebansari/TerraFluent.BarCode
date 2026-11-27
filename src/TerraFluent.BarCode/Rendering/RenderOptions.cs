@@ -3,13 +3,14 @@ namespace TerraFluent.BarCode.Rendering;
 /// <summary>Resolved layout and colour settings shared by all renderers.</summary>
 internal sealed class RenderOptions
 {
-    public RenderOptions(int moduleSize, int barHeight, int quietZone, BarcodeColor foreground, BarcodeColor background)
+    public RenderOptions(int moduleSize, int barHeight, int quietZone, BarcodeColor foreground, BarcodeColor background, BarcodeStyle? style = null)
     {
         ModuleSize = moduleSize;
         BarHeight = barHeight;
         QuietZone = quietZone;
         Foreground = foreground;
         Background = background;
+        Style = style;
     }
 
     public int ModuleSize { get; }
@@ -17,6 +18,11 @@ internal sealed class RenderOptions
     public int QuietZone { get; }
     public BarcodeColor Foreground { get; }
     public BarcodeColor Background { get; }
+
+    /// <summary>Decorative style; <c>null</c> or plain means the classic fast paths are used.</summary>
+    public BarcodeStyle? Style { get; }
+
+    public bool IsStyled => Style is not null && !Style.IsPlain;
 
     /// <summary>Output size in pixels. Linear codes get the quiet zone left and right only.</summary>
     public (int Width, int Height) ImageSize(BarcodeMatrix matrix)

@@ -3,7 +3,7 @@ namespace TerraFluent.BarCode.Rendering;
 /// <summary>
 /// Minimal baseline JPEG (ITU-T T.81) encoder: 8-bit, no chroma subsampling,
 /// standard Annex K quantisation and Huffman tables. Writes a single-component
-/// greyscale image when both colours are grey, otherwise YCbCr.
+/// greyscale image when every pixel is grey, otherwise YCbCr.
 /// </summary>
 internal static class JpegEncoder
 {
@@ -64,15 +64,18 @@ internal static class JpegEncoder
 
     public static byte[] Encode(BarcodeMatrix matrix, RenderOptions options, int quality)
     {
-        var (width, height) = options.ImageSize(matrix);
-        var fg = options.Foreground;
-        var bg = options.Background;
-        var greyscale = fg.R == fg.G && fg.G == fg.B && bg.R == bg.G && bg.G == bg.B;
-        var componentCount = greyscale ? 1 : 3;
+        // JPEG has no alpha: always render onto the opaque background colour.
+        var canvas = Canvas.Render(SceneBuilder.Build(matrix, options), forceOpaque: true);
+        var width = canvas.Width;
+        var height = canvas.Height;
+        var pixels = canvas.Pixels;
+        var greyscale = true;
+        for (var i = 0; i < pixels.Length && greyscale; i += 4)
+        {
+            greyscale = pixels[i] == pixels[i + 1] && pixels[i + 1] == pixels[i + 2];
+        }
 
-        // Per-component sample value for a dark and a light pixel.
-        var darkSample = ToComponents(fg, greyscale);
-        var lightSample = ToComponents(bg, greyscale);
+        var componentCount = greyscale ? 1 : 3;
 
         var quant = new[] { Scale(LuminanceQuant, quality), Scale(ChrominanceQuant, quality) };
 
@@ -122,8 +125,8 @@ internal static class JpegEncoder
                         for (var x = 0; x < 8; x++)
                         {
                             var px = Math.Min(bx + x, width - 1);
-                            var dark = options.IsDark(matrix, px, py);
-                            block[y * 8 + x] = (dark ? darkSample[c] : lightSample[c]) - 128.0;
+                            var p = (py * width + px) * 4;
+                            block[y * 8 + x] = Component(pixels[p], pixels[p + 1], pixels[p + 2], c, greyscale) - 128.0;
                         }
                     }
 
@@ -138,15 +141,14 @@ internal static class JpegEncoder
         return output.ToArray();
     }
 
-    private static double[] ToComponents(BarcodeColor color, bool greyscale)
+    private static double Component(double r, double g, double b, int component, bool greyscale)
     {
-        if (greyscale) return new double[] { color.R };
-        double r = color.R, g = color.G, b = color.B;
-        return new[]
+        if (greyscale) return r;
+        return component switch
         {
-            0.299 * r + 0.587 * g + 0.114 * b,
-            -0.168736 * r - 0.331264 * g + 0.5 * b + 128,
-            0.5 * r - 0.418688 * g - 0.081312 * b + 128,
+            0 => 0.299 * r + 0.587 * g + 0.114 * b,
+            1 => -0.168736 * r - 0.331264 * g + 0.5 * b + 128,
+            _ => 0.5 * r - 0.418688 * g - 0.081312 * b + 128,
         };
     }
 

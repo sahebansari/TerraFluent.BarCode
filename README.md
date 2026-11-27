@@ -47,6 +47,56 @@ using Stream stream = Barcode.QrCode("hello").ToStream(BarcodeImageFormat.Png);
 await Barcode.Code128("X1").WriteToAsync(response.Body, BarcodeImageFormat.Png);
 ```
 
+## Styled QR Codes and Barcodes
+
+`Style(...)` adds decorative options. Every option is off by default.
+
+```csharp
+// Dots with rounded corner squares and a diagonal gradient
+byte[] png = Barcode.QrCode("https://terrafluent.dev")
+    .ModuleSize(8)
+    .Style(s => s
+        .ModuleShape(QrModuleShape.Circle)
+        .FinderShape(QrFinderShape.Rounded)
+        .FinderColor("#E91E63")
+        .Gradient("#1A3C8F", "#00897B", GradientDirection.Diagonal))
+    .ToPng();
+
+// Centre logo (error correction rises to H automatically)
+string svg = Barcode.QrCode("https://terrafluent.dev")
+    .Style(s => s.Logo("logo.png", sizeRatio: 0.2))
+    .ToSvg();
+
+// Rounded, gradient barcode on a transparent background
+Barcode.Code128("TF-2026")
+    .Style(s => s.BarShape(BarShape.Rounded)
+                 .Gradient("#1A3C8F", "#6A1B9A", GradientDirection.Horizontal)
+                 .TransparentBackground())
+    .Save("code128.png");
+```
+
+| Style option | Applies to | Values |
+| --- | --- | --- |
+| `ModuleShape(shape)` | QR | `Square`, `RoundedSquare`, `Circle`, `Diamond` |
+| `FinderShape(shape)` | QR | `Square`, `Rounded`, `Circle` |
+| `FinderColor(color)` | QR | colour of the three corner squares |
+| `Logo(image, sizeRatio, clearBehind)` | QR | up to 0.3 of the symbol width, default 0.2 |
+| `BarShape(shape)` | linear | `Square`, `Rounded` |
+| `Gradient(start, end, direction)` | all | `Horizontal`, `Vertical`, `Diagonal`, `Radial` |
+| `TransparentBackground()` | all | PNG and SVG; JPEG uses the background colour |
+
+How logos stay readable: a logo hides modules, so the library defaults to
+error-correction level H. It then checks exactly which codewords the logo
+covers, and moves to a larger QR version until every block can still be
+corrected. Setting L or M together with a logo throws. SVG output accepts
+PNG, JPEG, GIF, WebP and SVG logos; PNG and JPEG output need a PNG logo.
+
+Tips for scannable styled codes: keep gradient colours dark against a light
+background, keep the quiet zone, and test with the scanners your users have.
+On QR version 7 and above a logo covers the centre alignment pattern. Phone
+scanners (ZXing, ML Kit, iOS) handle this; some stricter decoders such as
+zbar may need a logo of 0.15 or smaller.
+
 ## Symbologies
 
 | Method | Standard | Input |
@@ -65,7 +115,7 @@ wrong (for example `Invalid EAN-13 check digit: '8' should be '7'.`).
 
 | Method | Returns |
 | --- | --- |
-| `ToPng()` | `byte[]`, 1-bit indexed PNG (smallest lossless form) |
+| `ToPng()` | `byte[]`, 1-bit indexed PNG; 8-bit RGBA when styled |
 | `ToJpeg()` | `byte[]`, baseline JPEG (`JpegQuality`, default 90) |
 | `ToSvg()` | `string`, SVG document |
 | `ToBytes(format)` | `byte[]` in any format |
@@ -95,7 +145,8 @@ two-colour images, so prefer PNG or SVG: JPEG compression softens bar edges.
 ## Not yet supported
 
 Human-readable text under linear barcodes, GS1-128 (FNC1), Code 39 full
-ASCII, ITF, Data Matrix, PDF417, QR Kanji mode and structured append.
+ASCII, ITF, Data Matrix, PDF417, QR Kanji mode, structured append, and
+connected ("liquid") QR module styles.
 
 ## Repository Layout
 

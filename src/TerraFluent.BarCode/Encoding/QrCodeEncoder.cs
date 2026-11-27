@@ -36,7 +36,62 @@ internal static class QrCodeEncoder
     // 2-bit format-information code per level, ISO/IEC 18004 Table 12.
     private static readonly int[] FormatBits = { 1, 0, 3, 2 };
 
-    public static BarcodeMatrix Encode(string value, QrErrorCorrectionLevel level, int? fixedVersion = null, int? fixedMask = null)
+    /// <summary>
+    /// Encodes <paramref name="value"/>. When <paramref name="hiddenModules"/> is given (a logo
+    /// covering part of the symbol), the version is raised until error correction in
+    /// every block can restore all codewords the hidden modules touch.
+    /// </summary>
+    public static BarcodeMatrix Encode(string value, QrErrorCorrectionLevel level, Func<int, bool[]>? hiddenModules = null)
+    {
+        var smallest = Encode(value, level, fixedVersion: null, fixedMask: null, out var version, out var layout);
+        if (hiddenModules is null || IsRecoverable(smallest.Width, layout, hiddenModules(smallest.Width), version, (int)level)) return smallest;
+
+        for (var v = version + 1; v <= 40; v++)
+        {
+            var candidate = Encode(value, level, v, null, out _, out layout);
+            if (IsRecoverable(candidate.Width, layout, hiddenModules(candidate.Width), v, (int)level)) return candidate;
+        }
+
+        throw new ArgumentException(
+            "The logo hides more of this QR code than error correction can restore at any version. Use a smaller logo size ratio.",
+            nameof(value));
+    }
+
+    /// <summary>Whether every block loses few enough codewords to the hidden modules to be corrected.</summary>
+    private static bool IsRecoverable(int size, CodewordLayout layout, bool[] hidden, int version, int level)
+    {
+        var damaged = new HashSet<int>();
+        for (var i = 0; i < hidden.Length; i++)
+        {
+            if (hidden[i] && layout.CodewordAt[i] >= 0) damaged.Add(layout.CodewordAt[i]);
+        }
+
+        var perBlock = new int[ErrorCorrectionBlocks[level][version]];
+        foreach (var codeword in damaged) perBlock[layout.BlockOf[codeword]]++;
+
+        // Reed-Solomon corrects floor(ecc / 2) unknown errors; keep a margin of one
+        // codeword per block for print and scan damage elsewhere in the symbol.
+        var ecc = EccCodewordsPerBlock[level][version];
+        return perBlock.All(n => n <= ecc / 2 - 1);
+    }
+
+    /// <summary>For each module (row-major), the interleaved codeword it carries (-1 for none), and each codeword's block.</summary>
+    internal sealed class CodewordLayout
+    {
+        public CodewordLayout(int[] codewordAt, int[] blockOf)
+        {
+            CodewordAt = codewordAt;
+            BlockOf = blockOf;
+        }
+
+        public int[] CodewordAt { get; }
+        public int[] BlockOf { get; }
+    }
+
+    public static BarcodeMatrix Encode(string value, QrErrorCorrectionLevel level, int? fixedVersion, int? fixedMask)
+        => Encode(value, level, fixedVersion, fixedMask, out _, out _);
+
+    private static BarcodeMatrix Encode(string value, QrErrorCorrectionLevel level, int? fixedVersion, int? fixedMask, out int chosenVersion, out CodewordLayout layout)
     {
         var (mode, payload, count) = SelectMode(value);
         var lvl = (int)level;
@@ -73,10 +128,12 @@ internal static class QrCodeEncoder
         buffer.Append(0, (8 - buffer.Count % 8) % 8);
         for (var pad = 0xEC; buffer.Count < capacityBits; pad ^= 0xEC ^ 0x11) buffer.Append(pad, 8);
 
-        var codewords = AddEccAndInterleave(buffer.ToBytes(), version, lvl);
+        var codewords = AddEccAndInterleave(buffer.ToBytes(), version, lvl, out var blockOf);
         var symbol = new Symbol(version);
         symbol.DrawFunctionPatterns();
         symbol.DrawCodewords(codewords);
+        chosenVersion = version;
+        layout = new CodewordLayout(symbol.CodewordAt, blockOf);
 
         int mask;
         if (fixedMask is int m)
@@ -176,7 +233,7 @@ internal static class QrCodeEncoder
         return result;
     }
 
-    private static byte[] AddEccAndInterleave(byte[] data, int version, int level)
+    private static byte[] AddEccAndInterleave(byte[] data, int version, int level, out int[] blockOf)
     {
         var numBlocks = ErrorCorrectionBlocks[level][version];
         var eccLen = EccCodewordsPerBlock[level][version];
@@ -200,15 +257,21 @@ internal static class QrCodeEncoder
         }
 
         var result = new List<byte>(rawCodewords);
+        var owners = new List<int>(rawCodewords);
         for (var i = 0; i < shortBlockLen + 1; i++)
         {
             for (var j = 0; j < numBlocks; j++)
             {
                 // Short blocks have a padding slot at the end of their data part; skip it.
-                if (i != shortBlockLen - eccLen || j >= numShortBlocks) result.Add(blocks[j][i]);
+                if (i != shortBlockLen - eccLen || j >= numShortBlocks)
+                {
+                    result.Add(blocks[j][i]);
+                    owners.Add(j);
+                }
             }
         }
 
+        blockOf = owners.ToArray();
         return result.ToArray();
     }
 
@@ -295,7 +358,11 @@ internal static class QrCodeEncoder
             Size = version * 4 + 17;
             Modules = new bool[Size * Size];
             _isFunction = new bool[Size * Size];
+            CodewordAt = Enumerable.Repeat(-1, Size * Size).ToArray();
         }
+
+        /// <summary>Interleaved codeword index carried by each module, or -1.</summary>
+        public int[] CodewordAt { get; }
 
         public int Version { get; }
         public int Size { get; }
@@ -407,6 +474,7 @@ internal static class QrCodeEncoder
                         if (!_isFunction[y * Size + x] && i < data.Length * 8)
                         {
                             Modules[y * Size + x] = Bit(data[i >> 3], 7 - (i & 7));
+                            CodewordAt[y * Size + x] = i >> 3;
                             i++;
                         }
                     }

@@ -13,6 +13,8 @@ internal static class PngEncoder
 
     public static byte[] Encode(BarcodeMatrix matrix, RenderOptions options)
     {
+        if (options.IsStyled) return EncodeRgba(Canvas.Render(SceneBuilder.Build(matrix, options)));
+
         var (width, height) = options.ImageSize(matrix);
         var stride = (width + 7) / 8;
         var raw = new byte[height * (stride + 1)];
@@ -56,6 +58,30 @@ internal static class PngEncoder
         var bg = options.Background;
         var fg = options.Foreground;
         WriteChunk(output, "PLTE", new[] { bg.R, bg.G, bg.B, fg.R, fg.G, fg.B });
+        WriteChunk(output, "IDAT", ZlibCompress(raw));
+        WriteChunk(output, "IEND", Array.Empty<byte>());
+        return output.ToArray();
+    }
+
+    /// <summary>Writes an 8-bit RGBA PNG (used for styled output: anti-aliasing, gradients, transparency, logos).</summary>
+    public static byte[] EncodeRgba(Canvas canvas)
+    {
+        var stride = canvas.Width * 4;
+        var raw = new byte[canvas.Height * (stride + 1)];
+        for (var y = 0; y < canvas.Height; y++)
+        {
+            raw[y * (stride + 1)] = 0; // filter: none
+            Buffer.BlockCopy(canvas.Pixels, y * stride, raw, y * (stride + 1) + 1, stride);
+        }
+
+        using var output = new MemoryStream();
+        output.Write(Signature, 0, Signature.Length);
+        var ihdr = new byte[13];
+        WriteUInt32(ihdr, 0, (uint)canvas.Width);
+        WriteUInt32(ihdr, 4, (uint)canvas.Height);
+        ihdr[8] = 8; // bit depth
+        ihdr[9] = 6; // colour type: RGBA
+        WriteChunk(output, "IHDR", ihdr);
         WriteChunk(output, "IDAT", ZlibCompress(raw));
         WriteChunk(output, "IEND", Array.Empty<byte>());
         return output.ToArray();
