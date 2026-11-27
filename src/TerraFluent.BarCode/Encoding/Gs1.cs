@@ -12,7 +12,7 @@ internal static class Gs1
     /// <summary>GS1-128 allows at most 48 data characters, not counting FNC1.</summary>
     public const int MaxDataLength = 48;
 
-    // Total length (AI digits plus data) of AIs whose first two digits fix the length (GS1 General Specifications, figure 7.8.5-2).
+    // AIs whose first two digits fix the length need no FNC1 after them (GS1 General Specifications, figure 7.8.5-2).
     private static readonly Dictionary<string, int> PredefinedLength = new()
     {
         ["00"] = 20, ["01"] = 16, ["02"] = 16, ["03"] = 16, ["04"] = 18,
@@ -39,6 +39,7 @@ internal static class Gs1
         public string HumanReadable { get; }
     }
 
+    /// <summary>Parses an element string written as <c>(AI)data(AI)data</c>.</summary>
     public static Result Parse(string value, string paramName)
     {
         var elements = new List<(string Ai, string Data)>();
@@ -49,40 +50,36 @@ internal static class Gs1
             var close = value.IndexOf(')', pos + 1);
             if (close < 0) throw Error($"the application identifier starting at index {pos} has no closing ')'", paramName);
             var ai = value.Substring(pos + 1, close - pos - 1);
-            if (ai.Length < 2 || ai.Length > 4 || ai.Any(c => c < '0' || c > '9'))
+            var next = value.IndexOf('(', close + 1);
+            if (next < 0) next = value.Length;
+            elements.Add((ai, value.Substring(close + 1, next - close - 1)));
+            pos = next;
+        }
+
+        return Build(elements, paramName);
+    }
+
+    /// <summary>
+    /// Validates AI and data pairs and builds the encoded and printed forms. Data
+    /// may contain parentheses here, which the element-string syntax cannot express.
+    /// </summary>
+    public static Result Build(IReadOnlyList<(string Ai, string Data)> elements, string paramName)
+    {
+        foreach (var (ai, data) in elements)
+        {
+            if (ai is null || ai.Length < 2 || ai.Length > 4 || ai.Any(c => c < '0' || c > '9'))
             {
                 throw Error($"'{ai}' is not an application identifier (2 to 4 digits)", paramName);
             }
 
-            var next = value.IndexOf('(', close + 1);
-            if (next < 0) next = value.Length;
-            var data = value.Substring(close + 1, next - close - 1);
-            if (data.Length == 0) throw Error($"AI ({ai}) has no data", paramName);
+            var format = Gs1Ai.Find(ai) ?? throw Error($"({ai}) is not a GS1 application identifier", paramName);
+            if (string.IsNullOrEmpty(data)) throw Error($"AI ({ai}) has no data", paramName);
             foreach (var c in data)
             {
                 if (Charset82.IndexOf(c) < 0) throw Error($"'{c}' in AI ({ai}) is not in the GS1 character set", paramName);
             }
 
-            if (PredefinedLength.TryGetValue(ai.Substring(0, 2), out var total))
-            {
-                if (ai.Length + data.Length != total)
-                {
-                    throw Error($"AI ({ai}) needs exactly {total - ai.Length} characters of data; got {data.Length}", paramName);
-                }
-
-                if (data.Any(c => c < '0' || c > '9')) throw Error($"AI ({ai}) data must be digits only", paramName);
-                if (HasCheckDigit(ai))
-                {
-                    var expected = EanUpcEncoder.CheckDigit(data.Substring(0, data.Length - 1));
-                    if (data[data.Length - 1] != expected)
-                    {
-                        throw Error($"AI ({ai}) check digit '{data[data.Length - 1]}' should be '{expected}'", paramName);
-                    }
-                }
-            }
-
-            elements.Add((ai, data));
-            pos = next;
+            if (Gs1Ai.Validate(ai, format, data) is { } problem) throw Error(problem, paramName);
         }
 
         if (elements.Count == 0) throw Error("no application identifiers found", paramName);
@@ -113,9 +110,6 @@ internal static class Gs1
 
         return new Result(encoded.ToString(), readable.ToString());
     }
-
-    // SSCC, GTIN and GLN fields end in a GS1 modulo 10 check digit.
-    private static bool HasCheckDigit(string ai) => ai is "00" or "01" or "02" || (ai.Length == 3 && ai.StartsWith("41", StringComparison.Ordinal));
 
     private static ArgumentException Error(string detail, string paramName) =>
         new($"Invalid GS1 element string: {detail}. Write it as (AI)data(AI)data, for example (01)09501101530003(17)250101.", paramName);
