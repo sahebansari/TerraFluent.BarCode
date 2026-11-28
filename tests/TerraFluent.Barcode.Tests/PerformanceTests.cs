@@ -114,6 +114,29 @@ public class PerformanceTests
     }
 
     [Fact]
+    public void Slicing_by_8_crc_matches_the_bytewise_crc_for_every_length_and_offset()
+    {
+        Assert.Equal(0xCBF43926u, PngEncoder.Crc32(0xFFFFFFFFu, System.Text.Encoding.ASCII.GetBytes("123456789"), 0, 9) ^ 0xFFFFFFFFu);
+
+        var data = new byte[64];
+        new Random(3).NextBytes(data);
+        for (var offset = 0; offset < 8; offset++)
+        {
+            for (var count = 0; offset + count <= data.Length; count++)
+            {
+                var expected = 0xFFFFFFFFu;
+                for (var i = offset; i < offset + count; i++)
+                {
+                    expected ^= data[i];
+                    for (var k = 0; k < 8; k++) expected = (expected & 1) != 0 ? 0xEDB88320u ^ (expected >> 1) : expected >> 1;
+                }
+
+                Assert.Equal(expected, PngEncoder.Crc32(0xFFFFFFFFu, data, offset, count));
+            }
+        }
+    }
+
+    [Fact]
     public void Large_styled_png_spans_several_idat_chunks_and_decodes_to_the_rasterised_pixels()
     {
         var builder = Barcodes.QrCode(new string('x', 300)).ModuleSize(20).ModuleStyle(QrModuleStyle.Rounded).Gradient("#222222", "#1565C0");

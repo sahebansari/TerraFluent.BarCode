@@ -283,22 +283,51 @@ internal static class PngEncoder
         output.Write(header, 0, 8);
         output.Write(data, 0, count);
 
-        var crc = 0xFFFFFFFFu;
-        for (var i = 4; i < 8; i++) crc = CrcTable[(crc ^ header[i]) & 0xFF] ^ (crc >> 8);
-        for (var i = 0; i < count; i++) crc = CrcTable[(crc ^ data[i]) & 0xFF] ^ (crc >> 8);
+        var crc = Crc32(0xFFFFFFFFu, header, 4, 4);
+        crc = Crc32(crc, data, 0, count);
         var tail = new byte[4];
         WriteUInt32(tail, 0, crc ^ 0xFFFFFFFFu);
         output.Write(tail, 0, 4);
     }
 
+    /// <summary>
+    /// Updates a CRC-32 (ISO 3309, as PNG uses it) over <paramref name="count"/> bytes,
+    /// eight bytes per step with the slicing-by-8 tables, then byte by byte for the rest.
+    /// </summary>
+    internal static uint Crc32(uint crc, byte[] data, int offset, int count)
+    {
+        var t = CrcTable;
+        var i = offset;
+        var end = offset + count;
+        for (; i + 8 <= end; i += 8)
+        {
+            var low = crc ^ (uint)(data[i] | data[i + 1] << 8 | data[i + 2] << 16 | data[i + 3] << 24);
+            crc = t[0x700 + (low & 0xFF)] ^ t[0x600 + ((low >> 8) & 0xFF)] ^ t[0x500 + ((low >> 16) & 0xFF)] ^ t[0x400 + (low >> 24)]
+                ^ t[0x300 + data[i + 4]] ^ t[0x200 + data[i + 5]] ^ t[0x100 + data[i + 6]] ^ t[data[i + 7]];
+        }
+
+        for (; i < end; i++) crc = t[(crc ^ data[i]) & 0xFF] ^ (crc >> 8);
+        return crc;
+    }
+
+    /// <summary>Slicing-by-8 tables: table k (at k * 256) advances a byte through k further zero bytes.</summary>
     private static uint[] BuildCrcTable()
     {
-        var table = new uint[256];
+        var table = new uint[8 * 256];
         for (uint n = 0; n < 256; n++)
         {
             var c = n;
             for (var k = 0; k < 8; k++) c = (c & 1) != 0 ? 0xEDB88320u ^ (c >> 1) : c >> 1;
             table[n] = c;
+        }
+
+        for (var n = 0; n < 256; n++)
+        {
+            for (var k = 1; k < 8; k++)
+            {
+                var previous = table[(k - 1) * 256 + n];
+                table[k * 256 + n] = table[previous & 0xFF] ^ (previous >> 8);
+            }
         }
 
         return table;

@@ -8,6 +8,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - NuGet package project URL now points to https://terrafluent.dev/barcode/; added `dotnet` and `csharp` package tags.
+- SVG output builds the document in one presized buffer and formats numbers
+  without temporary strings: about half the memory per call (a large QR code
+  1.06 MB to 0.51 MB). Output is unchanged.
+- QR encoding packs its bit buffers (8 bits per byte instead of one `bool` per
+  bit): a large QR code allocates 214 KB instead of 332 KB.
+- PNG chunk checksums (CRC-32) use slicing-by-8.
 
 ## [1.2.0] - 2026-11-28
 
