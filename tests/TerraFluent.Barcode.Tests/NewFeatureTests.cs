@@ -28,12 +28,12 @@ public class NewFeatureTests
     [Fact]
     public void Full_ascii_accepts_lower_case_and_rejects_non_ascii()
     {
-        Assert.Throws<ArgumentException>(() => Barcode.Code39("abc").Encode());
-        var full = Barcode.Code39("abc").FullAscii().Encode();
-        var plain = Barcode.Code39("ABC").Encode();
+        Assert.Throws<ArgumentException>(() => Barcodes.Code39("abc").Encode());
+        var full = Barcodes.Code39("abc").FullAscii().Encode();
+        var plain = Barcodes.Code39("ABC").Encode();
         Assert.True(full.Width > plain.Width);
-        Assert.Throws<ArgumentException>(() => Barcode.Code39("é").FullAscii().Encode());
-        Assert.Throws<InvalidOperationException>(() => Barcode.Code128("a").FullAscii());
+        Assert.Throws<ArgumentException>(() => Barcodes.Code39("é").FullAscii().Encode());
+        Assert.Throws<InvalidOperationException>(() => Barcodes.Code128("a").FullAscii());
     }
 
     // ---- EAN add-ons ----
@@ -42,15 +42,15 @@ public class NewFeatureTests
     [InlineData("12", 95 + 9 + 20)]
     [InlineData("52495", 95 + 9 + 47)]
     public void Ean13_add_on_extends_the_symbol(string addOn, int width) =>
-        Assert.Equal(width, Barcode.Ean13("978123456789").AddOn(addOn).Encode().Width);
+        Assert.Equal(width, Barcodes.Ean13("978123456789").AddOn(addOn).Encode().Width);
 
     [Fact]
     public void Add_on_is_validated()
     {
-        Assert.Throws<ArgumentException>(() => Barcode.Ean13("978123456789").AddOn("123"));
-        Assert.Throws<ArgumentException>(() => Barcode.UpcA("03600029145").AddOn("1a"));
-        Assert.Throws<InvalidOperationException>(() => Barcode.Ean8("9638507").AddOn("12"));
-        Assert.Equal(95 + 9 + 20, Barcode.UpcA("03600029145").AddOn("12").Encode().Width);
+        Assert.Throws<ArgumentException>(() => Barcodes.Ean13("978123456789").AddOn("123"));
+        Assert.Throws<ArgumentException>(() => Barcodes.UpcA("03600029145").AddOn("1a"));
+        Assert.Throws<InvalidOperationException>(() => Barcodes.Ean8("9638507").AddOn("12"));
+        Assert.Equal(95 + 9 + 20, Barcodes.UpcA("03600029145").AddOn("12").Encode().Width);
     }
 
     // ---- GS1-128 ----
@@ -88,7 +88,7 @@ public class NewFeatureTests
     [InlineData("(253)1234567890ABC")]             // GDTI document type must be digits
     public void Invalid_gs1_element_strings_throw(string value)
     {
-        var ex = Assert.Throws<ArgumentException>(() => Barcode.Gs1Code128(value).Encode());
+        var ex = Assert.Throws<ArgumentException>(() => Barcodes.Gs1Code128(value).Encode());
         Assert.Equal("value", ex.ParamName);
     }
 
@@ -103,13 +103,13 @@ public class NewFeatureTests
     [InlineData("(7003)2501012359")]
     [InlineData("(402)95011015300000010")]
     [InlineData("(90)internal(99)anything")]
-    public void Valid_gs1_element_strings_encode(string value) => Assert.True(Barcode.Gs1Code128(value).Encode().Width > 0);
+    public void Valid_gs1_element_strings_encode(string value) => Assert.True(Barcodes.Gs1Code128(value).Encode().Width > 0);
 
     [Fact]
     public void Gs1_pairs_allow_parentheses_in_data()
     {
         var f = Code128Encoder.Fnc1;
-        var builder = Barcode.Gs1Code128(("01", "09501101530003"), ("10", "LOT(A)"), ("21", "S/1"));
+        var builder = Barcodes.Gs1Code128(("01", "09501101530003"), ("10", "LOT(A)"), ("21", "S/1"));
         Assert.Equal("(01)09501101530003(10)LOT(A)(21)S/1", builder.Value);
         var matrix = builder.Encode();
         Assert.Equal(Code128Encoder.Encode($"{f}0109501101530003" + $"10LOT(A){f}" + "21S/1", allowFnc1: true).ToString(), matrix.ToString());
@@ -118,11 +118,11 @@ public class NewFeatureTests
     [Fact]
     public void Gs1_pairs_are_validated_like_element_strings()
     {
-        var ex = Assert.Throws<ArgumentException>(() => Barcode.Gs1Code128(("17", "991399")).Encode());
+        var ex = Assert.Throws<ArgumentException>(() => Barcodes.Gs1Code128(("17", "991399")).Encode());
         Assert.Equal("elements", ex.ParamName);
         Assert.Contains("YYMMDD", ex.Message, StringComparison.Ordinal);
-        Assert.Throws<ArgumentException>(() => Barcode.Gs1Code128(Array.Empty<(string, string)>()));
-        Assert.Throws<ArgumentNullException>(() => Barcode.Gs1Code128((ValueTuple<string, string>[])null!));
+        Assert.Throws<ArgumentException>(() => Barcodes.Gs1Code128(Array.Empty<(string, string)>()));
+        Assert.Throws<ArgumentNullException>(() => Barcodes.Gs1Code128((ValueTuple<string, string>[])null!));
     }
 
     [Fact]
@@ -143,8 +143,8 @@ public class NewFeatureTests
     [InlineData(BarcodeType.Gs1Code128, "(01)09501101530003")]
     public void Human_readable_text_adds_a_text_band(BarcodeType type, string value)
     {
-        var plain = Barcode.Create(type, value).GetImageSize();
-        var withText = Barcode.Create(type, value).HumanReadableText();
+        var plain = Barcodes.Create(type, value).GetImageSize();
+        var withText = Barcodes.Create(type, value).HumanReadableText();
         var size = withText.GetImageSize();
         Assert.Equal(plain.Width, size.Width);
         Assert.True(size.Height > plain.Height);
@@ -157,16 +157,16 @@ public class NewFeatureTests
     [Fact]
     public void Human_readable_text_is_for_linear_codes_only()
     {
-        Assert.Throws<InvalidOperationException>(() => Barcode.QrCode("x").HumanReadableText());
-        Assert.Throws<InvalidOperationException>(() => Barcode.DataMatrix("x").TextSize(10));
-        Assert.Throws<ArgumentOutOfRangeException>(() => Barcode.Code128("x").TextSize(3));
+        Assert.Throws<InvalidOperationException>(() => Barcodes.QrCode("x").HumanReadableText());
+        Assert.Throws<InvalidOperationException>(() => Barcodes.DataMatrix("x").TextSize(10));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Barcodes.Code128("x").TextSize(3));
     }
 
     [Fact]
     public void Larger_text_size_makes_a_taller_image()
     {
-        var small = Barcode.Code128("ABC").HumanReadableText().TextSize(10).GetImageSize();
-        var large = Barcode.Code128("ABC").HumanReadableText().TextSize(30).GetImageSize();
+        var small = Barcodes.Code128("ABC").HumanReadableText().TextSize(10).GetImageSize();
+        var large = Barcodes.Code128("ABC").HumanReadableText().TextSize(30).GetImageSize();
         Assert.True(large.Height > small.Height);
     }
 
@@ -175,27 +175,27 @@ public class NewFeatureTests
     [Fact]
     public void Transparent_plain_png_has_a_trns_chunk()
     {
-        var png = Barcode.Code128("ABC").TransparentBackground().ToPng();
+        var png = Barcodes.Code128("ABC").TransparentBackground().ToPng();
         Assert.True(ContainsAscii(png, "tRNS"));
-        Assert.False(ContainsAscii(Barcode.Code128("ABC").ToPng(), "tRNS"));
+        Assert.False(ContainsAscii(Barcodes.Code128("ABC").ToPng(), "tRNS"));
     }
 
     [Fact]
     public void Transparent_styled_png_is_rgba()
     {
-        var png = Barcode.Ean13("590123412345").HumanReadableText().TransparentBackground().ToPng();
+        var png = Barcodes.Ean13("590123412345").HumanReadableText().TransparentBackground().ToPng();
         Assert.Equal(6, png[25]); // IHDR colour type: truecolour with alpha
-        Assert.Equal(2, Barcode.Ean13("590123412345").HumanReadableText().ToPng()[25]);
+        Assert.Equal(2, Barcodes.Ean13("590123412345").HumanReadableText().ToPng()[25]);
     }
 
     [Fact]
     public void Transparent_svg_has_no_background_rect_and_jpeg_throws()
     {
-        var opaque = Barcode.QrCode("x").ToSvg();
-        var clear = Barcode.QrCode("x").TransparentBackground().ToSvg();
+        var opaque = Barcodes.QrCode("x").ToSvg();
+        var clear = Barcodes.QrCode("x").TransparentBackground().ToSvg();
         Assert.Contains("#FFFFFF", opaque, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("#FFFFFF", clear, StringComparison.OrdinalIgnoreCase);
-        Assert.Throws<InvalidOperationException>(() => Barcode.QrCode("x").TransparentBackground().ToJpeg());
+        Assert.Throws<InvalidOperationException>(() => Barcodes.QrCode("x").TransparentBackground().ToJpeg());
     }
 
     // ---- Data Matrix ----
@@ -209,7 +209,7 @@ public class NewFeatureTests
     [InlineData("Hello, World!", DataMatrixShape.Square, 18, 18)] // 13 codewords
     public void Data_matrix_picks_the_smallest_symbol(string value, DataMatrixShape shape, int width, int height)
     {
-        var m = Barcode.DataMatrix(value).DataMatrixShape(shape).Encode();
+        var m = Barcodes.DataMatrix(value).DataMatrixShape(shape).Encode();
         Assert.Equal(width, m.Width);
         Assert.Equal(height, m.Height);
         Assert.False(m.IsLinear);
@@ -218,7 +218,7 @@ public class NewFeatureTests
     [Fact]
     public void Data_matrix_has_its_finder_and_timing_patterns()
     {
-        var m = Barcode.DataMatrix("TerraFluent").Encode();
+        var m = Barcodes.DataMatrix("TerraFluent").Encode();
         for (var i = 0; i < m.Height; i++) Assert.True(m[0, i]);
         for (var i = 0; i < m.Width; i++) Assert.True(m[i, m.Height - 1]);
         for (var i = 0; i < m.Width; i++) Assert.Equal(i % 2 == 0, m[i, 0]);
@@ -229,8 +229,8 @@ public class NewFeatureTests
     public void Data_matrix_ascii_packs_digit_pairs_and_rejects_oversized_input()
     {
         Assert.Equal(new[] { 130 + 12, 130 + 34, 'A' + 1 }, DataMatrixEncoder.EncodeAscii("1234A"));
-        Assert.Throws<ArgumentException>(() => Barcode.DataMatrix(new string('x', 2000)).Encode());
-        Assert.Throws<InvalidOperationException>(() => Barcode.QrCode("x").DataMatrixShape(DataMatrixShape.Any));
+        Assert.Throws<ArgumentException>(() => Barcodes.DataMatrix(new string('x', 2000)).Encode());
+        Assert.Throws<InvalidOperationException>(() => Barcodes.QrCode("x").DataMatrixShape(DataMatrixShape.Any));
     }
 
     // ---- PDF417 ----
@@ -260,11 +260,11 @@ public class NewFeatureTests
     [Fact]
     public void Pdf417_layout_follows_columns_and_row_height()
     {
-        var m = Barcode.Pdf417("TerraFluent PDF417").Pdf417Columns(3).Encode();
+        var m = Barcodes.Pdf417("TerraFluent PDF417").Pdf417Columns(3).Encode();
         Assert.Equal(17 * (3 + 4) + 1, m.Width);
         Assert.Equal(0, m.Height % 3);
-        Assert.Throws<ArgumentOutOfRangeException>(() => Barcode.Pdf417("x").Pdf417Columns(31));
-        Assert.Throws<ArgumentOutOfRangeException>(() => Barcode.Pdf417("x").Pdf417ErrorCorrection(9));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Barcodes.Pdf417("x").Pdf417Columns(31));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Barcodes.Pdf417("x").Pdf417ErrorCorrection(9));
     }
 
     [Fact]
@@ -279,8 +279,8 @@ public class NewFeatureTests
     [Fact]
     public void Higher_pdf417_error_correction_makes_a_larger_symbol()
     {
-        var low = Barcode.Pdf417("ABC").Pdf417Columns(4).Pdf417ErrorCorrection(0).Encode();
-        var high = Barcode.Pdf417("ABC").Pdf417Columns(4).Pdf417ErrorCorrection(5).Encode();
+        var low = Barcodes.Pdf417("ABC").Pdf417Columns(4).Pdf417ErrorCorrection(0).Encode();
+        var high = Barcodes.Pdf417("ABC").Pdf417Columns(4).Pdf417ErrorCorrection(5).Encode();
         Assert.True(high.Height > low.Height);
     }
 
@@ -312,8 +312,8 @@ public class NewFeatureTests
         {
             var png = Path.Combine(dir, "a.png");
             var svg = Path.Combine(dir, "a.svg");
-            await Barcode.QrCode("save").SaveAsync(png);
-            await Barcode.QrCode("save").SaveAsync(svg);
+            await Barcodes.QrCode("save").SaveAsync(png);
+            await Barcodes.QrCode("save").SaveAsync(svg);
             Assert.Equal(PngSignature, File.ReadAllBytes(png).Take(8).ToArray());
             Assert.StartsWith("<svg", File.ReadAllText(svg).TrimStart().Replace("<?xml", "<svg").Substring(0, 4));
         }
@@ -329,7 +329,7 @@ public class NewFeatureTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
         var path = Path.Combine(Path.GetTempPath(), "tfb-" + Guid.NewGuid().ToString("N") + ".png");
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Barcode.QrCode("x").SaveAsync(path, cts.Token));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Barcodes.QrCode("x").SaveAsync(path, cts.Token));
         if (File.Exists(path)) File.Delete(path);
     }
 
@@ -339,9 +339,9 @@ public class NewFeatureTests
     public void Generator_matches_the_fluent_api()
     {
         IBarcodeGenerator gen = new BarcodeGenerator();
-        Assert.Equal(Barcode.Code128("ABC").ToPng(), gen.Generate(BarcodeType.Code128, "ABC"));
-        Assert.Equal(Barcode.QrCode("ABC").ToSvg(), gen.GenerateSvg(BarcodeType.QrCode, "ABC"));
-        Assert.Equal(Barcode.Ean8("9638507").ToDataUri(BarcodeImageFormat.Jpeg), gen.GenerateDataUri(BarcodeType.Ean8, "9638507", BarcodeImageFormat.Jpeg));
+        Assert.Equal(Barcodes.Code128("ABC").ToPng(), gen.Generate(BarcodeType.Code128, "ABC"));
+        Assert.Equal(Barcodes.QrCode("ABC").ToSvg(), gen.GenerateSvg(BarcodeType.QrCode, "ABC"));
+        Assert.Equal(Barcodes.Ean8("9638507").ToDataUri(BarcodeImageFormat.Jpeg), gen.GenerateDataUri(BarcodeType.Ean8, "9638507", BarcodeImageFormat.Jpeg));
     }
 
     [Fact]
@@ -358,14 +358,14 @@ public class NewFeatureTests
         };
         var gen = new BarcodeGenerator(options);
 
-        var expectedLinear = Barcode.Code128("ABC").ModuleSize(3).Height(40).HumanReadableText().Foreground("#123456").ToPng();
+        var expectedLinear = Barcodes.Code128("ABC").ModuleSize(3).Height(40).HumanReadableText().Foreground("#123456").ToPng();
         Assert.Equal(expectedLinear, gen.Generate(BarcodeType.Code128, "ABC"));
 
-        var expectedQr = Barcode.QrCode("ABC").ModuleSize(3).ErrorCorrection(QrErrorCorrectionLevel.H).Foreground("#123456").ToPng();
+        var expectedQr = Barcodes.QrCode("ABC").ModuleSize(3).ErrorCorrection(QrErrorCorrectionLevel.H).Foreground("#123456").ToPng();
         Assert.Equal(expectedQr, gen.Generate(BarcodeType.QrCode, "ABC"));
 
         // Per-call options replace the defaults.
-        Assert.Equal(Barcode.Code128("ABC").ToPng(), gen.Generate(BarcodeType.Code128, "ABC", options: new BarcodeOptions()));
+        Assert.Equal(Barcodes.Code128("ABC").ToPng(), gen.Generate(BarcodeType.Code128, "ABC", options: new BarcodeOptions()));
     }
 
     [Fact]
@@ -382,7 +382,7 @@ public class NewFeatureTests
     {
         var gen = new BarcodeGenerator(new BarcodeOptions { ModuleSize = 5 });
         var builder = gen.Create(BarcodeType.QrCode, "x").Gradient("#000000", "#333366");
-        Assert.Equal(Barcode.QrCode("x").ModuleSize(5).GetImageSize(), builder.GetImageSize());
+        Assert.Equal(Barcodes.QrCode("x").ModuleSize(5).GetImageSize(), builder.GetImageSize());
     }
 
     private static bool ContainsAscii(byte[] data, string text)

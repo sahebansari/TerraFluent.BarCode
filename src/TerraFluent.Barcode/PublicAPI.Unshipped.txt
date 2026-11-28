@@ -1,5 +1,5 @@
 #nullable enable
-TerraFluent.Barcode.Barcode
+TerraFluent.Barcode.Barcodes
 TerraFluent.Barcode.BarcodeBuilder
 TerraFluent.Barcode.BarcodeBuilder.AddOn(string! digits) -> TerraFluent.Barcode.BarcodeBuilder!
 TerraFluent.Barcode.BarcodeBuilder.AllowLowContrast(bool allow = true) -> TerraFluent.Barcode.BarcodeBuilder!
@@ -143,8 +143,8 @@ TerraFluent.Barcode.QrModuleStyle.Connected = 3 -> TerraFluent.Barcode.QrModuleS
 TerraFluent.Barcode.QrModuleStyle.Dots = 2 -> TerraFluent.Barcode.QrModuleStyle
 TerraFluent.Barcode.QrModuleStyle.Rounded = 1 -> TerraFluent.Barcode.QrModuleStyle
 TerraFluent.Barcode.QrModuleStyle.Square = 0 -> TerraFluent.Barcode.QrModuleStyle
-const TerraFluent.Barcode.Barcode.MaxCode128Length = 256 -> int
-const TerraFluent.Barcode.Barcode.MaxCode39Length = 128 -> int
+const TerraFluent.Barcode.Barcodes.MaxCode128Length = 256 -> int
+const TerraFluent.Barcode.Barcodes.MaxCode39Length = 128 -> int
 const TerraFluent.Barcode.BarcodeBuilder.DefaultBarHeight = 80 -> int
 const TerraFluent.Barcode.BarcodeBuilder.DefaultJpegQuality = 90 -> int
 const TerraFluent.Barcode.BarcodeBuilder.DefaultLinearModuleSize = 2 -> int
@@ -160,17 +160,17 @@ override TerraFluent.Barcode.BarcodeColor.Equals(object? obj) -> bool
 override TerraFluent.Barcode.BarcodeColor.GetHashCode() -> int
 override TerraFluent.Barcode.BarcodeColor.ToString() -> string!
 override TerraFluent.Barcode.BarcodeMatrix.ToString() -> string!
-static TerraFluent.Barcode.Barcode.Code128(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
-static TerraFluent.Barcode.Barcode.Code39(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
-static TerraFluent.Barcode.Barcode.Create(TerraFluent.Barcode.BarcodeType type, string! value) -> TerraFluent.Barcode.BarcodeBuilder!
-static TerraFluent.Barcode.Barcode.DataMatrix(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
-static TerraFluent.Barcode.Barcode.Ean13(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
-static TerraFluent.Barcode.Barcode.Ean8(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
-static TerraFluent.Barcode.Barcode.Gs1Code128(params (string! Ai, string! Data)[]! elements) -> TerraFluent.Barcode.BarcodeBuilder!
-static TerraFluent.Barcode.Barcode.Gs1Code128(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
-static TerraFluent.Barcode.Barcode.Pdf417(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
-static TerraFluent.Barcode.Barcode.QrCode(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
-static TerraFluent.Barcode.Barcode.UpcA(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Code128(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Code39(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Create(TerraFluent.Barcode.BarcodeType type, string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.DataMatrix(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Ean13(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Ean8(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Gs1Code128(params (string! Ai, string! Data)[]! elements) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Gs1Code128(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Pdf417(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.QrCode(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.UpcA(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
 static TerraFluent.Barcode.BarcodeColor.Black.get -> TerraFluent.Barcode.BarcodeColor
 static TerraFluent.Barcode.BarcodeColor.ContrastRatio(TerraFluent.Barcode.BarcodeColor a, TerraFluent.Barcode.BarcodeColor b) -> double
 static TerraFluent.Barcode.BarcodeColor.FromHex(string! hex) -> TerraFluent.Barcode.BarcodeColor

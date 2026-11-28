@@ -1,7 +1,7 @@
 namespace TerraFluent.Barcode;
 
 /// <summary>
-/// Default <see cref="IBarcodeGenerator"/>, built on <see cref="Barcode"/>. It
+/// Default <see cref="IBarcodeGenerator"/>, built on <see cref="Barcodes"/>. It
 /// holds no state besides its default options, so one instance can be shared
 /// (register it as a singleton).
 /// </summary>
@@ -19,7 +19,7 @@ public sealed class BarcodeGenerator : IBarcodeGenerator
     /// <inheritdoc/>
     public BarcodeBuilder Create(BarcodeType type, string value, BarcodeOptions? options = null)
     {
-        var builder = Barcode.Create(type, value);
+        var builder = Barcodes.Create(type, value);
         var o = options ?? _defaults;
         if (o is null) return builder;
 
