@@ -142,7 +142,7 @@ internal static class QrCodeEncoder
         return new BarcodeMatrix(symbol.Size, symbol.Size, symbol.Modules, isLinear: false, QuietZone);
     }
 
-    internal static (Mode Mode, List<bool> Payload, int Count, bool Utf8Eci) SelectMode(string value)
+    internal static (Mode Mode, BitBuffer Payload, int Count, bool Utf8Eci) SelectMode(string value)
     {
         var bits = new BitBuffer();
         if (value.All(c => c >= '0' && c <= '9'))
@@ -150,10 +150,10 @@ internal static class QrCodeEncoder
             for (var i = 0; i < value.Length; i += 3)
             {
                 var n = Math.Min(3, value.Length - i);
-                bits.Append(int.Parse(value.Substring(i, n), System.Globalization.CultureInfo.InvariantCulture), n * 3 + 1);
+                bits.Append(ParseDigits(value, i, n), n * 3 + 1);
             }
 
-            return (Mode.Numeric, bits.Bits, value.Length, false);
+            return (Mode.Numeric, bits, value.Length, false);
         }
 
         if (value.All(c => AlphanumericCharset.IndexOf(c) >= 0))
@@ -164,7 +164,7 @@ internal static class QrCodeEncoder
             }
 
             if (value.Length % 2 == 1) bits.Append(AlphanumericCharset.IndexOf(value[value.Length - 1]), 6);
-            return (Mode.Alphanumeric, bits.Bits, value.Length, false);
+            return (Mode.Alphanumeric, bits, value.Length, false);
         }
 
         byte[] bytes;
@@ -184,7 +184,15 @@ internal static class QrCodeEncoder
             nonAscii |= b >= 0x80;
         }
 
-        return (Mode.Byte, bits.Bits, bytes.Length, nonAscii);
+        return (Mode.Byte, bits, bytes.Length, nonAscii);
+    }
+
+    /// <summary>The value of <paramref name="count"/> ASCII digits starting at <paramref name="start"/>.</summary>
+    private static int ParseDigits(string text, int start, int count)
+    {
+        var value = 0;
+        for (var i = start; i < start + count; i++) value = value * 10 + (text[i] - '0');
+        return value;
     }
 
     private static int VersionRange(int version) => version <= 9 ? 0 : version <= 26 ? 1 : 2;
@@ -271,7 +279,7 @@ internal static class QrCodeEncoder
     /// <summary>One run of the value in a single mode.</summary>
     internal sealed class Segment
     {
-        public Segment(Mode mode, int count, List<bool> bits)
+        public Segment(Mode mode, int count, BitBuffer bits)
         {
             Mode = mode;
             Count = count;
@@ -283,7 +291,7 @@ internal static class QrCodeEncoder
         /// <summary>Characters (numeric, alphanumeric) or bytes (byte mode), as written in the count field.</summary>
         public int Count { get; }
 
-        public List<bool> Bits { get; }
+        public BitBuffer Bits { get; }
     }
 
     /// <summary>
@@ -326,9 +334,15 @@ internal static class QrCodeEncoder
             {
                 var c = value[starts[i]];
                 var length = starts[i + 1] - starts[i];
-                if (length == 1 && c < 0x80)
+                if (length == 1 && !char.IsSurrogate(c))
                 {
-                    byteLengths[i] = 1;
+                    byteLengths[i] = c < 0x80 ? 1 : c < 0x800 ? 2 : 3;
+                    continue;
+                }
+
+                if (length == 2)
+                {
+                    byteLengths[i] = 4; // a valid surrogate pair, as the code-point split above guarantees
                     continue;
                 }
 
@@ -420,10 +434,10 @@ internal static class QrCodeEncoder
                     for (var i = 0; i < text.Length; i += 3)
                     {
                         var n = Math.Min(3, text.Length - i);
-                        bits.Append(int.Parse(text.Substring(i, n), System.Globalization.CultureInfo.InvariantCulture), n * 3 + 1);
+                        bits.Append(ParseDigits(text, i, n), n * 3 + 1);
                     }
 
-                    return new Segment(mode, text.Length, bits.Bits);
+                    return new Segment(mode, text.Length, bits);
 
                 case Mode.Alphanumeric:
                     for (var i = 0; i + 1 < text.Length; i += 2)
@@ -432,38 +446,65 @@ internal static class QrCodeEncoder
                     }
 
                     if (text.Length % 2 == 1) bits.Append(AlphanumericCharset.IndexOf(text[text.Length - 1]), 6);
-                    return new Segment(mode, text.Length, bits.Bits);
+                    return new Segment(mode, text.Length, bits);
 
                 default:
                     var bytes = new UTF8Encoding(false, true).GetBytes(text);
                     foreach (var b in bytes) bits.Append(b, 8);
-                    return new Segment(mode, bytes.Length, bits.Bits);
+                    return new Segment(mode, bytes.Length, bits);
             }
         }
     }
 
-    private sealed class BitBuffer
+    /// <summary>A growable list of bits, packed most significant bit first (eight per byte).</summary>
+    internal sealed class BitBuffer
     {
-        public List<bool> Bits { get; } = new();
+        private byte[] _bytes = new byte[16];
 
-        public int Count => Bits.Count;
+        public int Count { get; private set; }
 
         public void Append(int value, int length)
         {
-            for (var i = length - 1; i >= 0; i--) Bits.Add(((value >> i) & 1) != 0);
+            EnsureCapacity(Count + length);
+            for (var i = length - 1; i >= 0; i--)
+            {
+                if (((value >> i) & 1) != 0) _bytes[Count >> 3] |= (byte)(0x80 >> (Count & 7));
+                Count++;
+            }
         }
 
-        public void AppendBits(IEnumerable<bool> bits) => Bits.AddRange(bits);
+        public void AppendBits(BitBuffer bits)
+        {
+            EnsureCapacity(Count + bits.Count);
+            if ((Count & 7) == 0)
+            {
+                // Byte-aligned: copy whole bytes. Bits past bits.Count are always zero.
+                Buffer.BlockCopy(bits._bytes, 0, _bytes, Count >> 3, (bits.Count + 7) >> 3);
+                Count += bits.Count;
+                return;
+            }
+
+            for (var i = 0; i < bits.Count; i++)
+            {
+                if ((bits._bytes[i >> 3] & (0x80 >> (i & 7))) != 0) _bytes[Count >> 3] |= (byte)(0x80 >> (Count & 7));
+                Count++;
+            }
+        }
 
         public byte[] ToBytes()
         {
-            var bytes = new byte[Bits.Count / 8];
-            for (var i = 0; i < Bits.Count; i++)
-            {
-                if (Bits[i]) bytes[i >> 3] |= (byte)(0x80 >> (i & 7));
-            }
-
+            var bytes = new byte[Count / 8];
+            Buffer.BlockCopy(_bytes, 0, bytes, 0, bytes.Length);
             return bytes;
+        }
+
+        private void EnsureCapacity(int bits)
+        {
+            var needed = (bits + 7) >> 3;
+            if (needed <= _bytes.Length) return;
+            var size = _bytes.Length;
+            while (size < needed) size *= 2;
+            Array.Resize(ref _bytes, size);
         }
     }
 
