@@ -1,7 +1,7 @@
 name: Release
 
 # Publishes to NuGet.org when a version tag such as v1.0.0 is pushed.
-# Needs a repository secret NUGET_API_KEY (scoped to push TerraFluent.BarCode),
+# Needs a repository secret NUGET_API_KEY (scoped to push TerraFluent.Barcode),
 # ideally behind a "nuget" environment with required reviewers.
 
 on:
@@ -32,7 +32,7 @@ jobs:
       - name: Check the tag matches the project version
         shell: bash
         run: |
-          version=$(dotnet msbuild src/TerraFluent.BarCode/TerraFluent.BarCode.csproj -getProperty:Version)
+          version=$(dotnet msbuild src/TerraFluent.Barcode/TerraFluent.Barcode.csproj -getProperty:Version)
           if [ "v$version" != "$GITHUB_REF_NAME" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match project version $version (Directory.Build.props)."
             exit 1
@@ -42,10 +42,10 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Test
-        run: dotnet test tests/TerraFluent.BarCode.Tests/TerraFluent.BarCode.Tests.csproj --configuration Release --no-build
+        run: dotnet test tests/TerraFluent.Barcode.Tests/TerraFluent.Barcode.Tests.csproj --configuration Release --no-build
 
       - name: Pack
-        run: dotnet pack src/TerraFluent.BarCode/TerraFluent.BarCode.csproj --configuration Release --no-build --output artifacts
+        run: dotnet pack src/TerraFluent.Barcode/TerraFluent.Barcode.csproj --configuration Release --no-build --output artifacts
 
       - name: Push to NuGet.org
         run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate

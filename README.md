@@ -1,7 +1,7 @@
-# TerraFluent.BarCode
+# TerraFluent.Barcode
 
-TerraFluent.BarCode is a fluent, dependency-free .NET library that generates
-barcodes and QR codes and gives you the result in whatever form you need:
+TerraFluent.Barcode is a fluent, dependency-free .NET library that generates
+linear barcodes and 2D codes (QR code, Data Matrix, PDF417) and gives you the result in whatever form you need:
 PNG, JPEG, SVG, `byte[]`, `Stream`, base64 or a `data:` URI.
 
 Every encoder and image writer is implemented in the library itself: no
@@ -13,13 +13,13 @@ on Windows, Linux, macOS, containers and serverless. The library targets
 ## Install
 
 ```shell
-dotnet add package TerraFluent.BarCode
+dotnet add package TerraFluent.Barcode
 ```
 
 ## Quick Start
 
 ```csharp
-using TerraFluent.BarCode;
+using TerraFluent.Barcode;
 
 // PNG bytes
 byte[] png = Barcode.Code128("ABC-12345").ToPng();
@@ -199,25 +199,25 @@ compaction (Data Matrix uses ASCII encodation, which pairs digits).
 ## Versioning
 
 The library follows [Semantic Versioning](https://semver.org). The public API
-is tracked in `src/TerraFluent.BarCode/PublicAPI.*.txt` and checked on every
+is tracked in `src/TerraFluent.Barcode/PublicAPI.*.txt` and checked on every
 build, so it cannot change by accident. `AssemblyVersion` stays at
 `major.0.0.0` so upgrades within a major version need no binding redirects.
-Changes are listed in [CHANGELOG.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/CHANGELOG.md).
+Changes are listed in [CHANGELOG.md](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/CHANGELOG.md).
 
 ## Repository Layout
 
-- `src/TerraFluent.BarCode` – the library.
-- `tests/TerraFluent.BarCode.Tests` – xUnit tests.
-- `samples/TerraFluent.BarCode.Sample` – writes every symbology in every format
-  plus an `index.html` preview: `dotnet run --project samples/TerraFluent.BarCode.Sample`.
+- `src/TerraFluent.Barcode` – the library.
+- `tests/TerraFluent.Barcode.Tests` – xUnit tests.
+- `samples/TerraFluent.Barcode.Sample` – writes every symbology in every format
+  plus an `index.html` preview: `dotnet run --project samples/TerraFluent.Barcode.Sample`.
 
 ## Contributing and Security
 
-See [CONTRIBUTING.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/CONTRIBUTING.md). Please report vulnerabilities privately
-as described in [SECURITY.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/SECURITY.md).
+See [CONTRIBUTING.md](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/CONTRIBUTING.md). Please report vulnerabilities privately
+as described in [SECURITY.md](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/SECURITY.md).
 
 ## License
 
-MIT. See [LICENSE](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/LICENSE). The human-readable text uses glyph outlines from
+MIT. See [LICENSE](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/LICENSE). The human-readable text uses glyph outlines from
 JetBrains Mono (SIL Open Font License 1.1) and the PDF417 tables come from
-pdf417gen (MIT); see [THIRD-PARTY-NOTICES.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/THIRD-PARTY-NOTICES.md).
+pdf417gen (MIT); see [THIRD-PARTY-NOTICES.md](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/THIRD-PARTY-NOTICES.md).

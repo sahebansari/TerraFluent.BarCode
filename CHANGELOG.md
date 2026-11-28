@@ -5,6 +5,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Renamed the package, assembly, root namespace, projects and solution from
+  `TerraFluent.BarCode` to `TerraFluent.Barcode`, before the first NuGet.org publish.
+  Update `using TerraFluent.BarCode;` to `using TerraFluent.Barcode;`.
+- Package description and tags now name QR code and 2D codes (Data Matrix, PDF417).
+
 ## [1.1.0] - 2026-11-27
 
 First release published to NuGet.org. Versions 0.1.0 and 1.0.0 below were
@@ -105,5 +112,5 @@ never published; their changes are included in this release.
 - `Encode()` returns the raw `BarcodeMatrix` for custom renderers.
 - Targets `netstandard2.0` and `net10.0` (trimming and Native AOT compatible).
 
-[Unreleased]: https://github.com/sahebansari/TerraFluent.BarCode/compare/v1.1.0...HEAD
-[1.1.0]: https://github.com/sahebansari/TerraFluent.BarCode/releases/tag/v1.1.0
+[Unreleased]: https://github.com/sahebansari/TerraFluent.Barcode/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/sahebansari/TerraFluent.Barcode/releases/tag/v1.1.0
