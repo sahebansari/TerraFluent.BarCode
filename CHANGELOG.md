@@ -5,6 +5,31 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- New symbologies, written from their specifications and read back by an
+  independent decoder in the tests (zxing-cpp; ZXing.Net as well for DataBar
+  Omnidirectional and Expanded):
+  - `Barcodes.MicroQrCode`: Micro QR versions M1 to M4, numeric, alphanumeric
+    and Latin-1 byte segments mixed for the smallest symbol, levels L, M and Q.
+  - `Barcodes.RectangularMicroQrCode`: rMQR (ISO/IEC 23941), all 32 sizes from
+    7 x 43 to 17 x 139, levels M and H, UTF-8 through ECI, and
+    `RectangularMicroQrHeight(rows)` to fix the height.
+  - `Barcodes.Gs1DataBar` (Omnidirectional), `Barcodes.Gs1DataBarLimited` and
+    `Barcodes.Gs1DataBarExpanded` (element string or AI and data pairs),
+    with `(01)` human-readable text.
+  - `Barcodes.IntelligentMail`: the USPS four-state barcode from a tracking
+    code and routing code, checked against the USPS-B-3200 sample encoding.
+- `BarcodeType.MicroQrCode`, `RectangularMicroQrCode`, `Gs1DataBar`,
+  `Gs1DataBarLimited`, `Gs1DataBarExpanded` and `IntelligentMail`.
+- MCP server: the new types (`microqr`, `rmqr`, `databar`, `databar-limited`,
+  `databar-expanded`, `imb`) and an `rmqrHeight` option for `generate_barcode`.
+
+### Changed
+
+- `ErrorCorrection` applies to Micro QR and rMQR as well as QR codes, and
+  `BarcodeOptions.QrErrorCorrection` is used for them where the type has that level.
+
 ## [1.3.0] - 2026-11-28
 
 ### Added

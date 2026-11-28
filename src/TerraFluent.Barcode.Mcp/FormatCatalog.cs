@@ -26,6 +26,12 @@ public sealed record FormatCatalog(
         [BarcodeType.Itf14] = ("itf14", "ITF-14", "linear", "13 digits (check digit added) or 14 digits (check digit validated): a GTIN-14 for cartons."),
         [BarcodeType.Codabar] = ("codabar", "Codabar", "linear", "0-9 and - $ : / . +, up to 60 characters. Start and end with A, B, C or D to choose the start/stop characters; otherwise A is used."),
         [BarcodeType.Aztec] = ("aztec", "Aztec", "2d", "Any text (UTF-8), up to about 1,900 bytes. Optional aztecErrorCorrection percent (5-90, default 23)."),
+        [BarcodeType.MicroQrCode] = ("microqr", "Micro QR", "2d", "Short text: up to 35 digits, 21 alphanumeric (0-9 A-Z space $ % * + - . / :) or 15 Latin-1 characters at level L. errorCorrection L, M (default) or Q."),
+        [BarcodeType.RectangularMicroQrCode] = ("rmqr", "rMQR (rectangular Micro QR)", "2d", "Any text (UTF-8), up to 361 digits or 150 bytes. errorCorrection M (default) or H; rmqrHeight 7, 9, 11, 13, 15 or 17 fixes the height."),
+        [BarcodeType.Gs1DataBar] = ("databar", "GS1 DataBar Omnidirectional", "linear", "A GTIN: 13 digits (check digit added) or 14 digits (validated), optionally after (01)."),
+        [BarcodeType.Gs1DataBarLimited] = ("databar-limited", "GS1 DataBar Limited", "linear", "A GTIN starting with 0 or 1: 13 digits (check digit added) or 14 digits (validated), optionally after (01)."),
+        [BarcodeType.Gs1DataBarExpanded] = ("databar-expanded", "GS1 DataBar Expanded", "linear", "GS1 element string with AIs in parentheses, e.g. (01)09501101530003(3103)000450(15)261231; up to 74 digits or 41 letters."),
+        [BarcodeType.IntelligentMail] = ("imb", "USPS Intelligent Mail", "4-state", "20-digit tracking code followed by an optional 5, 9 or 11 digit routing (ZIP) code: 20, 25, 29 or 31 digits. The second digit is 0-4."),
         [BarcodeType.MaxiCode] = ("maxicode", "MaxiCode", "2d", "Latin-1 text, up to 93 characters (138 digits); mode 4 by default, maxiCodeMode 5 or 6. For parcels, give maxiCodePostalCode, maxiCodeCountry and maxiCodeService (modes 2/3)."),
     };
 
@@ -41,6 +47,22 @@ public sealed record FormatCatalog(
         ["i2of5"] = BarcodeType.Itf,
         ["nw7"] = BarcodeType.Codabar,
         ["azteccode"] = BarcodeType.Aztec,
+        ["microqr"] = BarcodeType.MicroQrCode,
+        ["microqrcode"] = BarcodeType.MicroQrCode,
+        ["rmqr"] = BarcodeType.RectangularMicroQrCode,
+        ["rectangularmicroqr"] = BarcodeType.RectangularMicroQrCode,
+        ["databar"] = BarcodeType.Gs1DataBar,
+        ["databarlimited"] = BarcodeType.Gs1DataBarLimited,
+        ["databarexpanded"] = BarcodeType.Gs1DataBarExpanded,
+        ["imb"] = BarcodeType.IntelligentMail,
+        ["databaromnidirectional"] = BarcodeType.Gs1DataBar,
+        ["rss14"] = BarcodeType.Gs1DataBar,
+        ["gs1databarlimited"] = BarcodeType.Gs1DataBarLimited,
+        ["rsslimited"] = BarcodeType.Gs1DataBarLimited,
+        ["gs1databarexpanded"] = BarcodeType.Gs1DataBarExpanded,
+        ["rssexpanded"] = BarcodeType.Gs1DataBarExpanded,
+        ["intelligentmail"] = BarcodeType.IntelligentMail,
+        ["uspsimb"] = BarcodeType.IntelligentMail,
     };
 
     /// <summary>The type ids shown to clients.</summary>
@@ -75,7 +97,7 @@ public sealed record FormatCatalog(
 /// <summary>One supported symbology.</summary>
 /// <param name="Id">Value to pass as <c>type</c> to <c>generate_barcode</c>.</param>
 /// <param name="Name">Display name.</param>
-/// <param name="Kind">linear, stacked or 2d.</param>
+/// <param name="Kind">linear, stacked, 2d or 4-state.</param>
 /// <param name="Input">What data the type accepts.</param>
 public sealed record BarcodeTypeInfo(string Id, string Name, string Kind, string Input);
 

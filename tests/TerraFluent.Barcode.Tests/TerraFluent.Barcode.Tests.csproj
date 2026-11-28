@@ -6,6 +6,8 @@
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT' Or '$(BuildNetFramework)' == 'true'">$(TargetFrameworks);net48</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <RootNamespace>TerraFluent.Barcode.Tests</RootNamespace>
+    <!-- ZXingCpp is not strong-named; .NET (Core) loads it from this signed test assembly regardless. -->
+    <NoWarn>$(NoWarn);CS8002</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +16,14 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" />
     <PackageReference Include="coverlet.collector" Version="10.1.1" />
     <PackageReference Include="ZXing.Net" Version="0.16.11" />
+  </ItemGroup>
+
+  <!--
+    zxing-cpp (Apache-2.0, test only) reads Micro QR, rMQR and DataBar Limited, which ZXing.Net cannot.
+    Its native library ships for x64 and arm64 only, so the .NET Framework run skips those decode checks.
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' != 'net48'">
+    <PackageReference Include="ZXingCpp" Version="0.5.4" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">

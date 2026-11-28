@@ -206,3 +206,17 @@ static TerraFluent.Barcode.Barcodes.Itf(string! value) -> TerraFluent.Barcode.Ba
 static TerraFluent.Barcode.Barcodes.Itf14(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
 static TerraFluent.Barcode.Barcodes.MaxiCode(string! postalCode, int countryCode, int serviceClass, string! message) -> TerraFluent.Barcode.BarcodeBuilder!
 static TerraFluent.Barcode.Barcodes.MaxiCode(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.RectangularMicroQrHeight(int modules) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeType.Gs1DataBar = 16 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.Gs1DataBarExpanded = 18 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.Gs1DataBarLimited = 17 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.IntelligentMail = 19 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.MicroQrCode = 14 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.RectangularMicroQrCode = 15 -> TerraFluent.Barcode.BarcodeType
+static TerraFluent.Barcode.Barcodes.Gs1DataBar(string! gtin) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Gs1DataBarExpanded(params (string! Ai, string! Data)[]! elements) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Gs1DataBarExpanded(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Gs1DataBarLimited(string! gtin) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.IntelligentMail(string! trackingCode, string! routingCode = "") -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.MicroQrCode(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.RectangularMicroQrCode(string! value) -> TerraFluent.Barcode.BarcodeBuilder!

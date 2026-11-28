@@ -246,6 +246,100 @@ public static BarcodeBuilder Gs1Code128(params (string Ai, string Data)[] elemen
 
  [BarcodeBuilder](barcodebuilder.md)
 
+### <a id="TerraFluent_Barcode_Barcodes_Gs1DataBar_System_String_"></a> Gs1DataBar\(string\)
+
+GS1 DataBar Omnidirectional for a GTIN: 13 digits (check digit added),
+14 digits (check digit validated), or either written as <code>(01)</code> and the
+digits. Printed with the human-readable text <code>(01)</code> and the 14 digits.
+
+```csharp
+public static BarcodeBuilder Gs1DataBar(string gtin)
+```
+
+#### Parameters
+
+`gtin` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_Barcodes_Gs1DataBarExpanded_System_String_"></a> Gs1DataBarExpanded\(string\)
+
+GS1 DataBar Expanded from an element string with application identifiers in
+parentheses, for example <code>(01)09501101530003(3103)000450(15)261231</code>,
+validated as for <a href="barcodes.md#TerraFluent_Barcode_Barcodes_Gs1Code128_System_String_">Barcodes.Gs1Code128</a>. Holds up to 74 digits or
+41 letters.
+
+```csharp
+public static BarcodeBuilder Gs1DataBarExpanded(string value)
+```
+
+#### Parameters
+
+`value` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_Barcodes_Gs1DataBarExpanded_System_ValueTuple_System_String_System_String____"></a> Gs1DataBarExpanded\(params \(string Ai, string Data\)\[\]\)
+
+GS1 DataBar Expanded from application identifier and data pairs; use it when
+the data contains parentheses. <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Value">BarcodeBuilder.Value</a> is the element
+string with AIs in parentheses.
+
+```csharp
+public static BarcodeBuilder Gs1DataBarExpanded(params (string Ai, string Data)[] elements)
+```
+
+#### Parameters
+
+`elements` \([string](https://learn.microsoft.com/dotnet/api/system.string) [Ai](https://learn.microsoft.com/dotnet/api/system.valuetuple-system.string,system.string-.ai), [string](https://learn.microsoft.com/dotnet/api/system.string) [Data](https://learn.microsoft.com/dotnet/api/system.valuetuple\-system.string,system.string\-.data)\)\[\]
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_Barcodes_Gs1DataBarLimited_System_String_"></a> Gs1DataBarLimited\(string\)
+
+GS1 DataBar Limited for a GTIN whose first digit (the indicator) is 0 or 1:
+13 digits (check digit added) or 14 digits (validated), optionally after <code>(01)</code>.
+
+```csharp
+public static BarcodeBuilder Gs1DataBarLimited(string gtin)
+```
+
+#### Parameters
+
+`gtin` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_Barcodes_IntelligentMail_System_String_System_String_"></a> IntelligentMail\(string, string\)
+
+USPS Intelligent Mail barcode. <code class="paramref">trackingCode</code> is 20 digits:
+barcode identifier (2 digits, the second 0 to 4), service type (3), mailer ID
+and serial number (15). <code class="paramref">routingCode</code> is the delivery point
+ZIP code: empty, 5, 9 or 11 digits. <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Value">BarcodeBuilder.Value</a> is the
+two run together, the form <a href="barcodes.md#TerraFluent_Barcode_Barcodes_Create_TerraFluent_Barcode_BarcodeType_System_String_">Barcodes.Create</a> also accepts.
+
+```csharp
+public static BarcodeBuilder IntelligentMail(string trackingCode, string routingCode = "")
+```
+
+#### Parameters
+
+`trackingCode` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+`routingCode` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
 ### <a id="TerraFluent_Barcode_Barcodes_Itf_System_String_"></a> Itf\(string\)
 
 Interleaved 2 of 5 (ITF) for an even number of digits, up to <a href="barcodes.md#TerraFluent_Barcode_Barcodes_MaxItfLength">Barcodes.MaxItfLength</a>.
@@ -324,6 +418,25 @@ public static BarcodeBuilder MaxiCode(string postalCode, int countryCode, int se
 
  [BarcodeBuilder](barcodebuilder.md)
 
+### <a id="TerraFluent_Barcode_Barcodes_MicroQrCode_System_String_"></a> MicroQrCode\(string\)
+
+Micro QR code for short text: up to 35 digits, 21 alphanumeric characters
+(<code>0-9 A-Z</code>, space and <code>$ % * + - . / :</code>) or 15 ISO-8859-1 (Latin-1)
+characters at level L. The smallest of versions M1 to M4 that fits is
+picked; see <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ErrorCorrection_TerraFluent_Barcode_QrErrorCorrectionLevel_">BarcodeBuilder.ErrorCorrection</a> for levels L, M and Q.
+
+```csharp
+public static BarcodeBuilder MicroQrCode(string value)
+```
+
+#### Parameters
+
+`value` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
 ### <a id="TerraFluent_Barcode_Barcodes_Pdf417_System_String_"></a> Pdf417\(string\)
 
 PDF417 for any text (UTF-8). Columns and error correction are chosen automatically unless set.
@@ -346,6 +459,25 @@ QR code for any text (UTF-8). The smallest version that fits is picked automatic
 
 ```csharp
 public static BarcodeBuilder QrCode(string value)
+```
+
+#### Parameters
+
+`value` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_Barcodes_RectangularMicroQrCode_System_String_"></a> RectangularMicroQrCode\(string\)
+
+Rectangular Micro QR code (rMQR) for any text (UTF-8), up to 361 digits or
+150 bytes. The symbol with the smallest area that fits is picked; use
+<a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_RectangularMicroQrHeight_System_Int32_">BarcodeBuilder.RectangularMicroQrHeight</a> to fix the height, and
+<a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ErrorCorrection_TerraFluent_Barcode_QrErrorCorrectionLevel_">BarcodeBuilder.ErrorCorrection</a> for level M (default) or H.
+
+```csharp
+public static BarcodeBuilder RectangularMicroQrCode(string value)
 ```
 
 #### Parameters

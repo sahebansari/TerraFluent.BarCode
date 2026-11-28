@@ -21,6 +21,12 @@ same for a type chosen at run time.
 | [`Pdf417`](#pdf417) | Stacked 2D | ISO/IEC 15438 | ID cards, boarding passes, shipping documents |
 | [`Aztec`](#aztec) | 2D | ISO/IEC 24778 | Transport tickets, boarding passes |
 | [`MaxiCode`](#maxicode) | 2D | ISO/IEC 16023 | Parcel sorting |
+| [`MicroQrCode`](#micro-qr) | 2D | ISO/IEC 18004 | Tiny items: electronic parts, small labels |
+| [`RectangularMicroQrCode`](#rmqr) | 2D | ISO/IEC 23941 | Narrow print areas: cable tags, edges of packaging |
+| [`Gs1DataBar`](#gs1-databar) | Linear | ISO/IEC 24724 | Retail point of sale, fresh produce (GTIN) |
+| [`Gs1DataBarLimited`](#gs1-databar-limited) | Linear | ISO/IEC 24724 | Very small retail items (GTIN starting with 0 or 1) |
+| [`Gs1DataBarExpanded`](#gs1-databar-expanded) | Linear | ISO/IEC 24724 | Variable-weight foods, coupons (GTIN plus weight, price, dates) |
+| [`IntelligentMail`](#usps-intelligent-mail) | 4-state | USPS-B-3200 | US mail pieces |
 
 ## Code 128
 
@@ -258,9 +264,100 @@ Barcodes.MaxiCode("152382802", 840, 1, "TerraFluent.Barcode MaxiCode");
 Barcodes.MaxiCode("TerraFluent.Barcode").MaxiCodeMode(5);
 ```
 
+## Micro QR
+
+```csharp
+Barcodes.MicroQrCode("TF-2026");
+```
+
+![Micro QR code](images/micro-qr.svg)
+
+- **Input:** up to 35 digits, 21 alphanumeric characters (`0-9 A-Z`, space, `$ % * + - . / :`) or
+  15 ISO-8859-1 (Latin-1) characters at level L. Micro QR has no ECI, so characters outside Latin-1
+  are rejected; use a QR code or rMQR for them.
+- One finder pattern and a 2-module quiet zone. The smallest of versions M1 (11 x 11) to
+  M4 (17 x 17) that fits is used.
+- `ErrorCorrection` takes L, M (default) or Q. Q needs version M4. At level L the value may fit
+  M1, which detects errors but cannot correct them.
+
+## rMQR
+
+```csharp
+Barcodes.RectangularMicroQrCode("https://terrafluent.dev/barcode/");
+```
+
+![rMQR code](images/rmqr.svg)
+
+- **Input:** any text, up to 361 digits or 150 bytes. Non-ASCII text is sent as UTF-8 with an ECI.
+- 32 sizes, 7 to 17 modules high and 27 to 139 wide. The symbol with the smallest area that fits
+  is used; `RectangularMicroQrHeight(7, 9, 11, 13, 15 or 17)` fixes the height and picks the
+  narrowest width that fits:
+
+```csharp
+Barcodes.RectangularMicroQrCode("TERRAFLUENT 2026").RectangularMicroQrHeight(7);
+```
+
+![rMQR code 7 modules high](images/rmqr-height-7.svg)
+
+- `ErrorCorrection` takes M (default) or H.
+
+## GS1 DataBar
+
+```csharp
+Barcodes.Gs1DataBar("0950110153000").HumanReadableText();
+```
+
+![GS1 DataBar Omnidirectional](images/databar.svg)
+
+- **Input:** a GTIN: 13 digits (the check digit is added) or 14 digits (validated), optionally
+  after `(01)`. The human-readable text is `(01)` and the 14 digits.
+- DataBar Omnidirectional, 96 modules wide. Keep the bars at least 33 modules high (66 px at the
+  default 2 px module) for omnidirectional scanning; the default height of 80 px is enough.
+
+## GS1 DataBar Limited
+
+```csharp
+Barcodes.Gs1DataBarLimited("1501234567890").HumanReadableText();
+```
+
+![GS1 DataBar Limited](images/databar-limited.svg)
+
+- **Input:** as for GS1 DataBar, but the GTIN's first digit (the indicator) must be 0 or 1.
+- 79 modules wide, the narrowest DataBar; read by linear scanners only, not omnidirectionally.
+
+## GS1 DataBar Expanded
+
+```csharp
+Barcodes.Gs1DataBarExpanded("(01)09501101530003(3103)000450(15)261231").HumanReadableText();
+```
+
+![GS1 DataBar Expanded](images/databar-expanded.svg)
+
+- **Input:** a GS1 element string, validated as for [GS1-128](#gs1-128), or AI and data pairs.
+  Up to 74 digits or 41 letters, depending on the mix.
+- A leading `(01)` GTIN is compressed (its check digit is implied); the rest uses numeric,
+  alphanumeric and ISO 646 compaction. Drawn in a single row (the stacked variant is not supported).
+
+## USPS Intelligent Mail
+
+```csharp
+Barcodes.IntelligentMail("01234567094987654321", "01234567891");
+```
+
+![USPS Intelligent Mail barcode](images/intelligent-mail.svg)
+
+- **Input:** a 20-digit tracking code (barcode identifier, service type, mailer ID and serial
+  number; the second digit is 0 to 4) and a routing code of 0, 5, 9 or 11 digits (the delivery
+  point ZIP code). `Barcodes.Create(BarcodeType.IntelligentMail, value)` takes the two run together.
+- 65 bars of four states (full, ascender, descender, tracker), drawn as a 129 x 6 module matrix
+  with bars one module wide. At the default 2 px module and 300 dpi this is close to the
+  specification's 22 bars per inch and 0.125 to 0.165 inch height; print at 300 dpi or scale the
+  module size for your printer.
+
 ## Not yet supported
 
 QR Kanji mode, structured append, and Data Matrix C40, Text and EDIFACT compaction (Data Matrix
 uses ASCII encodation, which still packs digit pairs). ITF-14 bearer bars, Aztec runes and
-structured append, and MaxiCode ECI and structured append. Planned work is listed in the
+structured append, MaxiCode ECI and structured append, Micro QR and rMQR Kanji mode, and the
+stacked DataBar variants (Stacked, Stacked Omnidirectional, Expanded Stacked). Planned work is listed in the
 [Roadmap](roadmap.md).

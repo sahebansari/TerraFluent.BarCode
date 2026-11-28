@@ -33,7 +33,10 @@ public sealed class BarcodeOptions
     /// <summary>Font size of the human-readable text in pixels. See <see cref="BarcodeBuilder.TextSize"/>.</summary>
     public int? TextSize { get; set; }
 
-    /// <summary>QR error-correction level. See <see cref="BarcodeBuilder.ErrorCorrection"/>.</summary>
+    /// <summary>
+    /// QR, Micro QR and rMQR error-correction level. See <see cref="BarcodeBuilder.ErrorCorrection"/>.
+    /// Ignored for Micro QR when it is H, and for rMQR when it is L or Q.
+    /// </summary>
     public QrErrorCorrectionLevel? QrErrorCorrection { get; set; }
 
     /// <summary>Adds the Code 39 modulo 43 check character. See <see cref="BarcodeBuilder.WithChecksum"/>.</summary>

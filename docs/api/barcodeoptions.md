@@ -202,7 +202,8 @@ public int? Pdf417ErrorCorrection { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_QrErrorCorrection"></a> QrErrorCorrection
 
-QR error-correction level. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ErrorCorrection_TerraFluent_Barcode_QrErrorCorrectionLevel_">BarcodeBuilder.ErrorCorrection</a>.
+QR, Micro QR and rMQR error-correction level. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ErrorCorrection_TerraFluent_Barcode_QrErrorCorrectionLevel_">BarcodeBuilder.ErrorCorrection</a>.
+Ignored for Micro QR when it is H, and for rMQR when it is L or Q.
 
 ```csharp
 public QrErrorCorrectionLevel? QrErrorCorrection { get; set; }

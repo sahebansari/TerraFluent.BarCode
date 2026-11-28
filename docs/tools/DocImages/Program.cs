@@ -43,6 +43,13 @@ var images = new (string Name, BarcodeBuilder Builder, BarcodeImageFormat[] Form
     ("aztec", Barcodes.Aztec("TerraFluent.Barcode Aztec sample"), [svg, png]),
     ("aztec-ecc-50", Barcodes.Aztec("TerraFluent.Barcode Aztec sample").AztecErrorCorrection(50), [svg]),
     ("maxicode", Barcodes.MaxiCode("152382802", 840, 1, "TerraFluent.Barcode MaxiCode"), [svg, png]),
+    ("micro-qr", Barcodes.MicroQrCode("TF-2026"), [svg, png]),
+    ("rmqr", Barcodes.RectangularMicroQrCode("https://terrafluent.dev/barcode/"), [svg, png]),
+    ("rmqr-height-7", Barcodes.RectangularMicroQrCode("TERRAFLUENT 2026").RectangularMicroQrHeight(7), [svg]),
+    ("databar", Barcodes.Gs1DataBar("0950110153000").HumanReadableText(), [svg, png]),
+    ("databar-limited", Barcodes.Gs1DataBarLimited("1501234567890").HumanReadableText(), [svg, png]),
+    ("databar-expanded", Barcodes.Gs1DataBarExpanded("(01)09501101530003(3103)000450(15)261231").HumanReadableText(), [svg, png]),
+    ("intelligent-mail", Barcodes.IntelligentMail("01234567094987654321", "01234567891"), [svg, png]),
     ("pdf417-columns", Barcodes.Pdf417("TerraFluent.Barcode PDF417 sample").Pdf417Columns(3).Pdf417ErrorCorrection(4), [svg]),
 
     // Output formats: the same code in each format

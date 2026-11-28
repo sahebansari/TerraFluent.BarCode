@@ -70,6 +70,12 @@ await Barcodes.Code128("X1").WriteToAsync(response.Body, BarcodeImageFormat.Png)
 | `Barcodes.Aztec(value)` | ISO/IEC 24778 | Any text (UTF-8 via ECI when needed). Compact and full-range symbols, smallest that fits; `.AztecErrorCorrection(5-90)`: percent of the symbol used for error correction, plus 3 words (default 23, as the standard recommends). |
 | `Barcodes.MaxiCode(value)` | ISO/IEC 16023 | Latin-1 text, up to 93 characters (138 digits). Mode 4 by default; `.MaxiCodeMode(5)` for enhanced error correction, `6` for reader programming. Drawn as hexagons around the bullseye. |
 | `Barcodes.MaxiCode(postalCode, country, service, message)` | ISO/IEC 16023 | Structured carrier message for parcels: mode 2 for a numeric postal code (up to 9 digits), mode 3 for an alphanumeric one (up to 6 characters). |
+| `Barcodes.MicroQrCode(value)` | ISO/IEC 18004 | Micro QR M1-M4 for short text: up to 35 digits, 21 alphanumeric or 15 Latin-1 characters; levels L/M/Q. |
+| `Barcodes.RectangularMicroQrCode(value)` | ISO/IEC 23941 | rMQR: any text (UTF-8 via ECI when needed), up to 361 digits or 150 bytes, 7 to 17 modules high; levels M/H; `.RectangularMicroQrHeight(rows)` fixes the height. |
+| `Barcodes.Gs1DataBar(gtin)` | ISO/IEC 24724 | GS1 DataBar Omnidirectional: 13 digits (check digit added) or 14 (validated), optionally after `(01)`. |
+| `Barcodes.Gs1DataBarLimited(gtin)` | ISO/IEC 24724 | GS1 DataBar Limited: as above, for GTINs starting with 0 or 1. |
+| `Barcodes.Gs1DataBarExpanded(value)` | ISO/IEC 24724 | GS1 element string such as `(01)09501101530003(3103)000450(15)261231`, validated as for GS1-128; up to 74 digits or 41 letters. |
+| `Barcodes.IntelligentMail(tracking, routing)` | USPS-B-3200 | USPS Intelligent Mail: 20-digit tracking code and a 0, 5, 9 or 11 digit routing (ZIP) code; 65 four-state bars. |
 
 EAN-13 and UPC-A take a 2- or 5-digit add-on with `.AddOn("52495")`, and Code 39
 encodes all 128 ASCII characters with `.FullAscii()`.
@@ -248,7 +254,8 @@ size at 4 megapixels by default. See
 
 QR Kanji mode, structured append, Data Matrix C40/Text/EDIFACT compaction
 (Data Matrix uses ASCII encodation, which pairs digits), ITF-14 bearer bars,
-Aztec runes and MaxiCode text outside ISO-8859-1 (ECI).
+Aztec runes, MaxiCode text outside ISO-8859-1 (ECI), Micro QR and rMQR Kanji
+mode, and the stacked GS1 DataBar variants.
 
 ## Versioning
 
