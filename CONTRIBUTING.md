@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for helping improve TerraFluent.BarCode.
+Thanks for helping improve TerraFluent.Barcode.
 
 ## Building and Testing
 
@@ -23,7 +23,7 @@ The build treats warnings as errors and runs the .NET analyzers.
 - Keep each pull request focused, and add tests for behaviour changes.
 - Every public member needs XML documentation.
 - New or changed public API must be recorded in
-  `src/TerraFluent.BarCode/PublicAPI.Unshipped.txt`; the build tells you the
+  `src/TerraFluent.Barcode/PublicAPI.Unshipped.txt`; the build tells you the
   exact line to add.
 - Add an entry under `[Unreleased]` in `CHANGELOG.md`.
 - For new symbologies or styles, check that the output scans, for example

@@ -1,7 +1,7 @@
-# TerraFluent.BarCode
+# TerraFluent.Barcode
 
-TerraFluent.BarCode is a fluent, dependency-free .NET library that generates
-barcodes and QR codes and gives you the result in whatever form you need:
+TerraFluent.Barcode is a fluent, dependency-free .NET library that generates
+linear barcodes and 2D codes (QR code, Data Matrix, PDF417) and gives you the result in whatever form you need:
 PNG, JPEG, SVG, `byte[]`, `Stream`, base64 or a `data:` URI.
 
 Every encoder and image writer is implemented in the library itself: no
@@ -13,29 +13,29 @@ on Windows, Linux, macOS, containers and serverless. The library targets
 ## Install
 
 ```shell
-dotnet add package TerraFluent.BarCode
+dotnet add package TerraFluent.Barcode
 ```
 
 ## Quick Start
 
 ```csharp
-using TerraFluent.BarCode;
+using TerraFluent.Barcode;
 
 // PNG bytes
-byte[] png = Barcode.Code128("ABC-12345").ToPng();
+byte[] png = Barcodes.Code128("ABC-12345").ToPng();
 
 // SVG markup
-string svg = Barcode.QrCode("https://terrafluent.dev")
+string svg = Barcodes.QrCode("https://terrafluent.dev")
     .ErrorCorrection(QrErrorCorrectionLevel.H)
     .ModuleSize(6)
     .ToSvg();
 
 // Base64 / data URI for HTML or JSON
-string base64 = Barcode.Ean13("590123412345").ToBase64();
-string dataUri = Barcode.UpcA("03600029145").ToDataUri(BarcodeImageFormat.Png);
+string base64 = Barcodes.Ean13("590123412345").ToBase64();
+string dataUri = Barcodes.UpcA("03600029145").ToDataUri(BarcodeImageFormat.Png);
 
 // JPEG with custom colours
-byte[] jpg = Barcode.Code39("TERRAFLUENT")
+byte[] jpg = Barcodes.Code39("TERRAFLUENT")
     .WithChecksum()
     .Foreground("#1A3C8F")
     .Background("#FFFFFF")
@@ -43,24 +43,24 @@ byte[] jpg = Barcode.Code39("TERRAFLUENT")
     .ToJpeg();
 
 // Files and streams
-Barcode.Ean8("9638507").Save("ean8.svg");          // format from extension
-using Stream stream = Barcode.QrCode("hello").ToStream(BarcodeImageFormat.Png);
-await Barcode.Code128("X1").WriteToAsync(response.Body, BarcodeImageFormat.Png);
+Barcodes.Ean8("9638507").Save("ean8.svg");          // format from extension
+using Stream stream = Barcodes.QrCode("hello").ToStream(BarcodeImageFormat.Png);
+await Barcodes.Code128("X1").WriteToAsync(response.Body, BarcodeImageFormat.Png);
 ```
 
 ## Symbologies
 
 | Method | Standard | Input |
 | --- | --- | --- |
-| `Barcode.Code128(value)` | ISO/IEC 15417 | ASCII 0-127, up to 256 characters. Code sets A/B/C chosen automatically. |
-| `Barcode.Code39(value)` | ISO/IEC 16388 | `0-9 A-Z`, space, `- . $ / + %`, up to 128 characters. Optional `.WithChecksum()`. |
-| `Barcode.Ean13(value)` | ISO/IEC 15420 | 12 digits (check digit added) or 13 (validated). |
-| `Barcode.Ean8(value)` | ISO/IEC 15420 | 7 digits (check digit added) or 8 (validated). |
-| `Barcode.UpcA(value)` | ISO/IEC 15420 | 11 digits (check digit added) or 12 (validated). |
-| `Barcode.QrCode(value)` | ISO/IEC 18004 | Any text. Split into numeric, alphanumeric and UTF-8 byte segments for the smallest code (non-ASCII text carries a UTF-8 ECI header so scanners decode it correctly); versions 1-40; levels L/M/Q/H. |
-| `Barcode.Gs1Code128(value)` | GS1 General Specifications | Element string such as `(01)09501101530003(17)250101(10)ABC123`. FNC1 inserted where needed. Every AI must be one GS1 defines, and its data is checked for length, digits, check digit and dates; up to 48 data characters. Use `Barcode.Gs1Code128(("01", "09501101530003"), ("10", "LOT(A)"))` when data contains parentheses. |
-| `Barcode.DataMatrix(value)` | ISO/IEC 16022 | Any text (UTF-8 via ECI when needed). ECC 200, 30 square and rectangular sizes; `.DataMatrixShape(...)` picks square (default), rectangle or any. |
-| `Barcode.Pdf417(value)` | ISO/IEC 15438 | Any text (UTF-8 via ECI when needed). Text, numeric and byte compaction; `.Pdf417Columns(1-30)` and `.Pdf417ErrorCorrection(0-8)`. |
+| `Barcodes.Code128(value)` | ISO/IEC 15417 | ASCII 0-127, up to 256 characters. Code sets A/B/C chosen automatically. |
+| `Barcodes.Code39(value)` | ISO/IEC 16388 | `0-9 A-Z`, space, `- . $ / + %`, up to 128 characters. Optional `.WithChecksum()`. |
+| `Barcodes.Ean13(value)` | ISO/IEC 15420 | 12 digits (check digit added) or 13 (validated). |
+| `Barcodes.Ean8(value)` | ISO/IEC 15420 | 7 digits (check digit added) or 8 (validated). |
+| `Barcodes.UpcA(value)` | ISO/IEC 15420 | 11 digits (check digit added) or 12 (validated). |
+| `Barcodes.QrCode(value)` | ISO/IEC 18004 | Any text. Split into numeric, alphanumeric and UTF-8 byte segments for the smallest code (non-ASCII text carries a UTF-8 ECI header so scanners decode it correctly); versions 1-40; levels L/M/Q/H. |
+| `Barcodes.Gs1Code128(value)` | GS1 General Specifications | Element string such as `(01)09501101530003(17)250101(10)ABC123`. FNC1 inserted where needed. Every AI must be one GS1 defines, and its data is checked for length, digits, check digit and dates; up to 48 data characters. Use `Barcodes.Gs1Code128(("01", "09501101530003"), ("10", "LOT(A)"))` when data contains parentheses. |
+| `Barcodes.DataMatrix(value)` | ISO/IEC 16022 | Any text (UTF-8 via ECI when needed). ECC 200, 30 square and rectangular sizes; `.DataMatrixShape(...)` picks square (default), rectangle or any. |
+| `Barcodes.Pdf417(value)` | ISO/IEC 15438 | Any text (UTF-8 via ECI when needed). Text, numeric and byte compaction; `.Pdf417Columns(1-30)` and `.Pdf417ErrorCorrection(0-8)`. |
 
 EAN-13 and UPC-A take a 2- or 5-digit add-on with `.AddOn("52495")`, and Code 39
 encodes all 128 ASCII characters with `.FullAscii()`.
@@ -81,7 +81,7 @@ encodes all 128 ASCII characters with `.FullAscii()`.
 - Foreground, gradient and eye colours need a WCAG contrast ratio of at least
   3:1 against the background. Light-on-dark is allowed. Call
   `AllowLowContrast()` to turn the check off for codes you have tested.
-- The static `Barcode` methods are thread-safe. Configure a `BarcodeBuilder`
+- The static `Barcodes` methods are thread-safe. Configure a `BarcodeBuilder`
   on one thread; after that, its output methods can be called concurrently.
 
 ## Outputs
@@ -131,7 +131,7 @@ are anti-aliased.
 
 ```csharp
 // Dotted QR code with circular eyes and a diagonal gradient
-byte[] dots = Barcode.QrCode("https://terrafluent.dev")
+byte[] dots = Barcodes.QrCode("https://terrafluent.dev")
     .ModuleSize(8)
     .ModuleStyle(QrModuleStyle.Dots)
     .EyeStyle(QrEyeStyle.Circle)
@@ -139,7 +139,7 @@ byte[] dots = Barcode.QrCode("https://terrafluent.dev")
     .ToPng();
 
 // Logo in the centre (PNG bytes, transparency kept). Level H is used automatically.
-string svg = Barcode.QrCode("https://terrafluent.dev")
+string svg = Barcodes.QrCode("https://terrafluent.dev")
     .ModuleStyle(QrModuleStyle.Connected)
     .EyeStyle(QrEyeStyle.Rounded)
     .EyeColor("#E65100")
@@ -147,7 +147,7 @@ string svg = Barcode.QrCode("https://terrafluent.dev")
     .ToSvg();
 
 // Pill-shaped bars with a horizontal gradient
-byte[] bars = Barcode.Code128("ABC-12345").ModuleSize(3).RoundedBars()
+byte[] bars = Barcodes.Code128("ABC-12345").ModuleSize(3).RoundedBars()
     .Gradient("#0D47A1", "#7B1FA2", GradientDirection.Horizontal)
     .ToPng();
 ```
@@ -199,25 +199,25 @@ compaction (Data Matrix uses ASCII encodation, which pairs digits).
 ## Versioning
 
 The library follows [Semantic Versioning](https://semver.org). The public API
-is tracked in `src/TerraFluent.BarCode/PublicAPI.*.txt` and checked on every
+is tracked in `src/TerraFluent.Barcode/PublicAPI.*.txt` and checked on every
 build, so it cannot change by accident. `AssemblyVersion` stays at
 `major.0.0.0` so upgrades within a major version need no binding redirects.
-Changes are listed in [CHANGELOG.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/CHANGELOG.md).
+Changes are listed in [CHANGELOG.md](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/CHANGELOG.md).
 
 ## Repository Layout
 
-- `src/TerraFluent.BarCode` – the library.
-- `tests/TerraFluent.BarCode.Tests` – xUnit tests.
-- `samples/TerraFluent.BarCode.Sample` – writes every symbology in every format
-  plus an `index.html` preview: `dotnet run --project samples/TerraFluent.BarCode.Sample`.
+- `src/TerraFluent.Barcode` – the library.
+- `tests/TerraFluent.Barcode.Tests` – xUnit tests.
+- `samples/TerraFluent.Barcode.Sample` – writes every symbology in every format
+  plus an `index.html` preview: `dotnet run --project samples/TerraFluent.Barcode.Sample`.
 
 ## Contributing and Security
 
-See [CONTRIBUTING.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/CONTRIBUTING.md). Please report vulnerabilities privately
-as described in [SECURITY.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/SECURITY.md).
+See [CONTRIBUTING.md](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/CONTRIBUTING.md). Please report vulnerabilities privately
+as described in [SECURITY.md](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/SECURITY.md).
 
 ## License
 
-MIT. See [LICENSE](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/LICENSE). The human-readable text uses glyph outlines from
+MIT. See [LICENSE](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/LICENSE). The human-readable text uses glyph outlines from
 JetBrains Mono (SIL Open Font License 1.1) and the PDF417 tables come from
-pdf417gen (MIT); see [THIRD-PARTY-NOTICES.md](https://github.com/sahebansari/TerraFluent.BarCode/blob/main/THIRD-PARTY-NOTICES.md).
+pdf417gen (MIT); see [THIRD-PARTY-NOTICES.md](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/THIRD-PARTY-NOTICES.md).

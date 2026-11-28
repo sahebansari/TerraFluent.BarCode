@@ -1,0 +1,182 @@
+#nullable enable
+TerraFluent.Barcode.Barcodes
+TerraFluent.Barcode.BarcodeBuilder
+TerraFluent.Barcode.BarcodeBuilder.AddOn(string! digits) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.AllowLowContrast(bool allow = true) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Background(TerraFluent.Barcode.BarcodeColor color) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Background(string! hex) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.DataMatrixShape(TerraFluent.Barcode.DataMatrixShape shape) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Encode() -> TerraFluent.Barcode.BarcodeMatrix!
+TerraFluent.Barcode.BarcodeBuilder.ErrorCorrection(TerraFluent.Barcode.QrErrorCorrectionLevel level) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.EyeColor(TerraFluent.Barcode.BarcodeColor color) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.EyeColor(string! hex) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.EyeStyle(TerraFluent.Barcode.QrEyeStyle style) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Foreground(TerraFluent.Barcode.BarcodeColor color) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Foreground(string! hex) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.FullAscii(bool enable = true) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.GetImageSize() -> (int Width, int Height)
+TerraFluent.Barcode.BarcodeBuilder.Gradient(TerraFluent.Barcode.BarcodeColor start, TerraFluent.Barcode.BarcodeColor end, TerraFluent.Barcode.GradientDirection direction = TerraFluent.Barcode.GradientDirection.Diagonal) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Gradient(string! startHex, string! endHex, TerraFluent.Barcode.GradientDirection direction = TerraFluent.Barcode.GradientDirection.Diagonal) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Height(int pixels) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.HumanReadableText(bool show = true) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.JpegQuality(int quality) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Logo(byte[]! png, double scale = 0.2) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.ModuleSize(int pixels) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.ModuleStyle(TerraFluent.Barcode.QrModuleStyle style) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Pdf417Columns(int columns) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Pdf417ErrorCorrection(int level) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.QuietZone(int modules) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.RoundedBars(bool rounded = true) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Save(string! path) -> void
+TerraFluent.Barcode.BarcodeBuilder.Save(string! path, TerraFluent.Barcode.BarcodeImageFormat format) -> void
+TerraFluent.Barcode.BarcodeBuilder.SaveAsync(string! path, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+TerraFluent.Barcode.BarcodeBuilder.SaveAsync(string! path, TerraFluent.Barcode.BarcodeImageFormat format, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+TerraFluent.Barcode.BarcodeBuilder.TextSize(int pixels) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.ToBase64(TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png) -> string!
+TerraFluent.Barcode.BarcodeBuilder.ToBytes(TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png) -> byte[]!
+TerraFluent.Barcode.BarcodeBuilder.ToDataUri(TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png) -> string!
+TerraFluent.Barcode.BarcodeBuilder.ToJpeg() -> byte[]!
+TerraFluent.Barcode.BarcodeBuilder.ToPng() -> byte[]!
+TerraFluent.Barcode.BarcodeBuilder.ToStream(TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png) -> System.IO.Stream!
+TerraFluent.Barcode.BarcodeBuilder.ToSvg() -> string!
+TerraFluent.Barcode.BarcodeBuilder.TransparentBackground(bool transparent = true) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.Type.get -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeBuilder.Value.get -> string!
+TerraFluent.Barcode.BarcodeBuilder.WithChecksum(bool include = true) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.WriteTo(System.IO.Stream! destination, TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png) -> void
+TerraFluent.Barcode.BarcodeBuilder.WriteToAsync(System.IO.Stream! destination, TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+TerraFluent.Barcode.BarcodeColor
+TerraFluent.Barcode.BarcodeColor.B.get -> byte
+TerraFluent.Barcode.BarcodeColor.BarcodeColor() -> void
+TerraFluent.Barcode.BarcodeColor.BarcodeColor(byte r, byte g, byte b) -> void
+TerraFluent.Barcode.BarcodeColor.Equals(TerraFluent.Barcode.BarcodeColor other) -> bool
+TerraFluent.Barcode.BarcodeColor.G.get -> byte
+TerraFluent.Barcode.BarcodeColor.R.get -> byte
+TerraFluent.Barcode.BarcodeColor.RelativeLuminance.get -> double
+TerraFluent.Barcode.BarcodeColor.ToHex() -> string!
+TerraFluent.Barcode.BarcodeGenerator
+TerraFluent.Barcode.BarcodeGenerator.BarcodeGenerator(TerraFluent.Barcode.BarcodeOptions? defaults = null) -> void
+TerraFluent.Barcode.BarcodeGenerator.Create(TerraFluent.Barcode.BarcodeType type, string! value, TerraFluent.Barcode.BarcodeOptions? options = null) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeGenerator.Generate(TerraFluent.Barcode.BarcodeType type, string! value, TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png, TerraFluent.Barcode.BarcodeOptions? options = null) -> byte[]!
+TerraFluent.Barcode.BarcodeGenerator.GenerateDataUri(TerraFluent.Barcode.BarcodeType type, string! value, TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png, TerraFluent.Barcode.BarcodeOptions? options = null) -> string!
+TerraFluent.Barcode.BarcodeGenerator.GenerateSvg(TerraFluent.Barcode.BarcodeType type, string! value, TerraFluent.Barcode.BarcodeOptions? options = null) -> string!
+TerraFluent.Barcode.BarcodeGenerator.WriteToAsync(TerraFluent.Barcode.BarcodeType type, string! value, System.IO.Stream! destination, TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png, TerraFluent.Barcode.BarcodeOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+TerraFluent.Barcode.BarcodeImageFormat
+TerraFluent.Barcode.BarcodeImageFormat.Jpeg = 1 -> TerraFluent.Barcode.BarcodeImageFormat
+TerraFluent.Barcode.BarcodeImageFormat.Png = 0 -> TerraFluent.Barcode.BarcodeImageFormat
+TerraFluent.Barcode.BarcodeImageFormat.Svg = 2 -> TerraFluent.Barcode.BarcodeImageFormat
+TerraFluent.Barcode.BarcodeImageFormatExtensions
+TerraFluent.Barcode.BarcodeMatrix
+TerraFluent.Barcode.BarcodeMatrix.Height.get -> int
+TerraFluent.Barcode.BarcodeMatrix.IsLinear.get -> bool
+TerraFluent.Barcode.BarcodeMatrix.RecommendedQuietZone.get -> int
+TerraFluent.Barcode.BarcodeMatrix.Width.get -> int
+TerraFluent.Barcode.BarcodeMatrix.this[int x, int y].get -> bool
+TerraFluent.Barcode.BarcodeOptions
+TerraFluent.Barcode.BarcodeOptions.Background.get -> TerraFluent.Barcode.BarcodeColor?
+TerraFluent.Barcode.BarcodeOptions.Background.set -> void
+TerraFluent.Barcode.BarcodeOptions.BarcodeOptions() -> void
+TerraFluent.Barcode.BarcodeOptions.Code39Checksum.get -> bool
+TerraFluent.Barcode.BarcodeOptions.Code39Checksum.set -> void
+TerraFluent.Barcode.BarcodeOptions.Code39FullAscii.get -> bool
+TerraFluent.Barcode.BarcodeOptions.Code39FullAscii.set -> void
+TerraFluent.Barcode.BarcodeOptions.DataMatrixShape.get -> TerraFluent.Barcode.DataMatrixShape?
+TerraFluent.Barcode.BarcodeOptions.DataMatrixShape.set -> void
+TerraFluent.Barcode.BarcodeOptions.Foreground.get -> TerraFluent.Barcode.BarcodeColor?
+TerraFluent.Barcode.BarcodeOptions.Foreground.set -> void
+TerraFluent.Barcode.BarcodeOptions.Height.get -> int?
+TerraFluent.Barcode.BarcodeOptions.Height.set -> void
+TerraFluent.Barcode.BarcodeOptions.HumanReadableText.get -> bool
+TerraFluent.Barcode.BarcodeOptions.HumanReadableText.set -> void
+TerraFluent.Barcode.BarcodeOptions.JpegQuality.get -> int?
+TerraFluent.Barcode.BarcodeOptions.JpegQuality.set -> void
+TerraFluent.Barcode.BarcodeOptions.ModuleSize.get -> int?
+TerraFluent.Barcode.BarcodeOptions.ModuleSize.set -> void
+TerraFluent.Barcode.BarcodeOptions.Pdf417Columns.get -> int?
+TerraFluent.Barcode.BarcodeOptions.Pdf417Columns.set -> void
+TerraFluent.Barcode.BarcodeOptions.Pdf417ErrorCorrection.get -> int?
+TerraFluent.Barcode.BarcodeOptions.Pdf417ErrorCorrection.set -> void
+TerraFluent.Barcode.BarcodeOptions.QrErrorCorrection.get -> TerraFluent.Barcode.QrErrorCorrectionLevel?
+TerraFluent.Barcode.BarcodeOptions.QrErrorCorrection.set -> void
+TerraFluent.Barcode.BarcodeOptions.QuietZone.get -> int?
+TerraFluent.Barcode.BarcodeOptions.QuietZone.set -> void
+TerraFluent.Barcode.BarcodeOptions.TextSize.get -> int?
+TerraFluent.Barcode.BarcodeOptions.TextSize.set -> void
+TerraFluent.Barcode.BarcodeOptions.TransparentBackground.get -> bool
+TerraFluent.Barcode.BarcodeOptions.TransparentBackground.set -> void
+TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.Code128 = 0 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.Code39 = 1 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.DataMatrix = 7 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.Ean13 = 2 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.Ean8 = 3 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.Gs1Code128 = 6 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.Pdf417 = 8 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.QrCode = 5 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.UpcA = 4 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.DataMatrixShape
+TerraFluent.Barcode.DataMatrixShape.Any = 2 -> TerraFluent.Barcode.DataMatrixShape
+TerraFluent.Barcode.DataMatrixShape.Rectangle = 1 -> TerraFluent.Barcode.DataMatrixShape
+TerraFluent.Barcode.DataMatrixShape.Square = 0 -> TerraFluent.Barcode.DataMatrixShape
+TerraFluent.Barcode.GradientDirection
+TerraFluent.Barcode.GradientDirection.Diagonal = 2 -> TerraFluent.Barcode.GradientDirection
+TerraFluent.Barcode.GradientDirection.Horizontal = 0 -> TerraFluent.Barcode.GradientDirection
+TerraFluent.Barcode.GradientDirection.Radial = 3 -> TerraFluent.Barcode.GradientDirection
+TerraFluent.Barcode.GradientDirection.Vertical = 1 -> TerraFluent.Barcode.GradientDirection
+TerraFluent.Barcode.IBarcodeGenerator
+TerraFluent.Barcode.IBarcodeGenerator.Create(TerraFluent.Barcode.BarcodeType type, string! value, TerraFluent.Barcode.BarcodeOptions? options = null) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.IBarcodeGenerator.Generate(TerraFluent.Barcode.BarcodeType type, string! value, TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png, TerraFluent.Barcode.BarcodeOptions? options = null) -> byte[]!
+TerraFluent.Barcode.IBarcodeGenerator.GenerateDataUri(TerraFluent.Barcode.BarcodeType type, string! value, TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png, TerraFluent.Barcode.BarcodeOptions? options = null) -> string!
+TerraFluent.Barcode.IBarcodeGenerator.GenerateSvg(TerraFluent.Barcode.BarcodeType type, string! value, TerraFluent.Barcode.BarcodeOptions? options = null) -> string!
+TerraFluent.Barcode.IBarcodeGenerator.WriteToAsync(TerraFluent.Barcode.BarcodeType type, string! value, System.IO.Stream! destination, TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png, TerraFluent.Barcode.BarcodeOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
+TerraFluent.Barcode.QrErrorCorrectionLevel
+TerraFluent.Barcode.QrErrorCorrectionLevel.H = 3 -> TerraFluent.Barcode.QrErrorCorrectionLevel
+TerraFluent.Barcode.QrErrorCorrectionLevel.L = 0 -> TerraFluent.Barcode.QrErrorCorrectionLevel
+TerraFluent.Barcode.QrErrorCorrectionLevel.M = 1 -> TerraFluent.Barcode.QrErrorCorrectionLevel
+TerraFluent.Barcode.QrErrorCorrectionLevel.Q = 2 -> TerraFluent.Barcode.QrErrorCorrectionLevel
+TerraFluent.Barcode.QrEyeStyle
+TerraFluent.Barcode.QrEyeStyle.Circle = 2 -> TerraFluent.Barcode.QrEyeStyle
+TerraFluent.Barcode.QrEyeStyle.Rounded = 1 -> TerraFluent.Barcode.QrEyeStyle
+TerraFluent.Barcode.QrEyeStyle.Square = 0 -> TerraFluent.Barcode.QrEyeStyle
+TerraFluent.Barcode.QrModuleStyle
+TerraFluent.Barcode.QrModuleStyle.Connected = 3 -> TerraFluent.Barcode.QrModuleStyle
+TerraFluent.Barcode.QrModuleStyle.Dots = 2 -> TerraFluent.Barcode.QrModuleStyle
+TerraFluent.Barcode.QrModuleStyle.Rounded = 1 -> TerraFluent.Barcode.QrModuleStyle
+TerraFluent.Barcode.QrModuleStyle.Square = 0 -> TerraFluent.Barcode.QrModuleStyle
+const TerraFluent.Barcode.Barcodes.MaxCode128Length = 256 -> int
+const TerraFluent.Barcode.Barcodes.MaxCode39Length = 128 -> int
+const TerraFluent.Barcode.BarcodeBuilder.DefaultBarHeight = 80 -> int
+const TerraFluent.Barcode.BarcodeBuilder.DefaultJpegQuality = 90 -> int
+const TerraFluent.Barcode.BarcodeBuilder.DefaultLinearModuleSize = 2 -> int
+const TerraFluent.Barcode.BarcodeBuilder.DefaultLogoScale = 0.2 -> double
+const TerraFluent.Barcode.BarcodeBuilder.DefaultPdf417ModuleSize = 2 -> int
+const TerraFluent.Barcode.BarcodeBuilder.DefaultQrModuleSize = 4 -> int
+const TerraFluent.Barcode.BarcodeBuilder.MaxImageDimension = 32768 -> int
+const TerraFluent.Barcode.BarcodeBuilder.MaxImagePixels = 67108864 -> long
+const TerraFluent.Barcode.BarcodeBuilder.MaxLogoScale = 0.3 -> double
+const TerraFluent.Barcode.BarcodeBuilder.MaxLogoScaleAtQ = 0.25 -> double
+const TerraFluent.Barcode.BarcodeBuilder.MinContrastRatio = 3 -> double
+override TerraFluent.Barcode.BarcodeColor.Equals(object? obj) -> bool
+override TerraFluent.Barcode.BarcodeColor.GetHashCode() -> int
+override TerraFluent.Barcode.BarcodeColor.ToString() -> string!
+override TerraFluent.Barcode.BarcodeMatrix.ToString() -> string!
+static TerraFluent.Barcode.Barcodes.Code128(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Code39(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Create(TerraFluent.Barcode.BarcodeType type, string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.DataMatrix(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Ean13(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Ean8(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Gs1Code128(params (string! Ai, string! Data)[]! elements) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Gs1Code128(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Pdf417(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.QrCode(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.UpcA(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.BarcodeColor.Black.get -> TerraFluent.Barcode.BarcodeColor
+static TerraFluent.Barcode.BarcodeColor.ContrastRatio(TerraFluent.Barcode.BarcodeColor a, TerraFluent.Barcode.BarcodeColor b) -> double
+static TerraFluent.Barcode.BarcodeColor.FromHex(string! hex) -> TerraFluent.Barcode.BarcodeColor
+static TerraFluent.Barcode.BarcodeColor.White.get -> TerraFluent.Barcode.BarcodeColor
+static TerraFluent.Barcode.BarcodeColor.operator !=(TerraFluent.Barcode.BarcodeColor left, TerraFluent.Barcode.BarcodeColor right) -> bool
+static TerraFluent.Barcode.BarcodeColor.operator ==(TerraFluent.Barcode.BarcodeColor left, TerraFluent.Barcode.BarcodeColor right) -> bool
+static TerraFluent.Barcode.BarcodeImageFormatExtensions.FromFilePath(string! path) -> TerraFluent.Barcode.BarcodeImageFormat
+static TerraFluent.Barcode.BarcodeImageFormatExtensions.ToFileExtension(this TerraFluent.Barcode.BarcodeImageFormat format) -> string!
+static TerraFluent.Barcode.BarcodeImageFormatExtensions.ToMimeType(this TerraFluent.Barcode.BarcodeImageFormat format) -> string!
