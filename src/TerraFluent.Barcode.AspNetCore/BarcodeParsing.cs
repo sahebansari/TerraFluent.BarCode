@@ -14,6 +14,18 @@ internal static class BarcodeParsing
         ["i2of5"] = BarcodeType.Itf,
         ["nw7"] = BarcodeType.Codabar,
         ["azteccode"] = BarcodeType.Aztec,
+        ["microqr"] = BarcodeType.MicroQrCode,
+        ["rmqr"] = BarcodeType.RectangularMicroQrCode,
+        ["rectangularmicroqr"] = BarcodeType.RectangularMicroQrCode,
+        ["databar"] = BarcodeType.Gs1DataBar,
+        ["databaromnidirectional"] = BarcodeType.Gs1DataBar,
+        ["rss14"] = BarcodeType.Gs1DataBar,
+        ["databarlimited"] = BarcodeType.Gs1DataBarLimited,
+        ["rsslimited"] = BarcodeType.Gs1DataBarLimited,
+        ["databarexpanded"] = BarcodeType.Gs1DataBarExpanded,
+        ["rssexpanded"] = BarcodeType.Gs1DataBarExpanded,
+        ["imb"] = BarcodeType.IntelligentMail,
+        ["uspsimb"] = BarcodeType.IntelligentMail,
     };
 
     public static bool TryParseType(string? value, out BarcodeType type)

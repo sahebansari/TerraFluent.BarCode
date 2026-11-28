@@ -33,6 +33,12 @@ public class EndpointTests
     [InlineData("/barcodes/QR-Code?data=hello", "image/png")]
     [InlineData("/barcodes/gs1-128.png?data=(01)09501101530003", "image/png")]
     [InlineData("/barcodes/data_matrix.svg?data=hello", "image/svg+xml")]
+    [InlineData("/barcodes/microqr.png?data=123", "image/png")]
+    [InlineData("/barcodes/rmqr.svg?data=RMQR", "image/svg+xml")]
+    [InlineData("/barcodes/databar.png?data=09501101530003", "image/png")]
+    [InlineData("/barcodes/databar-limited.png?data=01501101530001", "image/png")]
+    [InlineData("/barcodes/databar-expanded.png?data=(01)09501101530003(10)ABC", "image/png")]
+    [InlineData("/barcodes/imb.svg?data=01234567094987654321", "image/svg+xml")]
     public async Task Reads_type_and_format_from_the_path_or_query(string url, string contentType)
     {
         await using var app = await TestApp.StartEndpointAsync();

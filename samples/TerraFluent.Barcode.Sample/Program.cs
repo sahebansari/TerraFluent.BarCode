@@ -47,6 +47,25 @@ var samples = new (string Name, BarcodeBuilder Builder)[]
     ("maxicode", Barcodes.MaxiCode("152382802", 840, 1, "TerraFluent.Barcode MaxiCode")),
     ("qr-mixed", Barcodes.QrCode("https://example.com/track/" + "123456789012345678901234567890")),
     ("qr-transparent", Barcodes.QrCode(RepoUrl).TransparentBackground()),
+    ("microqr", Barcodes.MicroQrCode("TF-2026")),
+    ("rmqr", Barcodes.RectangularMicroQrCode("https://terrafluent.dev/barcode/")),
+    ("databar", Barcodes.Gs1DataBar("09501101530003")),
+    ("databar-limited", Barcodes.Gs1DataBarLimited("01501101530001")),
+    ("databar-expanded", Barcodes.Gs1DataBarExpanded("(01)09501101530003(17)250101(10)ABC123")),
+    ("imb", Barcodes.IntelligentMail("01234567094987654321", "01234567891")),
+
+    // QR payload helpers: text that phone cameras act on.
+    ("qr-wifi", Barcodes.QrCode(QrPayload.Wifi("Guest", "welcome123"))),
+    ("qr-contact", Barcodes.QrCode(QrPayload.Contact(new ContactCard
+    {
+        FirstName = "Ada", LastName = "Lovelace", Organization = "TerraFluent",
+        Email = "ada@example.com", Phone = "+44 20 7946 0000", Website = "https://terrafluent.dev",
+    }))),
+    ("qr-url", Barcodes.QrCode(QrPayload.Url("terrafluent.dev/barcode/"))),
+    ("qr-email", Barcodes.QrCode(QrPayload.Email("hello@example.com", "Hi", "Sent from a QR code"))),
+    ("qr-phone", Barcodes.QrCode(QrPayload.Phone("+1 555 0100"))),
+    ("qr-sms", Barcodes.QrCode(QrPayload.Sms("+1 555 0100", "Hello"))),
+    ("qr-digital-link", Barcodes.QrCode(QrPayload.Gs1DigitalLink("(01)09501101530003(10)ABC123"))),
 };
 
 var html = new System.Text.StringBuilder()

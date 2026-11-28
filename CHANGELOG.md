@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-28
+
 ### Added
 
 - New symbologies, written from their specifications and read back by an
@@ -48,6 +50,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     your own domain: key qualifiers in the path in standard order, other AIs
     as query parameters, GTINs padded to 14 digits and every AI validated as
     for GS1-128.
+- The ASP.NET Core endpoint accepts the same short type names as the MCP server for the
+  new types (`microqr`, `rmqr`, `databar`, `databar-limited`, `databar-expanded`, `imb`,
+  and `rss14`, `rss-limited`, `rss-expanded`, `usps-imb`).
+- The sample app writes the new types and one QR code per `QrPayload` helper.
 
 ### Changed
 
@@ -238,7 +244,8 @@ never published; their changes are included in this release.
 - `Encode()` returns the raw `BarcodeMatrix` for custom renderers.
 - Targets `netstandard2.0` and `net10.0` (trimming and Native AOT compatible).
 
-[Unreleased]: https://github.com/sahebansari/TerraFluent.Barcode/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/sahebansari/TerraFluent.Barcode/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/sahebansari/TerraFluent.Barcode/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/sahebansari/TerraFluent.Barcode/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/sahebansari/TerraFluent.Barcode/releases/tag/v1.2.0
 [1.1.0]: https://github.com/sahebansari/TerraFluent.Barcode/releases/tag/v1.1.0

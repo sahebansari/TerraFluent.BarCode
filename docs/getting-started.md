@@ -9,7 +9,7 @@ dotnet add package TerraFluent.Barcode
 Or add the package reference to your project file:
 
 ```xml
-<PackageReference Include="TerraFluent.Barcode" Version="1.3.0" />
+<PackageReference Include="TerraFluent.Barcode" Version="1.4.0" />
 ```
 
 ## Your first barcode

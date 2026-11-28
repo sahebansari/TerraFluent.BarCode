@@ -48,7 +48,7 @@ The path names the type and, optionally, the format:
 
 | Part | Values |
 | --- | --- |
-| `type` | Any `BarcodeType`, ignoring case, dashes and underscores (`code128`, `gs1-128`, `ean13`, `upca`, `itf14`, `qrcode`, `datamatrix`, `pdf417`, `aztec`, `maxicode`), and the aliases `qr`, `upc`, `dm`, `ean128`, `i2of5` and `nw7`. |
+| `type` | Any `BarcodeType`, ignoring case, dashes and underscores (`code128`, `gs1-128`, `ean13`, `upca`, `itf14`, `qrcode`, `datamatrix`, `pdf417`, `aztec`, `maxicode`, `microqrcode`, `gs1databar`, `intelligentmail`), and the aliases `qr`, `upc`, `dm`, `ean128`, `i2of5`, `nw7`, `microqr`, `rmqr`, `databar`, `databar-limited`, `databar-expanded` and `imb`. |
 | `format` | `png`, `jpg` / `jpeg` or `svg`. Without an extension the `format` query parameter applies, then `DefaultFormat` (PNG). |
 
 Query parameters, all optional except `data`:
