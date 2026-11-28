@@ -1,22 +1,40 @@
 name: Release
 
-# Publishes to NuGet.org when a version tag such as v1.0.0 is pushed.
-# Needs a repository secret NUGET_API_KEY (scoped to push TerraFluent.Barcode),
-# ideally behind a "nuget" environment with required reviewers.
+# Publishes TerraFluent.Barcode to NuGet.org when a version tag such as v1.2.0 is pushed.
+#
+# The tag must match <Version> in Directory.Build.props and have a "## [x.y.z]" section in
+# CHANGELOG.md. Tags with a suffix (v1.3.0-beta.1) publish a prerelease package.
+#
+# Running the workflow by hand (Actions > Release > Run workflow) is a dry run: it builds,
+# tests and packs, and uploads the packages as an artifact, but publishes nothing.
+#
+# Publishing runs in the "nuget" environment (add required reviewers there to approve each
+# release) and authenticates in one of two ways:
+#   - Trusted publishing (preferred, no long-lived key): add a policy on nuget.org for this
+#     repository and workflow file "release.yml", then set the repository variable NUGET_USER
+#     to your nuget.org user name (not your email).
+#   - API key: add a NUGET_API_KEY secret to the "nuget" environment, scoped to push
+#     TerraFluent.Barcode (or the glob TerraFluent.*). Used when NUGET_USER is not set.
 
 on:
   push:
     tags: ["v*.*.*"]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  release:
+  pack:
+    name: Build, test and pack
     runs-on: ubuntu-latest
-    environment: nuget
-    permissions:
-      contents: write # create the GitHub release
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
 
     steps:
       - name: Checkout
@@ -29,17 +47,28 @@ jobs:
             8.0.x
             10.0.x
 
-      - name: Check the tag matches the project version
+      - name: Read and check the version
+        id: version
         shell: bash
         run: |
           version=$(dotnet msbuild src/TerraFluent.Barcode/TerraFluent.Barcode.csproj -getProperty:Version)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+          echo "Project version: $version"
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "v$version" != "$GITHUB_REF_NAME" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match project version $version (Directory.Build.props)."
             exit 1
           fi
+          if ! grep -qF "## [$version]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## [$version]' section."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [[ "$version" == *-* ]]; then echo "prerelease=true"; else echo "prerelease=false"; fi >> "$GITHUB_OUTPUT"
+
+      - name: Restore
+        run: dotnet restore
 
       - name: Build
-        run: dotnet build --configuration Release
+        run: dotnet build --configuration Release --no-restore
 
       - name: Test
         run: dotnet test tests/TerraFluent.Barcode.Tests/TerraFluent.Barcode.Tests.csproj --configuration Release --no-build
@@ -47,10 +76,81 @@ jobs:
       - name: Pack
         run: dotnet pack src/TerraFluent.Barcode/TerraFluent.Barcode.csproj --configuration Release --no-build --output artifacts
 
+      - name: Extract release notes from CHANGELOG.md
+        shell: bash
+        run: |
+          # Lines after "## [<version>]" up to the next "## [" heading.
+          awk -v v="## [${{ steps.version.outputs.version }}]" '
+            index($0, v) == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > artifacts/release-notes.md
+          cat artifacts/release-notes.md
+
+      - name: Upload packages
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-packages
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+            artifacts/release-notes.md
+          if-no-files-found: error
+
+  publish:
+    name: Publish to NuGet.org
+    needs: pack
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    environment:
+      name: nuget
+      url: https://www.nuget.org/packages/TerraFluent.Barcode/${{ needs.pack.outputs.version }}
+    permissions:
+      contents: write # create the GitHub release
+      id-token: write # NuGet trusted publishing
+
+    steps:
+      - name: Download packages
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-packages
+          path: artifacts
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Log in to NuGet.org (trusted publishing)
+        id: nuget-login
+        if: vars.NUGET_USER != ''
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: ${{ vars.NUGET_USER }}
+
       - name: Push to NuGet.org
-        run: dotnet nuget push "artifacts/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate
+        shell: bash
+        env:
+          NUGET_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY || secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_KEY" ]; then
+            echo "::error::No NuGet credentials. Set the NUGET_USER variable (trusted publishing) or the NUGET_API_KEY secret."
+            exit 1
+          fi
+          # Pushing the .nupkg also pushes the matching .snupkg next to it.
+          dotnet nuget push "artifacts/*.nupkg" --api-key "$NUGET_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Create GitHub release
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" artifacts/*.*nupkg --title "$GITHUB_REF_NAME" --notes "See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)."
+          PRERELEASE: ${{ needs.pack.outputs.prerelease }}
+        run: |
+          flags=()
+          if [ "$PRERELEASE" = "true" ]; then flags+=(--prerelease); fi
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" artifacts/*.nupkg artifacts/*.snupkg --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg artifacts/*.snupkg --repo "$GITHUB_REPOSITORY" \
+              --verify-tag --title "$GITHUB_REF_NAME" --notes-file artifacts/release-notes.md "${flags[@]}"
+          fi
