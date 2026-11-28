@@ -34,10 +34,13 @@ jobs:
       - name: Regenerate images and API reference
         run: docs/build.sh
 
+      # PNG bytes vary with the zlib build behind .NET, so PNGs are compared by their pixels;
+      # everything else (SVG, JPEG, Markdown) must match byte for byte.
       - name: Check for differences
         run: |
           git add --intent-to-add docs
-          if ! git diff --exit-code --stat -- docs; then
+          if ! git diff --exit-code --stat -- docs ':(exclude)docs/images/*.png'; then
             echo "::error::docs/images or docs/api is out of date. Run docs/build.sh and commit the result."
             exit 1
           fi
+          python3 docs/tools/png-pixels-equal.py

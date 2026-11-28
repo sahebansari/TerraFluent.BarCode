@@ -40,7 +40,8 @@ docs/build.sh
 ```
 
 The [Docs workflow](../.github/workflows/docs.yml) runs the same script on every pull request and
-fails if the committed files are out of date.
+fails if the committed files are out of date (PNGs are compared by pixels, because their
+bytes depend on the zlib build behind .NET).
 
 ### Publishing to terrafluent.dev
 
