@@ -212,6 +212,26 @@ ignored, so one `BarcodeOptions` serves every type. Options passed to a call
 replace the defaults. `Create(type, value)` returns a `BarcodeBuilder` with
 the options applied, for gradients, logos and other styles.
 
+## MCP Server for AI Assistants
+
+`TerraFluent.Barcode.Mcp` is a separate package: a
+[Model Context Protocol](https://modelcontextprotocol.io) server that lets AI
+assistants such as Claude, Cursor or VS Code Copilot generate barcodes and QR
+codes for you. The library itself stays dependency-free; only the server
+depends on the MCP SDK.
+
+```shell
+dotnet tool install --global TerraFluent.Barcode.Mcp
+claude mcp add terrafluent-barcode -- terrafluent-barcode-mcp
+```
+
+Other clients take `{"command": "terrafluent-barcode-mcp"}` in their MCP server
+configuration. The server offers `generate_barcode`, `generate_qr_code` (with
+module and eye styles, gradients and a logo) and `list_barcode_formats`, returns
+PNG or JPEG as images, SVG as markup, or base64 and data URIs, and caps image
+size at 4 megapixels by default. See
+[its README](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/src/TerraFluent.Barcode.Mcp/README.md).
+
 ## Not yet supported
 
 ITF, Aztec, QR Kanji mode, structured append and Data Matrix C40/Text/EDIFACT
@@ -228,7 +248,9 @@ Changes are listed in [CHANGELOG.md](https://github.com/sahebansari/TerraFluent.
 ## Repository Layout
 
 - `src/TerraFluent.Barcode` – the library.
+- `src/TerraFluent.Barcode.Mcp` – the MCP server (.NET tool).
 - `tests/TerraFluent.Barcode.Tests` – xUnit tests.
+- `tests/TerraFluent.Barcode.Mcp.Tests` – MCP server tests, run against an in-process client.
 - `samples/TerraFluent.Barcode.Sample` – writes every symbology in every format
   plus an `index.html` preview: `dotnet run --project samples/TerraFluent.Barcode.Sample`.
 
