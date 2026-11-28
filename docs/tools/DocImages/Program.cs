@@ -37,6 +37,12 @@ var images = new (string Name, BarcodeBuilder Builder, BarcodeImageFormat[] Form
     ("datamatrix", Barcodes.DataMatrix("TerraFluent.Barcode Data Matrix"), [svg, png]),
     ("datamatrix-rect", Barcodes.DataMatrix("TF-2026").DataMatrixShape(DataMatrixShape.Rectangle), [svg]),
     ("pdf417", Barcodes.Pdf417("TerraFluent.Barcode PDF417 sample"), [svg, png]),
+    ("itf", Barcodes.Itf("12345678").HumanReadableText(), [svg, png]),
+    ("itf14", Barcodes.Itf14("1540014128876").HumanReadableText(), [svg, png]),
+    ("codabar", Barcodes.Codabar("A40156B").HumanReadableText(), [svg, png]),
+    ("aztec", Barcodes.Aztec("TerraFluent.Barcode Aztec sample"), [svg, png]),
+    ("aztec-ecc-50", Barcodes.Aztec("TerraFluent.Barcode Aztec sample").AztecErrorCorrection(50), [svg]),
+    ("maxicode", Barcodes.MaxiCode("152382802", 840, 1, "TerraFluent.Barcode MaxiCode"), [svg, png]),
     ("pdf417-columns", Barcodes.Pdf417("TerraFluent.Barcode PDF417 sample").Pdf417Columns(3).Pdf417ErrorCorrection(4), [svg]),
 
     // Output formats: the same code in each format

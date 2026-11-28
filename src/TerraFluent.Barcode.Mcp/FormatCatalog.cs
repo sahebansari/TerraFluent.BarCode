@@ -22,6 +22,11 @@ public sealed record FormatCatalog(
         [BarcodeType.QrCode] = ("qr", "QR code", "2d", "Any text (UTF-8), up to about 2,900 bytes at level L. Use generate_qr_code for styling."),
         [BarcodeType.DataMatrix] = ("datamatrix", "Data Matrix", "2d", "Any text (UTF-8), up to about 1,500 characters."),
         [BarcodeType.Pdf417] = ("pdf417", "PDF417", "stacked", "Any text (UTF-8), up to about 1,800 characters."),
+        [BarcodeType.Itf] = ("itf", "Interleaved 2 of 5", "linear", "An even number of digits, up to 80. With checksum, an odd number (the modulo 10 check digit is appended)."),
+        [BarcodeType.Itf14] = ("itf14", "ITF-14", "linear", "13 digits (check digit added) or 14 digits (check digit validated): a GTIN-14 for cartons."),
+        [BarcodeType.Codabar] = ("codabar", "Codabar", "linear", "0-9 and - $ : / . +, up to 60 characters. Start and end with A, B, C or D to choose the start/stop characters; otherwise A is used."),
+        [BarcodeType.Aztec] = ("aztec", "Aztec", "2d", "Any text (UTF-8), up to about 1,900 bytes. Optional aztecErrorCorrection percent (5-90, default 23)."),
+        [BarcodeType.MaxiCode] = ("maxicode", "MaxiCode", "2d", "Latin-1 text, up to 93 characters (138 digits); mode 4 by default, maxiCodeMode 5 or 6. For parcels, give maxiCodePostalCode, maxiCodeCountry and maxiCodeService (modes 2/3)."),
     };
 
     /// <summary>Extra spellings accepted for a type, keyed by their normalized form.</summary>
@@ -32,6 +37,10 @@ public sealed record FormatCatalog(
         ["ean128"] = BarcodeType.Gs1Code128,
         ["upc"] = BarcodeType.UpcA,
         ["dm"] = BarcodeType.DataMatrix,
+        ["interleaved2of5"] = BarcodeType.Itf,
+        ["i2of5"] = BarcodeType.Itf,
+        ["nw7"] = BarcodeType.Codabar,
+        ["azteccode"] = BarcodeType.Aztec,
     };
 
     /// <summary>The type ids shown to clients.</summary>

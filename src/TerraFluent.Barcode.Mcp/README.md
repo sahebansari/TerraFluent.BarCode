@@ -47,7 +47,7 @@ claude mcp add terrafluent-barcode -- terrafluent-barcode-mcp
 
 | Tool | What it does |
 | --- | --- |
-| `generate_barcode` | Any supported type (Code 128, GS1-128, Code 39, EAN-13, EAN-8, UPC-A, QR, Data Matrix, PDF417). Options: format, output, module size, bar height, quiet zone, human-readable text, colours, transparent background, Code 39 checksum and full ASCII, EAN/UPC add-on, QR error correction. |
+| `generate_barcode` | Any supported type (Code 128, GS1-128, Code 39, EAN-13, EAN-8, UPC-A, QR, Data Matrix, PDF417, Interleaved 2 of 5, ITF-14, Codabar, Aztec, MaxiCode). Options: format, output, module size, bar height, quiet zone, human-readable text, colours, transparent background, Code 39 / ITF checksum and Code 39 full ASCII, EAN/UPC add-on, QR error correction, Aztec error correction, MaxiCode mode and structured carrier message (postal code, country, service class). |
 | `generate_qr_code` | QR code with styling: module style (square, rounded, dots, connected), eye style (square, rounded, circle), colours, eye colour, gradient, centre logo (base64 PNG). |
 | `list_barcode_formats` | The supported types and their input rules, image formats, output modes and the server's limits, as JSON. |
 

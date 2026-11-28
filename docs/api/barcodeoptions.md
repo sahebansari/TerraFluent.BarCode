@@ -20,6 +20,18 @@ public sealed class BarcodeOptions
 
 ## Properties
 
+### <a id="TerraFluent_Barcode_BarcodeOptions_AztecErrorCorrection"></a> AztecErrorCorrection
+
+Aztec minimum error correction in percent. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_AztecErrorCorrection_System_Int32_">BarcodeBuilder.AztecErrorCorrection</a>.
+
+```csharp
+public int? AztecErrorCorrection { get; set; }
+```
+
+#### Property Value
+
+ [int](https://learn.microsoft.com/dotnet/api/system.int32)?
+
 ### <a id="TerraFluent_Barcode_BarcodeOptions_Background"></a> Background
 
 Background colour (default white).
@@ -104,6 +116,18 @@ public bool HumanReadableText { get; set; }
 
  [bool](https://learn.microsoft.com/dotnet/api/system.boolean)
 
+### <a id="TerraFluent_Barcode_BarcodeOptions_ItfChecksum"></a> ItfChecksum
+
+Appends the Interleaved 2 of 5 check digit. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_WithChecksum_System_Boolean_">BarcodeBuilder.WithChecksum</a>.
+
+```csharp
+public bool ItfChecksum { get; set; }
+```
+
+#### Property Value
+
+ [bool](https://learn.microsoft.com/dotnet/api/system.boolean)
+
 ### <a id="TerraFluent_Barcode_BarcodeOptions_JpegQuality"></a> JpegQuality
 
 JPEG quality, 1 to 100. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_JpegQuality_System_Int32_">BarcodeBuilder.JpegQuality</a>.
@@ -127,6 +151,18 @@ public long? MaxImagePixels { get; set; }
 #### Property Value
 
  [long](https://learn.microsoft.com/dotnet/api/system.int64)?
+
+### <a id="TerraFluent_Barcode_BarcodeOptions_MaxiCodeMode"></a> MaxiCodeMode
+
+MaxiCode mode 4, 5 or 6. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_MaxiCodeMode_System_Int32_">BarcodeBuilder.MaxiCodeMode</a>.
+
+```csharp
+public int? MaxiCodeMode { get; set; }
+```
+
+#### Property Value
+
+ [int](https://learn.microsoft.com/dotnet/api/system.int32)?
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_ModuleSize"></a> ModuleSize
 

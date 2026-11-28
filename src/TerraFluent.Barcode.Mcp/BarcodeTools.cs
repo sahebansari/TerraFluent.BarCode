@@ -19,10 +19,10 @@ public sealed class BarcodeTools
 
     /// <summary>Generates any supported barcode or 2D code.</summary>
     [McpServerTool(Name = "generate_barcode", Title = "Generate barcode", ReadOnly = true, Idempotent = true, Destructive = false, OpenWorld = false)]
-    [Description("Generates a barcode or 2D code (Code 128, GS1-128, Code 39, EAN-13, EAN-8, UPC-A, QR code, Data Matrix, PDF417 and more; call list_barcode_formats for the full list and input rules). " +
+    [Description("Generates a barcode or 2D code (Code 128, GS1-128, Code 39, EAN-13, EAN-8, UPC-A, ITF, ITF-14, Codabar, QR code, Data Matrix, PDF417, Aztec, MaxiCode; call list_barcode_formats for the full list and input rules). " +
                  "Returns a PNG or JPEG image, SVG markup, base64 or a data: URI. Options that do not apply to the chosen type are rejected with an explanation.")]
     public CallToolResult GenerateBarcode(
-        [Description("Symbology, for example code128, gs1-128, code39, ean13, ean8, upca, qr, datamatrix, pdf417. Case, spaces, dashes and underscores are ignored.")] string type,
+        [Description("Symbology, for example code128, gs1-128, code39, ean13, ean8, upca, itf, itf14, codabar, qr, datamatrix, pdf417, aztec, maxicode. Case, spaces, dashes and underscores are ignored.")] string type,
         [Description("The data to encode. GS1-128 takes an element string with AIs in parentheses, e.g. (01)09501101530003(10)ABC123.")] string data,
         [Description("Image format: png (default), jpeg or svg.")] string format = "png",
         [Description("How to return the result: image (default; PNG/JPEG as an image, SVG as markup), base64, or data_uri.")] string output = "image",
@@ -33,15 +33,35 @@ public sealed class BarcodeTools
         [Description("Bar colour as #RRGGBB. Default #000000.")] string? foreground = null,
         [Description("Background colour as #RRGGBB. Default #FFFFFF.")] string? background = null,
         [Description("Transparent background (PNG and SVG only).")] bool transparentBackground = false,
-        [Description("Code 39 only: add the optional modulo 43 check character.")] bool checksum = false,
+        [Description("Code 39 (modulo 43) and Interleaved 2 of 5 (modulo 10) only: add the optional check character.")] bool checksum = false,
         [Description("Code 39 only: encode full ASCII (lower case and symbols).")] bool fullAscii = false,
         [Description("EAN-13 and UPC-A only: 2 or 5 digit add-on.")] string? addOn = null,
-        [Description("QR code only: error correction level L, M (default), Q or H.")] string? errorCorrection = null)
+        [Description("QR code only: error correction level L, M (default), Q or H.")] string? errorCorrection = null,
+        [Description("Aztec only: percent of the symbol used for error correction, 5-90. Default 23.")] int? aztecErrorCorrection = null,
+        [Description("MaxiCode only: mode 4 (default), 5 (enhanced error correction) or 6 (reader programming).")] int? maxiCodeMode = null,
+        [Description("MaxiCode only: postal code for a structured carrier message (mode 2 for up to 9 digits, mode 3 for up to 6 letters and digits). Needs maxiCodeCountry and maxiCodeService.")] string? maxiCodePostalCode = null,
+        [Description("MaxiCode only: ISO 3166 numeric country code, 0-999, with maxiCodePostalCode.")] int? maxiCodeCountry = null,
+        [Description("MaxiCode only: service class, 0-999, with maxiCodePostalCode.")] int? maxiCodeService = null)
     {
         return Run(() =>
         {
             var barcodeType = ParseBarcodeType(type);
-            var builder = Barcodes.Create(barcodeType, CheckData(data));
+            BarcodeBuilder builder;
+            if (maxiCodePostalCode is not null || maxiCodeCountry is not null || maxiCodeService is not null)
+            {
+                if (barcodeType != BarcodeType.MaxiCode) throw new ArgumentException("maxiCodePostalCode, maxiCodeCountry and maxiCodeService apply to MaxiCode only.");
+                if (string.IsNullOrEmpty(maxiCodePostalCode) || maxiCodeCountry is null || maxiCodeService is null)
+                {
+                    throw new ArgumentException("A MaxiCode carrier message needs maxiCodePostalCode, maxiCodeCountry and maxiCodeService together.");
+                }
+
+                builder = Barcodes.MaxiCode(maxiCodePostalCode, maxiCodeCountry.Value, maxiCodeService.Value, CheckData(data));
+            }
+            else
+            {
+                builder = Barcodes.Create(barcodeType, CheckData(data));
+            }
+
             ApplyCommon(builder, moduleSize, quietZone, foreground, background, transparentBackground);
 
             if (height is { } h) builder.Height(CheckRange(h, 1, BarcodeServerSettings.MaxBarHeight, nameof(height)));
@@ -50,6 +70,8 @@ public sealed class BarcodeTools
             if (fullAscii) builder.FullAscii();
             if (!string.IsNullOrEmpty(addOn)) builder.AddOn(addOn);
             if (!string.IsNullOrEmpty(errorCorrection)) builder.ErrorCorrection(ParseEnum<QrErrorCorrectionLevel>(errorCorrection, nameof(errorCorrection)));
+            if (aztecErrorCorrection is { } aztecLevel) builder.AztecErrorCorrection(aztecLevel);
+            if (maxiCodeMode is { } maxiMode) builder.MaxiCodeMode(maxiMode);
 
             return Render(builder, format, output);
         });

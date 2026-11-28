@@ -53,6 +53,11 @@ public sealed class McpServerTests(McpServerFixture server) : IClassFixture<McpS
     [InlineData("QrCode", "hello")]
     [InlineData("datamatrix", "hello")]
     [InlineData("pdf417", "hello")]
+    [InlineData("itf", "12345678")]
+    [InlineData("ITF-14", "1540014128876")]
+    [InlineData("codabar", "A40156B")]
+    [InlineData("aztec", "hello")]
+    [InlineData("maxicode", "hello")]
     public async Task Generate_barcode_returns_a_png_image(string type, string data)
     {
         var result = await server.CallAsync("generate_barcode", new() { ["type"] = type, ["data"] = data });
@@ -202,6 +207,29 @@ public sealed class McpServerTests(McpServerFixture server) : IClassFixture<McpS
     }
 
     [Fact]
+    public async Task Generate_barcode_applies_aztec_and_maxicode_options()
+    {
+        var aztec = await server.CallAsync("generate_barcode", new() { ["type"] = "aztec", ["data"] = "hello", ["aztecErrorCorrection"] = 80 });
+        Assert.NotEqual(true, aztec.IsError);
+
+        var parcel = await server.CallAsync("generate_barcode", new()
+        {
+            ["type"] = "maxicode",
+            ["data"] = "Parcel 42",
+            ["maxiCodePostalCode"] = "152382802",
+            ["maxiCodeCountry"] = 840,
+            ["maxiCodeService"] = 1,
+        });
+        Assert.NotEqual(true, parcel.IsError);
+
+        var incomplete = await server.CallAsync("generate_barcode", new() { ["type"] = "maxicode", ["data"] = "x", ["maxiCodePostalCode"] = "12345" });
+        Assert.True(incomplete.IsError);
+
+        var wrongType = await server.CallAsync("generate_barcode", new() { ["type"] = "qr", ["data"] = "x", ["maxiCodeMode"] = 5 });
+        Assert.True(wrongType.IsError);
+    }
+
+    [Fact]
     public async Task Data_longer_than_the_server_limit_is_refused()
     {
         var result = await server.CallAsync("generate_barcode", new() { ["type"] = "qr", ["data"] = new string('a', BarcodeServerSettings.MaxDataLength + 1) });
@@ -221,6 +249,8 @@ public sealed class McpServerTests(McpServerFixture server) : IClassFixture<McpS
         Assert.Equal(Enum.GetValues<BarcodeType>().Length, ids.Count);
         Assert.Contains("qr", ids);
         Assert.Contains("gs1-128", ids);
+        Assert.Contains("maxicode", ids);
+        Assert.DoesNotContain("unknown", json.GetProperty("barcodeTypes").EnumerateArray().Select(t => t.GetProperty("kind").GetString()));
         Assert.Equal(1_000_000, json.GetProperty("limits").GetProperty("maxImagePixels").GetInt64());
         Assert.Equal(["png", "jpeg", "svg"], json.GetProperty("imageFormats").EnumerateArray().Select(e => e.GetString()));
 
