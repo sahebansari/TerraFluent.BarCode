@@ -4,8 +4,8 @@ Namespace: [TerraFluent.Barcode](index.md)
 Assembly: TerraFluent.Barcode.dll  
 
 Fluent configuration and output for one barcode. Configuration methods
-return the same builder; output methods (<code>To...</code>, [BarcodeBuilder.WriteTo](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_WriteTo_System_IO_Stream_TerraFluent_Barcode_BarcodeImageFormat_),
-[BarcodeBuilder.Save](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Save_System_String_)) can be called any number of times.
+return the same builder; output methods (<code>To...</code>, <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_WriteTo_System_IO_Stream_TerraFluent_Barcode_BarcodeImageFormat_">BarcodeBuilder.WriteTo</a>,
+<a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Save_System_String_">BarcodeBuilder.Save</a>) can be called any number of times.
 
 ```csharp
 public sealed class BarcodeBuilder
@@ -21,14 +21,14 @@ public sealed class BarcodeBuilder
 <p>
 <b>Thread safety:</b> configure a builder on one thread. Once configured, its
 output methods may be called from several threads at the same time. The
-static [Barcodes](barcodes.md) methods are thread-safe, so the simplest pattern
+static <a href="barcodes.md">Barcodes</a> methods are thread-safe, so the simplest pattern
 is one builder per barcode.
 </p>
 <p>
-<b>Errors:</b> an invalid value or argument throws [ArgumentException](https://learn.microsoft.com/dotnet/api/system.argumentexception)
-(or [ArgumentNullException](https://learn.microsoft.com/dotnet/api/system.argumentnullexception), [ArgumentOutOfRangeException](https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception)
-and [FormatException](https://learn.microsoft.com/dotnet/api/system.formatexception) for hex colours). Options that cannot be
-combined throw [InvalidOperationException](https://learn.microsoft.com/dotnet/api/system.invalidoperationexception), either when set (an
+<b>Errors:</b> an invalid value or argument throws <a href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a>
+(or <a href="https://learn.microsoft.com/dotnet/api/system.argumentnullexception">ArgumentNullException</a>, <a href="https://learn.microsoft.com/dotnet/api/system.argumentoutofrangeexception">ArgumentOutOfRangeException</a>
+and <a href="https://learn.microsoft.com/dotnet/api/system.formatexception">FormatException</a> for hex colours). Options that cannot be
+combined throw <a href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a>, either when set (an
 option for another symbology) or when rendering (a logo with too little error
 correction, or colours with too little contrast).
 </p>
@@ -110,7 +110,7 @@ public const int DefaultQrModuleSize = 4
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_MaxImageDimension"></a> MaxImageDimension
 
 Largest allowed output width or height, in pixels. Rendering a bigger
-image throws [ArgumentException](https://learn.microsoft.com/dotnet/api/system.argumentexception), so untrusted size settings
+image throws <a href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a>, so untrusted size settings
 cannot exhaust memory.
 
 ```csharp
@@ -124,7 +124,7 @@ public const int MaxImageDimension = 32768
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_MaxImagePixels"></a> MaxImagePixels
 
 Largest allowed output area (width times height), in pixels: 64 megapixels.
-Use [BarcodeBuilder.ImageSizeLimit](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ImageSizeLimit_System_Int64_) to set a lower limit, for example when
+Use <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ImageSizeLimit_System_Int64_">BarcodeBuilder.ImageSizeLimit</a> to set a lower limit, for example when
 sizes come from untrusted input on a server.
 
 ```csharp
@@ -149,7 +149,7 @@ public const double MaxLogoScale = 0.3
 
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_MaxLogoScaleAtQ"></a> MaxLogoScaleAtQ
 
-Largest logo scale allowed at error-correction level Q; level H allows up to [BarcodeBuilder.MaxLogoScale](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_MaxLogoScale).
+Largest logo scale allowed at error-correction level Q; level H allows up to <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_MaxLogoScale">BarcodeBuilder.MaxLogoScale</a>.
 
 ```csharp
 public const double MaxLogoScaleAtQ = 0.25
@@ -162,7 +162,7 @@ public const double MaxLogoScaleAtQ = 0.25
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_MinContrastRatio"></a> MinContrastRatio
 
 Smallest WCAG contrast ratio accepted between the background and the
-bars, gradient stops or eye colour, unless [BarcodeBuilder.AllowLowContrast](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_AllowLowContrast_System_Boolean_) is set.
+bars, gradient stops or eye colour, unless <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_AllowLowContrast_System_Boolean_">BarcodeBuilder.AllowLowContrast</a> is set.
 
 ```csharp
 public const double MinContrastRatio = 3
@@ -226,9 +226,9 @@ public BarcodeBuilder AddOn(string digits)
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_AllowLowContrast_System_Boolean_"></a> AllowLowContrast\(bool\)
 
 Turns off the contrast check, which otherwise throws
-[InvalidOperationException](https://learn.microsoft.com/dotnet/api/system.invalidoperationexception) when rendering if the background and
+<a href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a> when rendering if the background and
 the bars, gradient stops or eye colour have a contrast ratio below
-[BarcodeBuilder.MinContrastRatio](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_MinContrastRatio). Only use this for decorative output that
+<a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_MinContrastRatio">BarcodeBuilder.MinContrastRatio</a>. Only use this for decorative output that
 you have tested with your scanners.
 
 ```csharp
@@ -277,7 +277,7 @@ public BarcodeBuilder Background(string hex)
 
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_DataMatrixShape_TerraFluent_Barcode_DataMatrixShape_"></a> DataMatrixShape\(DataMatrixShape\)
 
-Which symbol shapes may be used (default [DataMatrixShape.Square](datamatrixshape.md#TerraFluent_Barcode_DataMatrixShape_Square)). Data Matrix only.
+Which symbol shapes may be used (default <a href="datamatrixshape.md#TerraFluent_Barcode_DataMatrixShape_Square">DataMatrixShape.Square</a>). Data Matrix only.
 
 ```csharp
 public BarcodeBuilder DataMatrixShape(DataMatrixShape shape)
@@ -312,7 +312,7 @@ The value cannot be encoded in this symbology.
 
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_ErrorCorrection_TerraFluent_Barcode_QrErrorCorrectionLevel_"></a> ErrorCorrection\(QrErrorCorrectionLevel\)
 
-QR error-correction level (default [QrErrorCorrectionLevel.M](qrerrorcorrectionlevel.md#TerraFluent_Barcode_QrErrorCorrectionLevel_M)). QR codes only.
+QR error-correction level (default <a href="qrerrorcorrectionlevel.md#TerraFluent_Barcode_QrErrorCorrectionLevel_M">QrErrorCorrectionLevel.M</a>). QR codes only.
 
 ```csharp
 public BarcodeBuilder ErrorCorrection(QrErrorCorrectionLevel level)
@@ -360,7 +360,7 @@ public BarcodeBuilder EyeColor(string hex)
 
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_EyeStyle_TerraFluent_Barcode_QrEyeStyle_"></a> EyeStyle\(QrEyeStyle\)
 
-Shape of the three corner "eyes" (default [QrEyeStyle.Square](qreyestyle.md#TerraFluent_Barcode_QrEyeStyle_Square)). QR codes only.
+Shape of the three corner "eyes" (default <a href="qreyestyle.md#TerraFluent_Barcode_QrEyeStyle_Square">QrEyeStyle.Square</a>). QR codes only.
 
 ```csharp
 public BarcodeBuilder EyeStyle(QrEyeStyle style)
@@ -517,8 +517,8 @@ public BarcodeBuilder HumanReadableText(bool show = true)
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_ImageSizeLimit_System_Int64_"></a> ImageSizeLimit\(long\)
 
 Lowers the largest output area this builder renders, in pixels (default and
-maximum [BarcodeBuilder.MaxImagePixels](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_MaxImagePixels)). Rendering a bigger image throws
-[ArgumentException](https://learn.microsoft.com/dotnet/api/system.argumentexception) before any work is done. Styled output
+maximum <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_MaxImagePixels">BarcodeBuilder.MaxImagePixels</a>). Rendering a bigger image throws
+<a href="https://learn.microsoft.com/dotnet/api/system.argumentexception">ArgumentException</a> before any work is done. Styled output
 renders in bands, so memory use grows with the image width, but CPU time
 and the size of the result grow with the area: set a limit when module size,
 height or the value come from untrusted input.
@@ -537,7 +537,7 @@ public BarcodeBuilder ImageSizeLimit(long maxPixels)
 
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_JpegQuality_System_Int32_"></a> JpegQuality\(int\)
 
-JPEG quality from 1 to 100 (default 90). Only affects [BarcodeBuilder.ToJpeg](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ToJpeg) and JPEG outputs.
+JPEG quality from 1 to 100 (default 90). Only affects <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ToJpeg">BarcodeBuilder.ToJpeg</a> and JPEG outputs.
 
 ```csharp
 public BarcodeBuilder JpegQuality(int quality)
@@ -557,10 +557,10 @@ Places a logo (a PNG file's bytes; transparency is kept) in the centre of
 a QR code and clears the modules behind it. <code class="paramref">scale</code> is the
 logo's size as a fraction of the code's width, from 0.05 to 0.3 (default 0.2);
 it is shrunk if needed so the corner eyes and format modules stay visible.
-Unless [BarcodeBuilder.ErrorCorrection](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ErrorCorrection_TerraFluent_Barcode_QrErrorCorrectionLevel_) is set explicitly, the code switches to
+Unless <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ErrorCorrection_TerraFluent_Barcode_QrErrorCorrectionLevel_">BarcodeBuilder.ErrorCorrection</a> is set explicitly, the code switches to
 level H so it still scans with the covered modules missing. Rendering throws
-[InvalidOperationException](https://learn.microsoft.com/dotnet/api/system.invalidoperationexception) if the error correction is set
-explicitly to L or M, or to Q with a scale above [BarcodeBuilder.MaxLogoScaleAtQ](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_MaxLogoScaleAtQ),
+<a href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a> if the error correction is set
+explicitly to L or M, or to Q with a scale above <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_MaxLogoScaleAtQ">BarcodeBuilder.MaxLogoScaleAtQ</a>,
 because such codes often fail to scan. QR codes only.
 
 ```csharp
@@ -603,7 +603,7 @@ public BarcodeBuilder ModuleSize(int pixels)
 
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_ModuleStyle_TerraFluent_Barcode_QrModuleStyle_"></a> ModuleStyle\(QrModuleStyle\)
 
-Shape of the QR code's data modules (default [QrModuleStyle.Square](qrmodulestyle.md#TerraFluent_Barcode_QrModuleStyle_Square)).
+Shape of the QR code's data modules (default <a href="qrmodulestyle.md#TerraFluent_Barcode_QrModuleStyle_Square">QrModuleStyle.Square</a>).
 QR codes only. Every style keeps each module's centre where a scanner expects it.
 
 ```csharp
@@ -822,7 +822,7 @@ public string ToDataUri(BarcodeImageFormat format = BarcodeImageFormat.Png)
 
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_ToJpeg"></a> ToJpeg\(\)
 
-Renders a baseline JPEG at the configured [BarcodeBuilder.JpegQuality](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_JpegQuality_System_Int32_).
+Renders a baseline JPEG at the configured <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_JpegQuality_System_Int32_">BarcodeBuilder.JpegQuality</a>.
 
 ```csharp
 public byte[] ToJpeg()
@@ -847,7 +847,7 @@ public byte[] ToPng()
 
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_ToStream_TerraFluent_Barcode_BarcodeImageFormat_"></a> ToStream\(BarcodeImageFormat\)
 
-Renders the image into a new [MemoryStream](https://learn.microsoft.com/dotnet/api/system.io.memorystream) positioned at the start. The caller disposes it.
+Renders the image into a new <a href="https://learn.microsoft.com/dotnet/api/system.io.memorystream">MemoryStream</a> positioned at the start. The caller disposes it.
 
 ```csharp
 public Stream ToStream(BarcodeImageFormat format = BarcodeImageFormat.Png)
@@ -876,9 +876,9 @@ public string ToSvg()
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_TransparentBackground_System_Boolean_"></a> TransparentBackground\(bool\)
 
 Leaves the background transparent in PNG and SVG output. The contrast
-check still uses [BarcodeBuilder.Background](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Background_TerraFluent_Barcode_BarcodeColor_), so set it to the
+check still uses <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Background_TerraFluent_Barcode_BarcodeColor_">BarcodeBuilder.Background</a>, so set it to the
 colour of the surface the code will be placed on. JPEG has no
-transparency, so JPEG output then throws [InvalidOperationException](https://learn.microsoft.com/dotnet/api/system.invalidoperationexception).
+transparency, so JPEG output then throws <a href="https://learn.microsoft.com/dotnet/api/system.invalidoperationexception">InvalidOperationException</a>.
 
 ```csharp
 public BarcodeBuilder TransparentBackground(bool transparent = true)

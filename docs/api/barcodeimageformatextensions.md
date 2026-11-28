@@ -3,7 +3,7 @@
 Namespace: [TerraFluent.Barcode](index.md)  
 Assembly: TerraFluent.Barcode.dll  
 
-Helpers for [BarcodeImageFormat](barcodeimageformat.md).
+Helpers for <a href="barcodeimageformat.md">BarcodeImageFormat</a>.
 
 ```csharp
 public static class BarcodeImageFormatExtensions

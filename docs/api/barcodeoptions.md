@@ -3,10 +3,10 @@
 Namespace: [TerraFluent.Barcode](index.md)  
 Assembly: TerraFluent.Barcode.dll  
 
-Settings used by [IBarcodeGenerator](ibarcodegenerator.md). Every property is optional;
+Settings used by <a href="ibarcodegenerator.md">IBarcodeGenerator</a>. Every property is optional;
 a <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> value keeps the default
-that [BarcodeBuilder](barcodebuilder.md) uses. Settings that only apply to some
-symbologies (for example [BarcodeOptions.Height](barcodeoptions.md#TerraFluent_Barcode_BarcodeOptions_Height) or [BarcodeOptions.QrErrorCorrection](barcodeoptions.md#TerraFluent_Barcode_BarcodeOptions_QrErrorCorrection))
+that <a href="barcodebuilder.md">BarcodeBuilder</a> uses. Settings that only apply to some
+symbologies (for example <a href="barcodeoptions.md#TerraFluent_Barcode_BarcodeOptions_Height">BarcodeOptions.Height</a> or <a href="barcodeoptions.md#TerraFluent_Barcode_BarcodeOptions_QrErrorCorrection">BarcodeOptions.QrErrorCorrection</a>)
 are ignored for the others, so one instance can serve every type.
 
 ```csharp
@@ -34,7 +34,7 @@ public BarcodeColor? Background { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_Code39Checksum"></a> Code39Checksum
 
-Adds the Code 39 modulo 43 check character. See [BarcodeBuilder.WithChecksum](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_WithChecksum_System_Boolean_).
+Adds the Code 39 modulo 43 check character. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_WithChecksum_System_Boolean_">BarcodeBuilder.WithChecksum</a>.
 
 ```csharp
 public bool Code39Checksum { get; set; }
@@ -46,7 +46,7 @@ public bool Code39Checksum { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_Code39FullAscii"></a> Code39FullAscii
 
-Uses the Code 39 full ASCII extension. See [BarcodeBuilder.FullAscii](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_FullAscii_System_Boolean_).
+Uses the Code 39 full ASCII extension. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_FullAscii_System_Boolean_">BarcodeBuilder.FullAscii</a>.
 
 ```csharp
 public bool Code39FullAscii { get; set; }
@@ -58,7 +58,7 @@ public bool Code39FullAscii { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_DataMatrixShape"></a> DataMatrixShape
 
-Data Matrix symbol shapes. See [BarcodeBuilder.DataMatrixShape](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_DataMatrixShape_TerraFluent_Barcode_DataMatrixShape_).
+Data Matrix symbol shapes. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_DataMatrixShape_TerraFluent_Barcode_DataMatrixShape_">BarcodeBuilder.DataMatrixShape</a>.
 
 ```csharp
 public DataMatrixShape? DataMatrixShape { get; set; }
@@ -82,7 +82,7 @@ public BarcodeColor? Foreground { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_Height"></a> Height
 
-Bar height in pixels for linear barcodes. See [BarcodeBuilder.Height](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Height_System_Int32_).
+Bar height in pixels for linear barcodes. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Height_System_Int32_">BarcodeBuilder.Height</a>.
 
 ```csharp
 public int? Height { get; set; }
@@ -94,7 +94,7 @@ public int? Height { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_HumanReadableText"></a> HumanReadableText
 
-Prints human-readable text under linear barcodes. See [BarcodeBuilder.HumanReadableText](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_HumanReadableText_System_Boolean_).
+Prints human-readable text under linear barcodes. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_HumanReadableText_System_Boolean_">BarcodeBuilder.HumanReadableText</a>.
 
 ```csharp
 public bool HumanReadableText { get; set; }
@@ -106,7 +106,7 @@ public bool HumanReadableText { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_JpegQuality"></a> JpegQuality
 
-JPEG quality, 1 to 100. See [BarcodeBuilder.JpegQuality](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_JpegQuality_System_Int32_).
+JPEG quality, 1 to 100. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_JpegQuality_System_Int32_">BarcodeBuilder.JpegQuality</a>.
 
 ```csharp
 public int? JpegQuality { get; set; }
@@ -118,7 +118,7 @@ public int? JpegQuality { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_MaxImagePixels"></a> MaxImagePixels
 
-Largest output area in pixels. See [BarcodeBuilder.ImageSizeLimit](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ImageSizeLimit_System_Int64_).
+Largest output area in pixels. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ImageSizeLimit_System_Int64_">BarcodeBuilder.ImageSizeLimit</a>.
 
 ```csharp
 public long? MaxImagePixels { get; set; }
@@ -130,7 +130,7 @@ public long? MaxImagePixels { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_ModuleSize"></a> ModuleSize
 
-Module size in pixels. See [BarcodeBuilder.ModuleSize](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ModuleSize_System_Int32_).
+Module size in pixels. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ModuleSize_System_Int32_">BarcodeBuilder.ModuleSize</a>.
 
 ```csharp
 public int? ModuleSize { get; set; }
@@ -142,7 +142,7 @@ public int? ModuleSize { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_Pdf417Columns"></a> Pdf417Columns
 
-PDF417 data columns. See [BarcodeBuilder.Pdf417Columns](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Pdf417Columns_System_Int32_).
+PDF417 data columns. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Pdf417Columns_System_Int32_">BarcodeBuilder.Pdf417Columns</a>.
 
 ```csharp
 public int? Pdf417Columns { get; set; }
@@ -154,7 +154,7 @@ public int? Pdf417Columns { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_Pdf417ErrorCorrection"></a> Pdf417ErrorCorrection
 
-PDF417 error-correction level. See [BarcodeBuilder.Pdf417ErrorCorrection](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Pdf417ErrorCorrection_System_Int32_).
+PDF417 error-correction level. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Pdf417ErrorCorrection_System_Int32_">BarcodeBuilder.Pdf417ErrorCorrection</a>.
 
 ```csharp
 public int? Pdf417ErrorCorrection { get; set; }
@@ -166,7 +166,7 @@ public int? Pdf417ErrorCorrection { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_QrErrorCorrection"></a> QrErrorCorrection
 
-QR error-correction level. See [BarcodeBuilder.ErrorCorrection](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ErrorCorrection_TerraFluent_Barcode_QrErrorCorrectionLevel_).
+QR error-correction level. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_ErrorCorrection_TerraFluent_Barcode_QrErrorCorrectionLevel_">BarcodeBuilder.ErrorCorrection</a>.
 
 ```csharp
 public QrErrorCorrectionLevel? QrErrorCorrection { get; set; }
@@ -178,7 +178,7 @@ public QrErrorCorrectionLevel? QrErrorCorrection { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_QuietZone"></a> QuietZone
 
-Quiet zone in modules. See [BarcodeBuilder.QuietZone](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_QuietZone_System_Int32_).
+Quiet zone in modules. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_QuietZone_System_Int32_">BarcodeBuilder.QuietZone</a>.
 
 ```csharp
 public int? QuietZone { get; set; }
@@ -190,7 +190,7 @@ public int? QuietZone { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_TextSize"></a> TextSize
 
-Font size of the human-readable text in pixels. See [BarcodeBuilder.TextSize](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_TextSize_System_Int32_).
+Font size of the human-readable text in pixels. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_TextSize_System_Int32_">BarcodeBuilder.TextSize</a>.
 
 ```csharp
 public int? TextSize { get; set; }
@@ -202,7 +202,7 @@ public int? TextSize { get; set; }
 
 ### <a id="TerraFluent_Barcode_BarcodeOptions_TransparentBackground"></a> TransparentBackground
 
-Leaves the background transparent in PNG and SVG output. See [BarcodeBuilder.TransparentBackground](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_TransparentBackground_System_Boolean_).
+Leaves the background transparent in PNG and SVG output. See <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_TransparentBackground_System_Boolean_">BarcodeBuilder.TransparentBackground</a>.
 
 ```csharp
 public bool TransparentBackground { get; set; }

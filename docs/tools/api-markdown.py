@@ -6,8 +6,7 @@ UID, and leaves cross-references as <xref> tags for a DocFX build to resolve. Th
 
 - names each page after its type in lower case (BarcodeBuilder -> barcodebuilder.md) and turns
   the namespace page into index.md, below the curated introduction in docs/tools/api-index.md;
-- resolves <xref> tags into ordinary Markdown links (to these pages, or to learn.microsoft.com
-  for System types);
+- resolves <xref> tags into links (to these pages, or to learn.microsoft.com for System types);
 - drops the "Inherited Members" lists of System.Object members, which every type repeats.
 
 The result is plain Markdown that renders on GitHub and that the terrafluent.dev mirror script
@@ -40,13 +39,18 @@ def anchor(uid: str) -> str:
     return re.sub(r"[^A-Za-z0-9]", "_", uid)
 
 
+def link(text: str, href: str) -> str:
+    # An HTML link, not Markdown: DocFX puts <remarks> in <p> blocks, where Markdown is not parsed.
+    return f'<a href="{href}">{html.escape(text)}</a>'
+
+
 def resolve(uid: str) -> str:
     uid = html.unescape(uid).replace("%2c", ",").replace("%2C", ",")
     if uid.startswith("System."):
         name = uid.split("(")[0]
-        return f"[{name.rsplit('.', 1)[-1]}](https://learn.microsoft.com/dotnet/api/{name.lower()})"
+        return link(name.rsplit('.', 1)[-1], f"https://learn.microsoft.com/dotnet/api/{name.lower()}")
     if uid in pages:
-        return f"[{uid.rsplit('.', 1)[-1]}]({pages[uid]})"
+        return link(uid.rsplit('.', 1)[-1], pages[uid])
     # A member: the longest type UID that prefixes it owns the page.
     owner = max((t for t in types if uid.startswith(t + ".")), key=len, default=None)
     if owner is None:
@@ -55,7 +59,7 @@ def resolve(uid: str) -> str:
     if member == "#ctor":
         member = owner.rsplit(".", 1)[-1]
     text = f"{owner.rsplit('.', 1)[-1]}.{member}"
-    return f"[{text}]({types[owner]}#{anchor(uid)})"
+    return link(text, f"{types[owner]}#{anchor(uid)}")
 
 
 xref = re.compile(r'<xref href="([^"]+)"[^>]*>\s*</xref>')

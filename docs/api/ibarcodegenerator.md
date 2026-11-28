@@ -18,8 +18,8 @@ public interface IBarcodeGenerator
 
 ### <a id="TerraFluent_Barcode_IBarcodeGenerator_Create_TerraFluent_Barcode_BarcodeType_System_String_TerraFluent_Barcode_BarcodeOptions_"></a> Create\(BarcodeType, string, BarcodeOptions?\)
 
-Starts a [BarcodeBuilder](barcodebuilder.md) with <code class="paramref">options</code> (or the
-generator's defaults) applied, for settings that [BarcodeOptions](barcodeoptions.md)
+Starts a <a href="barcodebuilder.md">BarcodeBuilder</a> with <code class="paramref">options</code> (or the
+generator's defaults) applied, for settings that <a href="barcodeoptions.md">BarcodeOptions</a>
 does not cover such as gradients and logos.
 
 ```csharp

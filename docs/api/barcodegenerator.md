@@ -3,7 +3,7 @@
 Namespace: [TerraFluent.Barcode](index.md)  
 Assembly: TerraFluent.Barcode.dll  
 
-Default [IBarcodeGenerator](ibarcodegenerator.md), built on [Barcodes](barcodes.md). It
+Default <a href="ibarcodegenerator.md">IBarcodeGenerator</a>, built on <a href="barcodes.md">Barcodes</a>. It
 holds no state besides its default options, so one instance can be shared
 (register it as a singleton).
 
@@ -40,8 +40,8 @@ public BarcodeGenerator(BarcodeOptions? defaults = null)
 
 ### <a id="TerraFluent_Barcode_BarcodeGenerator_Create_TerraFluent_Barcode_BarcodeType_System_String_TerraFluent_Barcode_BarcodeOptions_"></a> Create\(BarcodeType, string, BarcodeOptions?\)
 
-Starts a [BarcodeBuilder](barcodebuilder.md) with <code class="paramref">options</code> (or the
-generator's defaults) applied, for settings that [BarcodeOptions](barcodeoptions.md)
+Starts a <a href="barcodebuilder.md">BarcodeBuilder</a> with <code class="paramref">options</code> (or the
+generator's defaults) applied, for settings that <a href="barcodeoptions.md">BarcodeOptions</a>
 does not cover such as gradients and logos.
 
 ```csharp

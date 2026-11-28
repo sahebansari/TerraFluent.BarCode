@@ -23,7 +23,7 @@ public static class Barcodes
 
 ### <a id="TerraFluent_Barcode_Barcodes_MaxCode128Length"></a> MaxCode128Length
 
-Longest value accepted by [Barcodes.Code128](barcodes.md#TerraFluent_Barcode_Barcodes_Code128_System_String_), in characters.
+Longest value accepted by <a href="barcodes.md#TerraFluent_Barcode_Barcodes_Code128_System_String_">Barcodes.Code128</a>, in characters.
 
 ```csharp
 public const int MaxCode128Length = 256
@@ -35,7 +35,7 @@ public const int MaxCode128Length = 256
 
 ### <a id="TerraFluent_Barcode_Barcodes_MaxCode39Length"></a> MaxCode39Length
 
-Longest value accepted by [Barcodes.Code39](barcodes.md#TerraFluent_Barcode_Barcodes_Code39_System_String_), in characters.
+Longest value accepted by <a href="barcodes.md#TerraFluent_Barcode_Barcodes_Code39_System_String_">Barcodes.Code39</a>, in characters.
 
 ```csharp
 public const int MaxCode39Length = 128
@@ -49,7 +49,7 @@ public const int MaxCode39Length = 128
 
 ### <a id="TerraFluent_Barcode_Barcodes_Code128_System_String_"></a> Code128\(string\)
 
-Code 128 for any ASCII text, up to [Barcodes.MaxCode128Length](barcodes.md#TerraFluent_Barcode_Barcodes_MaxCode128Length) characters.
+Code 128 for any ASCII text, up to <a href="barcodes.md#TerraFluent_Barcode_Barcodes_MaxCode128Length">Barcodes.MaxCode128Length</a> characters.
 Code sets are chosen automatically for the shortest symbol.
 
 ```csharp
@@ -67,8 +67,8 @@ public static BarcodeBuilder Code128(string value)
 ### <a id="TerraFluent_Barcode_Barcodes_Code39_System_String_"></a> Code39\(string\)
 
 Code 39 for digits, upper-case letters, space and <code>- . $ / + %</code>, up to
-[Barcodes.MaxCode39Length](barcodes.md#TerraFluent_Barcode_Barcodes_MaxCode39Length) characters.
-Call [BarcodeBuilder.WithChecksum](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_WithChecksum_System_Boolean_) to add the optional modulo 43 check character.
+<a href="barcodes.md#TerraFluent_Barcode_Barcodes_MaxCode39Length">Barcodes.MaxCode39Length</a> characters.
+Call <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_WithChecksum_System_Boolean_">BarcodeBuilder.WithChecksum</a> to add the optional modulo 43 check character.
 
 ```csharp
 public static BarcodeBuilder Code39(string value)
@@ -172,7 +172,7 @@ public static BarcodeBuilder Gs1Code128(string value)
 GS1-128 from application identifier and data pairs, for example
 <code>Gs1Code128(("01", "09501101530003"), ("10", "ABC(1)"))</code>. Use this
 overload when the data contains parentheses, which the element-string
-form cannot express. [BarcodeBuilder.Value](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Value) is the element
+form cannot express. <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Value">BarcodeBuilder.Value</a> is the element
 string with AIs in parentheses.
 
 ```csharp

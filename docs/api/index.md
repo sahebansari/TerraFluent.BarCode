@@ -21,18 +21,18 @@ Every type in the namespace is listed below.
  [BarcodeBuilder](barcodebuilder.md)
 
 Fluent configuration and output for one barcode. Configuration methods
-return the same builder; output methods (<code>To...</code>, [BarcodeBuilder.WriteTo](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_WriteTo_System_IO_Stream_TerraFluent_Barcode_BarcodeImageFormat_),
-[BarcodeBuilder.Save](barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Save_System_String_)) can be called any number of times.
+return the same builder; output methods (<code>To...</code>, <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_WriteTo_System_IO_Stream_TerraFluent_Barcode_BarcodeImageFormat_">BarcodeBuilder.WriteTo</a>,
+<a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Save_System_String_">BarcodeBuilder.Save</a>) can be called any number of times.
 
  [BarcodeGenerator](barcodegenerator.md)
 
-Default [IBarcodeGenerator](ibarcodegenerator.md), built on [Barcodes](barcodes.md). It
+Default <a href="ibarcodegenerator.md">IBarcodeGenerator</a>, built on <a href="barcodes.md">Barcodes</a>. It
 holds no state besides its default options, so one instance can be shared
 (register it as a singleton).
 
  [BarcodeImageFormatExtensions](barcodeimageformatextensions.md)
 
-Helpers for [BarcodeImageFormat](barcodeimageformat.md).
+Helpers for <a href="barcodeimageformat.md">BarcodeImageFormat</a>.
 
  [BarcodeMatrix](barcodematrix.md)
 
@@ -42,10 +42,10 @@ is a square. Useful for custom renderers.
 
  [BarcodeOptions](barcodeoptions.md)
 
-Settings used by [IBarcodeGenerator](ibarcodegenerator.md). Every property is optional;
+Settings used by <a href="ibarcodegenerator.md">IBarcodeGenerator</a>. Every property is optional;
 a <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/keywords/null">null</a> or <a href="https://learn.microsoft.com/dotnet/csharp/language-reference/builtin-types/bool">false</a> value keeps the default
-that [BarcodeBuilder](barcodebuilder.md) uses. Settings that only apply to some
-symbologies (for example [BarcodeOptions.Height](barcodeoptions.md#TerraFluent_Barcode_BarcodeOptions_Height) or [BarcodeOptions.QrErrorCorrection](barcodeoptions.md#TerraFluent_Barcode_BarcodeOptions_QrErrorCorrection))
+that <a href="barcodebuilder.md">BarcodeBuilder</a> uses. Settings that only apply to some
+symbologies (for example <a href="barcodeoptions.md#TerraFluent_Barcode_BarcodeOptions_Height">BarcodeOptions.Height</a> or <a href="barcodeoptions.md#TerraFluent_Barcode_BarcodeOptions_QrErrorCorrection">BarcodeOptions.QrErrorCorrection</a>)
 are ignored for the others, so one instance can serve every type.
 
  [Barcodes](barcodes.md)
