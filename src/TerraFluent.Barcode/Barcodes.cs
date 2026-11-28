@@ -19,6 +19,12 @@ public static class Barcodes
     /// <summary>Longest value accepted by <see cref="Code39"/>, in characters.</summary>
     public const int MaxCode39Length = Encoding.Code39Encoder.MaxLength;
 
+    /// <summary>Longest value accepted by <see cref="Itf"/>, in digits (including a check digit added by <see cref="BarcodeBuilder.WithChecksum"/>).</summary>
+    public const int MaxItfLength = Encoding.ItfEncoder.MaxLength;
+
+    /// <summary>Longest value accepted by <see cref="Codabar"/>, in characters (including start and stop characters).</summary>
+    public const int MaxCodabarLength = Encoding.CodabarEncoder.MaxLength;
+
     /// <summary>Starts a barcode of the given <paramref name="type"/>.</summary>
     public static BarcodeBuilder Create(BarcodeType type, string value) => new(type, Guard.NotNullOrEmpty(value, nameof(value)));
 
@@ -74,4 +80,50 @@ public static class Barcodes
 
     /// <summary>PDF417 for any text (UTF-8). Columns and error correction are chosen automatically unless set.</summary>
     public static BarcodeBuilder Pdf417(string value) => Create(BarcodeType.Pdf417, value);
+
+    /// <summary>
+    /// Interleaved 2 of 5 (ITF) for an even number of digits, up to <see cref="MaxItfLength"/>.
+    /// Call <see cref="BarcodeBuilder.WithChecksum"/> to append the modulo 10 check digit;
+    /// the value then needs an odd number of digits.
+    /// </summary>
+    public static BarcodeBuilder Itf(string value) => Create(BarcodeType.Itf, value);
+
+    /// <summary>ITF-14 from 13 digits (check digit added) or 14 digits (check digit validated), for GTIN-14 on cartons.</summary>
+    public static BarcodeBuilder Itf14(string value) => Create(BarcodeType.Itf14, value);
+
+    /// <summary>
+    /// Codabar for digits and <c>- $ : / . +</c>, up to <see cref="MaxCodabarLength"/> characters.
+    /// Start and end the value with A, B, C or D (or T, N, * and E) to choose the start
+    /// and stop characters, for example <c>A40156B</c>; otherwise A is used for both.
+    /// </summary>
+    public static BarcodeBuilder Codabar(string value) => Create(BarcodeType.Codabar, value);
+
+    /// <summary>
+    /// Aztec code for any text (UTF-8). The smallest compact or full-range symbol
+    /// that fits is picked automatically; see <see cref="BarcodeBuilder.AztecErrorCorrection"/>.
+    /// </summary>
+    public static BarcodeBuilder Aztec(string value) => Create(BarcodeType.Aztec, value);
+
+    /// <summary>
+    /// MaxiCode in mode 4 for ISO-8859-1 (Latin-1) text of up to 93 characters
+    /// (138 digits). Use <see cref="BarcodeBuilder.MaxiCodeMode"/> for mode 5 or 6.
+    /// </summary>
+    public static BarcodeBuilder MaxiCode(string value) => Create(BarcodeType.MaxiCode, value);
+
+    /// <summary>
+    /// MaxiCode with a structured carrier message, as parcel carriers use: mode 2
+    /// for a numeric postal code of up to 9 digits, or mode 3 for up to 6 letters,
+    /// digits and spaces. <paramref name="countryCode"/> (ISO 3166 numeric) and
+    /// <paramref name="serviceClass"/> are 0 to 999. <paramref name="message"/> is the
+    /// secondary message of up to 84 codewords (Latin-1), for example a
+    /// <c>[)&gt;</c> ISO/IEC 15434 transport message; <see cref="BarcodeBuilder.Value"/> returns it.
+    /// </summary>
+    public static BarcodeBuilder MaxiCode(string postalCode, int countryCode, int serviceClass, string message)
+    {
+        if (postalCode is null) throw new ArgumentNullException(nameof(postalCode));
+        if (message is null) throw new ArgumentNullException(nameof(message));
+        Guard.InRange(countryCode, 0, 999, nameof(countryCode));
+        Guard.InRange(serviceClass, 0, 999, nameof(serviceClass));
+        return new BarcodeBuilder(postalCode, countryCode, serviceClass, message);
+    }
 }

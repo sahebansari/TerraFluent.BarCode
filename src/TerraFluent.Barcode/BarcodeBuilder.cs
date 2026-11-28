@@ -36,6 +36,9 @@ public sealed class BarcodeBuilder
     /// <summary>Default width of one PDF417 module, in pixels (rows are three modules high).</summary>
     public const int DefaultPdf417ModuleSize = 2;
 
+    /// <summary>Default width of one MaxiCode hexagon, in pixels.</summary>
+    public const int DefaultMaxiCodeModuleSize = 6;
+
     /// <summary>Default bar height for linear barcodes, in pixels.</summary>
     public const int DefaultBarHeight = 80;
 
@@ -99,6 +102,10 @@ public sealed class BarcodeBuilder
     private DataMatrixShape _dataMatrixShape;
     private int? _pdf417Columns;
     private int? _pdf417ErrorCorrection;
+    private bool _itfChecksum;
+    private int _aztecErrorCorrection = AztecEncoder.DefaultErrorCorrectionPercent;
+    private int _maxiCodeMode = 4;
+    private readonly (string PostalCode, int CountryCode, int ServiceClass)? _maxiCodePrimary;
     private readonly IReadOnlyList<(string Ai, string Data)>? _gs1Elements;
 
     internal BarcodeBuilder(BarcodeType type, string value)
@@ -114,20 +121,31 @@ public sealed class BarcodeBuilder
         Value = string.Concat(gs1Elements.Select(e => "(" + e.Ai + ")" + e.Data));
     }
 
+    internal BarcodeBuilder(string postalCode, int countryCode, int serviceClass, string message)
+    {
+        Type = BarcodeType.MaxiCode;
+        Value = message;
+        _maxiCodePrimary = (postalCode, countryCode, serviceClass);
+    }
+
     /// <summary>The symbology.</summary>
     public BarcodeType Type { get; }
 
     /// <summary>The value being encoded, as passed in.</summary>
     public string Value { get; }
 
-    private bool IsLinear => Type is not (BarcodeType.QrCode or BarcodeType.DataMatrix or BarcodeType.Pdf417);
+    private bool IsLinear => IsLinearType(Type);
+
+    internal static bool IsLinearType(BarcodeType type) =>
+        type is not (BarcodeType.QrCode or BarcodeType.DataMatrix or BarcodeType.Pdf417 or BarcodeType.Aztec or BarcodeType.MaxiCode);
 
     private bool IsEanUpc => Type is BarcodeType.Ean13 or BarcodeType.Ean8 or BarcodeType.UpcA;
 
     /// <summary>
     /// Size of one module in pixels: the narrowest bar of a linear barcode, or
-    /// one square of a 2D code. Defaults to 2 for linear barcodes and PDF417,
-    /// and 4 for QR codes and Data Matrix.
+    /// one square of a 2D code (for MaxiCode, the width of one hexagon). Defaults
+    /// to 2 for linear barcodes and PDF417, 4 for QR codes, Data Matrix and Aztec,
+    /// and 6 for MaxiCode.
     /// </summary>
     public BarcodeBuilder ModuleSize(int pixels)
     {
@@ -149,8 +167,9 @@ public sealed class BarcodeBuilder
     /// <summary>
     /// Blank margin in modules on each side (linear barcodes: left and right only).
     /// Defaults to what the symbology's specification asks for: 10 for Code 128/39,
-    /// 11 for EAN-13, 9 for UPC-A, 7 for EAN-8, 4 for QR codes and 2 for Data
-    /// Matrix and PDF417. Scanners may fail with a smaller value.
+    /// Interleaved 2 of 5, ITF-14 and Codabar, 11 for EAN-13, 9 for UPC-A, 7 for
+    /// EAN-8, 4 for QR codes, 2 for Data Matrix, PDF417 and Aztec, and 1 for
+    /// MaxiCode. Scanners may fail with a smaller value.
     /// </summary>
     public BarcodeBuilder QuietZone(int modules)
     {
@@ -218,7 +237,8 @@ public sealed class BarcodeBuilder
     /// <summary>
     /// Prints the human-readable text under a linear barcode: EAN/UPC digits in
     /// their standard positions with extended guard bars, or the value centred
-    /// under Code 128, Code 39 and GS1-128 (with AIs in parentheses). The image
+    /// under Code 128, Code 39, GS1-128 (with AIs in parentheses), Interleaved
+    /// 2 of 5 and ITF-14 (with the check digit) and Codabar. The image
     /// grows by about one text line. Linear barcodes only.
     /// </summary>
     public BarcodeBuilder HumanReadableText(bool show = true)
@@ -284,11 +304,47 @@ public sealed class BarcodeBuilder
         return this;
     }
 
-    /// <summary>Adds the optional modulo 43 check character. Code 39 only.</summary>
+    /// <summary>
+    /// Adds the optional check character: modulo 43 for Code 39, or the modulo 10
+    /// check digit (weights 3 and 1, as GS1 uses) for Interleaved 2 of 5, which then
+    /// needs an odd number of digits. Code 39 and Interleaved 2 of 5 only.
+    /// </summary>
     public BarcodeBuilder WithChecksum(bool include = true)
     {
-        if (Type != BarcodeType.Code39) throw new InvalidOperationException("WithChecksum applies to Code 39 only; the other symbologies always carry their check digit.");
-        _code39Checksum = include;
+        if (Type is not (BarcodeType.Code39 or BarcodeType.Itf))
+        {
+            throw new InvalidOperationException("WithChecksum applies to Code 39 and Interleaved 2 of 5 only; the other symbologies either always carry their check digit or have none.");
+        }
+
+        if (Type == BarcodeType.Code39) _code39Checksum = include;
+        else _itfChecksum = include;
+        _matrix = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Minimum error correction as a percentage of the data, 5 to 95 (default 33).
+    /// More error correction makes a bigger symbol that survives more damage. Aztec only.
+    /// </summary>
+    public BarcodeBuilder AztecErrorCorrection(int percent)
+    {
+        if (Type != BarcodeType.Aztec) throw new InvalidOperationException("AztecErrorCorrection applies to Aztec codes only.");
+        _aztecErrorCorrection = Guard.InRange(percent, AztecEncoder.MinErrorCorrectionPercent, AztecEncoder.MaxErrorCorrectionPercent, nameof(percent));
+        _matrix = null;
+        return this;
+    }
+
+    /// <summary>
+    /// MaxiCode mode: 4 (default, standard error correction, 93 codewords of data),
+    /// 5 (enhanced error correction, 77 codewords) or 6 (reader programming). Modes 2
+    /// and 3 are chosen by the <see cref="Barcodes.MaxiCode(string, int, int, string)"/>
+    /// overload that takes a postal code. MaxiCode only.
+    /// </summary>
+    public BarcodeBuilder MaxiCodeMode(int mode)
+    {
+        if (Type != BarcodeType.MaxiCode) throw new InvalidOperationException("MaxiCodeMode applies to MaxiCode only.");
+        if (_maxiCodePrimary is not null) throw new InvalidOperationException("A MaxiCode with a postal code uses mode 2 or 3; MaxiCodeMode cannot change it.");
+        _maxiCodeMode = Guard.InRange(mode, 4, 6, nameof(mode));
         _matrix = null;
         return this;
     }
@@ -454,6 +510,14 @@ public sealed class BarcodeBuilder
             case BarcodeType.QrCode: return QrCodeEncoder.Encode(Value, EffectiveErrorCorrection);
             case BarcodeType.DataMatrix: return DataMatrixEncoder.Encode(Value, _dataMatrixShape);
             case BarcodeType.Pdf417: return Pdf417Encoder.Encode(Value, _pdf417Columns, _pdf417ErrorCorrection);
+            case BarcodeType.Itf: return ItfEncoder.Encode(Value, _itfChecksum);
+            case BarcodeType.Itf14: return ItfEncoder.EncodeItf14(Value);
+            case BarcodeType.Codabar: return CodabarEncoder.Encode(Value);
+            case BarcodeType.Aztec: return AztecEncoder.Encode(Value, _aztecErrorCorrection);
+            case BarcodeType.MaxiCode:
+                return _maxiCodePrimary is { } p
+                    ? MaxiCodeEncoder.EncodeStructured(p.PostalCode, p.CountryCode, p.ServiceClass, Value)
+                    : MaxiCodeEncoder.Encode(Value, _maxiCodeMode);
             default: throw new InvalidOperationException($"Unsupported barcode type {Type}.");
         }
     }
@@ -609,7 +673,8 @@ public sealed class BarcodeBuilder
 
     private bool IsStyled =>
         _moduleStyle != QrModuleStyle.Square || _eyeStyle != QrEyeStyle.Square || _eyeColor is not null
-        || _gradient is not null || _roundedBars || _logo is not null || _humanReadable;
+        || _gradient is not null || _roundedBars || _logo is not null || _humanReadable
+        || Type == BarcodeType.MaxiCode; // hexagons always need the vector path
 
     private void RequireQr(string option)
     {
@@ -676,7 +741,8 @@ public sealed class BarcodeBuilder
         var matrix = Encode();
         var moduleSize = _moduleSize ?? Type switch
         {
-            BarcodeType.QrCode or BarcodeType.DataMatrix => DefaultQrModuleSize,
+            BarcodeType.QrCode or BarcodeType.DataMatrix or BarcodeType.Aztec => DefaultQrModuleSize,
+            BarcodeType.MaxiCode => DefaultMaxiCodeModuleSize,
             BarcodeType.Pdf417 => DefaultPdf417ModuleSize,
             _ => DefaultLinearModuleSize,
         };

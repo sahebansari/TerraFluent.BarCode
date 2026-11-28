@@ -3,13 +3,22 @@ using System.Text;
 
 namespace TerraFluent.Barcode.Rendering;
 
-/// <summary>A filled outline (one glyph): polygons for rasterising, path data for SVG.</summary>
+/// <summary>A filled outline (a glyph, a MaxiCode hexagon or ring): polygons for rasterising, path data for SVG.</summary>
 internal sealed class PathShape
 {
-    public PathShape(List<(double X, double Y)[]> contours, string svgPath)
+    private string? _svgPath;
+
+    /// <param name="contours">Closed polygons in output pixels.</param>
+    /// <param name="svgPath">SVG path data, or <c>null</c> to draw the polygons (built only when SVG is written).</param>
+    /// <param name="maskKey">
+    /// Identifies outlines that are the same shape: the rasteriser samples one per
+    /// sub-pixel offset and copies its coverage to the others. <c>null</c> to sample each.
+    /// </param>
+    public PathShape(List<(double X, double Y)[]> contours, string? svgPath, object? maskKey = null)
     {
         Contours = contours;
-        SvgPath = svgPath;
+        _svgPath = svgPath;
+        MaskKey = maskKey;
         MinX = MinY = double.MaxValue;
         MaxX = MaxY = double.MinValue;
         foreach (var contour in contours)
@@ -27,8 +36,11 @@ internal sealed class PathShape
     /// <summary>Closed polygons in output pixels.</summary>
     public List<(double X, double Y)[]> Contours { get; }
 
-    /// <summary>The same outline as SVG path data (with quadratic curves), in output pixels.</summary>
-    public string SvgPath { get; }
+    /// <summary>The same outline as SVG path data (with quadratic curves for glyphs), in output pixels.</summary>
+    public string SvgPath => _svgPath ??= PolygonPath(Contours);
+
+    /// <summary>Shapes with equal keys are translations of each other; see the constructor.</summary>
+    public object? MaskKey { get; }
 
     public double MinX { get; }
     public double MinY { get; }
@@ -62,6 +74,38 @@ internal sealed class PathShape
 
     private static double Cross(double x0, double y0, double x1, double y1, double px, double py) =>
         (x1 - x0) * (py - y0) - (px - x0) * (y1 - y0);
+
+    private static string PolygonPath(List<(double X, double Y)[]> contours)
+    {
+        var d = new StringBuilder(contours.Count * 64);
+        foreach (var contour in contours)
+        {
+            for (var i = 0; i < contour.Length; i++)
+            {
+                d.Append(i == 0 ? 'M' : 'L').Append(Num(contour[i].X)).Append(' ').Append(Num(contour[i].Y));
+            }
+
+            d.Append('Z');
+        }
+
+        return d.ToString();
+    }
+
+    private static string Num(double value) => Math.Round(value, 3).ToString("0.###", CultureInfo.InvariantCulture);
+
+    /// <summary>A copy moved by (<paramref name="dx"/>, <paramref name="dy"/>), without SVG data or mask key.</summary>
+    public PathShape Translate(double dx, double dy)
+    {
+        var contours = new List<(double X, double Y)[]>(Contours.Count);
+        foreach (var contour in Contours)
+        {
+            var moved = new (double X, double Y)[contour.Length];
+            for (var i = 0; i < contour.Length; i++) moved[i] = (contour[i].X + dx, contour[i].Y + dy);
+            contours.Add(moved);
+        }
+
+        return new PathShape(contours, svgPath: string.Empty);
+    }
 }
 
 /// <summary>

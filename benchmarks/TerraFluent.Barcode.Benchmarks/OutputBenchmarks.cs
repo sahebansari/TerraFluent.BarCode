@@ -9,7 +9,7 @@ namespace TerraFluent.Barcode.Benchmarks;
 [MemoryDiagnoser]
 public class OutputBenchmarks
 {
-    [Params("Code128", "Ean13", "QrSmall", "QrLarge", "DataMatrix", "Pdf417")]
+    [Params("Code128", "Ean13", "QrSmall", "QrLarge", "DataMatrix", "Pdf417", "Itf14", "Codabar", "Aztec", "MaxiCode")]
     public string Kind { get; set; } = "Code128";
 
     [Benchmark]

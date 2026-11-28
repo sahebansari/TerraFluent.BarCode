@@ -183,3 +183,26 @@ static TerraFluent.Barcode.BarcodeImageFormatExtensions.ToMimeType(this TerraFlu
 TerraFluent.Barcode.BarcodeBuilder.ImageSizeLimit(long maxPixels) -> TerraFluent.Barcode.BarcodeBuilder!
 TerraFluent.Barcode.BarcodeOptions.MaxImagePixels.get -> long?
 TerraFluent.Barcode.BarcodeOptions.MaxImagePixels.set -> void
+TerraFluent.Barcode.BarcodeBuilder.AztecErrorCorrection(int percent) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeBuilder.MaxiCodeMode(int mode) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeMatrix.IsHexagonal.get -> bool
+TerraFluent.Barcode.BarcodeOptions.AztecErrorCorrection.get -> int?
+TerraFluent.Barcode.BarcodeOptions.AztecErrorCorrection.set -> void
+TerraFluent.Barcode.BarcodeOptions.ItfChecksum.get -> bool
+TerraFluent.Barcode.BarcodeOptions.ItfChecksum.set -> void
+TerraFluent.Barcode.BarcodeOptions.MaxiCodeMode.get -> int?
+TerraFluent.Barcode.BarcodeOptions.MaxiCodeMode.set -> void
+TerraFluent.Barcode.BarcodeType.Aztec = 12 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.Codabar = 11 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.Itf = 9 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.Itf14 = 10 -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.BarcodeType.MaxiCode = 13 -> TerraFluent.Barcode.BarcodeType
+const TerraFluent.Barcode.BarcodeBuilder.DefaultMaxiCodeModuleSize = 6 -> int
+const TerraFluent.Barcode.Barcodes.MaxCodabarLength = 60 -> int
+const TerraFluent.Barcode.Barcodes.MaxItfLength = 80 -> int
+static TerraFluent.Barcode.Barcodes.Aztec(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Codabar(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Itf(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.Itf14(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.MaxiCode(string! postalCode, int countryCode, int serviceClass, string! message) -> TerraFluent.Barcode.BarcodeBuilder!
+static TerraFluent.Barcode.Barcodes.MaxiCode(string! value) -> TerraFluent.Barcode.BarcodeBuilder!

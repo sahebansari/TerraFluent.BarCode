@@ -14,8 +14,8 @@
     <!-- Strong-named assemblies keep AssemblyVersion at major.0.0.0 so minor and patch upgrades need no binding redirects. -->
     <AssemblyVersion>$([System.Version]::Parse($(Version.Split('-')[0])).Major).0.0.0</AssemblyVersion>
     <Copyright>Copyright (c) 2026 Saheb Ansari</Copyright>
-    <PackageLicenseExpression>MIT AND OFL-1.1</PackageLicenseExpression>
-    <PackageTags>dotnet;csharp;barcode;qrcode;qr;qr-code;2d-barcode;barcode-generator;qr-generator;code128;code39;ean13;upc;gs1-128;datamatrix;pdf417;png;jpeg;svg;base64;fluent</PackageTags>
+    <PackageLicenseExpression>MIT AND OFL-1.1 AND Apache-2.0</PackageLicenseExpression>
+    <PackageTags>dotnet;csharp;barcode;qrcode;qr;qr-code;2d-barcode;barcode-generator;qr-generator;code128;code39;ean13;upc;gs1-128;itf;itf-14;codabar;datamatrix;pdf417;aztec;maxicode;png;jpeg;svg;base64;fluent</PackageTags>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/sahebansari/TerraFluent.Barcode</RepositoryUrl>
     <PackageProjectUrl>https://terrafluent.dev/barcode/</PackageProjectUrl>

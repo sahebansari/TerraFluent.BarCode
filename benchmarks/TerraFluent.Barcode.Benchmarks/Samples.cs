@@ -19,6 +19,10 @@ internal static class Samples
         "QrLarge" => Barcodes.QrCode(QrLarge),
         "DataMatrix" => Barcodes.DataMatrix(Text200),
         "Pdf417" => Barcodes.Pdf417(Text200),
+        "Itf14" => Barcodes.Itf14("1540014128876"),
+        "Codabar" => Barcodes.Codabar("A40156B"),
+        "Aztec" => Barcodes.Aztec(Text200),
+        "MaxiCode" => Barcodes.MaxiCode("[)>\u001e01\u001d961Z00004951\u001dUPSN\u001d06X610\u001d159\u001d1234567\u001d1/1"),
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown sample."),
     };
 }

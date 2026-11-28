@@ -23,7 +23,7 @@ public sealed class BarcodeGenerator : IBarcodeGenerator
         var o = options ?? _defaults;
         if (o is null) return builder;
 
-        bool linear = type is not (BarcodeType.QrCode or BarcodeType.DataMatrix or BarcodeType.Pdf417);
+        var linear = BarcodeBuilder.IsLinearType(type);
         if (o.ModuleSize is { } moduleSize) builder.ModuleSize(moduleSize);
         if (o.Height is { } height && linear) builder.Height(height);
         if (o.QuietZone is { } quietZone) builder.QuietZone(quietZone);
@@ -35,6 +35,9 @@ public sealed class BarcodeGenerator : IBarcodeGenerator
         if (o.QrErrorCorrection is { } level && type == BarcodeType.QrCode) builder.ErrorCorrection(level);
         if (o.Code39Checksum && type == BarcodeType.Code39) builder.WithChecksum();
         if (o.Code39FullAscii && type == BarcodeType.Code39) builder.FullAscii();
+        if (o.ItfChecksum && type == BarcodeType.Itf) builder.WithChecksum();
+        if (o.AztecErrorCorrection is { } aztecLevel && type == BarcodeType.Aztec) builder.AztecErrorCorrection(aztecLevel);
+        if (o.MaxiCodeMode is { } maxiMode && type == BarcodeType.MaxiCode) builder.MaxiCodeMode(maxiMode);
         if (o.DataMatrixShape is { } shape && type == BarcodeType.DataMatrix) builder.DataMatrixShape(shape);
         if (o.Pdf417Columns is { } columns && type == BarcodeType.Pdf417) builder.Pdf417Columns(columns);
         if (o.Pdf417ErrorCorrection is { } pdfLevel && type == BarcodeType.Pdf417) builder.Pdf417ErrorCorrection(pdfLevel);

@@ -28,6 +28,13 @@ public sealed class BarcodeMatrix
     /// <summary><c>true</c> for 1D barcodes, whose single row is stretched to the bar height when rendered.</summary>
     public bool IsLinear { get; }
 
+    /// <summary>
+    /// <c>true</c> for MaxiCode, whose modules are hexagons: odd rows are offset
+    /// half a module to the right, rows are <c>sqrt(3)/2</c> modules apart, and
+    /// the bullseye in the centre is not part of the matrix.
+    /// </summary>
+    public bool IsHexagonal { get; internal init; }
+
     /// <summary>The quiet zone, in modules, that the symbology's specification asks for on each side.</summary>
     public int RecommendedQuietZone { get; }
 
