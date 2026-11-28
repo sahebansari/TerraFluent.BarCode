@@ -1,4 +1,7 @@
 using System.IO.Compression;
+#if NET
+using System.Runtime.Intrinsics;
+#endif
 
 namespace TerraFluent.Barcode.Rendering;
 
@@ -156,8 +159,7 @@ internal static class PngEncoder
 
         private readonly IdatStream _idat;
         private readonly DeflateStream _deflate;
-        private uint _a = 1;
-        private uint _b;
+        private uint _adler = 1;
 
         public ZlibWriter(Stream output)
         {
@@ -170,32 +172,14 @@ internal static class PngEncoder
         public void Write(byte[] data, int count)
         {
             _deflate.Write(data, 0, count);
-
-            // Adler-32, reducing modulo 65521 once per 5,552 bytes (the most that cannot overflow 32 bits).
-            const int Nmax = 5552;
-            uint a = _a, b = _b;
-            for (var offset = 0; offset < count;)
-            {
-                var end = Math.Min(count, offset + Nmax);
-                for (; offset < end; offset++)
-                {
-                    a += data[offset];
-                    b += a;
-                }
-
-                a %= 65521;
-                b %= 65521;
-            }
-
-            _a = a;
-            _b = b;
+            _adler = Adler32(_adler, data, 0, count);
         }
 
         public void Dispose()
         {
             _deflate.Dispose();
             var tail = new byte[4];
-            WriteUInt32(tail, 0, (_b << 16) | _a);
+            WriteUInt32(tail, 0, _adler);
             _idat.Write(tail, 0, 4);
             _idat.Dispose();
         }
@@ -309,6 +293,85 @@ internal static class PngEncoder
         for (; i < end; i++) crc = t[(crc ^ data[i]) & 0xFF] ^ (crc >> 8);
         return crc;
     }
+
+    /// <summary>
+    /// Updates an Adler-32 (RFC 1950, as zlib uses it) over <paramref name="count"/> bytes.
+    /// Both sums are reduced modulo 65521 once per 5,552 bytes, the most that cannot
+    /// overflow 32 bits; on .NET 10 whole 16-byte blocks are summed with SIMD.
+    /// </summary>
+    internal static uint Adler32(uint adler, byte[] data, int offset, int count)
+    {
+        const uint Mod = 65521;
+        const int Nmax = 5552;
+        uint a = adler & 0xFFFF, b = adler >> 16;
+        var end = offset + count;
+#if NET
+        if (Vector128.IsHardwareAccelerated) Adler32Blocks(ref a, ref b, data, ref offset, end);
+#endif
+        while (offset < end)
+        {
+            var blockEnd = Math.Min(end, offset + Nmax);
+            for (; offset + 8 <= blockEnd; offset += 8)
+            {
+                a += data[offset]; b += a;
+                a += data[offset + 1]; b += a;
+                a += data[offset + 2]; b += a;
+                a += data[offset + 3]; b += a;
+                a += data[offset + 4]; b += a;
+                a += data[offset + 5]; b += a;
+                a += data[offset + 6]; b += a;
+                a += data[offset + 7]; b += a;
+            }
+
+            for (; offset < blockEnd; offset++)
+            {
+                a += data[offset];
+                b += a;
+            }
+
+            a %= Mod;
+            b %= Mod;
+        }
+
+        return (b << 16) | a;
+    }
+
+#if NET
+    /// <summary>
+    /// Adds every whole 16-byte block from <paramref name="offset"/> to the sums. For a run
+    /// of n blocks, b grows by 16n * a, plus 16 times the bytes before each block, plus each
+    /// block's bytes weighted 16 down to 1; the lanes keep those partial sums.
+    /// </summary>
+    private static void Adler32Blocks(ref uint a, ref uint b, byte[] data, ref int offset, int end)
+    {
+        const uint Mod = 65521;
+        const int MaxBlocks = 5552 / 16; // keeps every lane and the scalar sums within 32 bits
+        var weightsLow = Vector128.Create((ushort)16, 15, 14, 13, 12, 11, 10, 9);
+        var weightsHigh = Vector128.Create((ushort)8, 7, 6, 5, 4, 3, 2, 1);
+        ref var start = ref System.Runtime.InteropServices.MemoryMarshal.GetArrayDataReference(data);
+        while (end - offset >= 16)
+        {
+            var blocks = Math.Min((end - offset) / 16, MaxBlocks);
+            var sums = Vector128<uint>.Zero;     // bytes so far in this run
+            var prefixes = Vector128<uint>.Zero; // sums before each block, added up
+            var weighted = Vector128<uint>.Zero;
+            for (var k = 0; k < blocks; k++, offset += 16)
+            {
+                var bytes = Vector128.LoadUnsafe(ref start, (nuint)offset);
+                prefixes += sums;
+                var (low, high) = Vector128.Widen(bytes);
+                var (s0, s1) = Vector128.Widen(low + high);
+                sums += s0 + s1;
+                var (w0, w1) = Vector128.Widen(low * weightsLow + high * weightsHigh);
+                weighted += w0 + w1;
+            }
+
+            var total = b + 16UL * (uint)blocks * a + 16UL * Vector128.Sum(prefixes) + Vector128.Sum(weighted);
+            a = (uint)((a + (ulong)Vector128.Sum(sums)) % Mod);
+            b = (uint)(total % Mod);
+        }
+    }
+#endif
 
     /// <summary>Slicing-by-8 tables: table k (at k * 256) advances a byte through k further zero bytes.</summary>
     private static uint[] BuildCrcTable()

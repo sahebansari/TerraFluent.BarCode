@@ -1,19 +1,32 @@
 namespace TerraFluent.Barcode.Encoding;
 
 /// <summary>
-/// Reed-Solomon error correction over GF(2^m) with generator roots a^1..a^n,
-/// as Aztec (4- to 12-bit words) and MaxiCode (6-bit words) use.
+/// Reed-Solomon error correction over GF(2^m), shared by QR Code (roots a^0..a^(n-1)),
+/// Data Matrix and Aztec (4- to 12-bit words) and MaxiCode (6-bit words), all with
+/// roots a^1..a^n.
 /// </summary>
+/// <remarks>
+/// Each generator polynomial is built once per degree and kept as logarithms, so a
+/// check-word step is one table lookup per coefficient. Zero has a sentinel
+/// logarithm that lands in a zero-filled part of the exponent table, so no step
+/// needs a branch for a zero coefficient.
+/// </remarks>
 internal sealed class GaloisField
 {
     private readonly int[] _exp;
     private readonly int[] _log;
-    private readonly Dictionary<int, int[]> _generators = new();
+    private readonly int _generatorBase;
+    private readonly int[]?[] _generators;
 
-    public GaloisField(int primitive, int size)
+    public GaloisField(int primitive, int size, int generatorBase = 1)
     {
         Size = size;
-        _exp = new int[2 * size];
+        _generatorBase = generatorBase;
+        ZeroLog = 2 * (size - 1);
+
+        // Two periods of a^i cover the sum of any two logarithms (at most 2 * (size - 2));
+        // past them, the table is zero for every sum that includes ZeroLog.
+        _exp = new int[2 * ZeroLog + 1];
         _log = new int[size];
         var x = 1;
         for (var i = 0; i < size - 1; i++)
@@ -24,7 +37,9 @@ internal sealed class GaloisField
             if (x >= size) x ^= primitive;
         }
 
-        for (var i = size - 1; i < _exp.Length; i++) _exp[i] = _exp[i - (size - 1)];
+        for (var i = size - 1; i < ZeroLog; i++) _exp[i] = _exp[i - (size - 1)];
+        _log[0] = ZeroLog;
+        _generators = new int[]?[size];
     }
 
     public static readonly GaloisField Aztec4 = new(0x13, 16);
@@ -33,31 +48,65 @@ internal sealed class GaloisField
     public static readonly GaloisField Aztec10 = new(0x409, 1024);
     public static readonly GaloisField Aztec12 = new(0x1069, 4096);
 
+    /// <summary>QR Code: polynomial x^8 + x^4 + x^3 + x^2 + 1, generator roots a^0..a^(n-1).</summary>
+    public static readonly GaloisField QrCode = new(0x11D, 256, generatorBase: 0);
+
+    /// <summary>Data Matrix uses the same field and roots as 8-bit Aztec words.</summary>
+    public static GaloisField DataMatrix => Aztec8;
+
     /// <summary>MaxiCode uses the same 6-bit field as Aztec.</summary>
     public static GaloisField MaxiCode => Aztec6;
 
     public int Size { get; }
 
-    private int Multiply(int a, int b) => a == 0 || b == 0 ? 0 : _exp[_log[a] + _log[b]];
+    /// <summary>The logarithm the tables give zero: adding any logarithm to it reads a zero.</summary>
+    private int ZeroLog { get; }
 
-    /// <summary>Coefficients of prod (x + a^i), i = 1..degree, highest power first, leading 1 omitted.</summary>
-    private int[] Generator(int degree)
+    private int Multiply(int a, int b) => _exp[_log[a] + _log[b]];
+
+    /// <summary>
+    /// Logarithms of the coefficients of prod (x + a^i) over the field's
+    /// <paramref name="degree"/> roots, highest power first, leading 1 omitted.
+    /// Built once per degree; a race only builds an identical array twice.
+    /// </summary>
+    internal int[] GeneratorLogs(int degree)
     {
-        lock (_generators)
-        {
-            if (_generators.TryGetValue(degree, out var cached)) return cached;
-            var g = new int[degree + 1];
-            g[0] = 1;
-            for (var i = 1; i <= degree; i++)
-            {
-                var root = _exp[i];
-                for (var j = i; j >= 1; j--) g[j] ^= Multiply(g[j - 1], root);
-            }
+        var cached = Volatile.Read(ref _generators[degree]);
+        if (cached is not null) return cached;
 
-            var result = new int[degree];
-            Array.Copy(g, 1, result, 0, degree);
-            _generators[degree] = result;
-            return result;
+        var g = new int[degree + 1];
+        g[0] = 1;
+        for (var i = 1; i <= degree; i++)
+        {
+            var root = _exp[_generatorBase + i - 1];
+            for (var j = i; j >= 1; j--) g[j] ^= Multiply(g[j - 1], root);
+        }
+
+        var logs = new int[degree];
+        for (var i = 0; i < degree; i++) logs[i] = _log[g[i + 1]];
+        Volatile.Write(ref _generators[degree], logs);
+        return logs;
+    }
+
+    /// <summary>
+    /// Computes the <c>ecc.Length</c> check words for <paramref name="dataCount"/> words of
+    /// <paramref name="words"/>, read <paramref name="stride"/> apart from <paramref name="start"/>,
+    /// into <paramref name="ecc"/> (highest power first, as they follow the data).
+    /// </summary>
+    public void Remainder(int[] words, int start, int dataCount, int stride, int[] ecc)
+    {
+        var n = ecc.Length;
+        if (n == 0) return;
+        var generator = GeneratorLogs(n);
+        var exp = _exp;
+        var log = _log;
+        Array.Clear(ecc, 0, n);
+        for (int i = 0, at = start; i < dataCount; i++, at += stride)
+        {
+            // Shift the remainder up by one word and add factor * generator; a zero factor only shifts.
+            var factor = log[words[at] ^ ecc[0]];
+            for (var j = 0; j < n - 1; j++) ecc[j] = ecc[j + 1] ^ exp[factor + generator[j]];
+            ecc[n - 1] = exp[factor + generator[n - 1]];
         }
     }
 
@@ -69,15 +118,8 @@ internal sealed class GaloisField
     public void Encode(int[] words, int start, int dataCount, int eccCount, int stride = 1)
     {
         if (eccCount == 0) return;
-        var generator = Generator(eccCount);
         var ecc = new int[eccCount];
-        for (var i = 0; i < dataCount; i++)
-        {
-            var factor = words[start + i * stride] ^ ecc[0];
-            for (var j = 0; j < eccCount - 1; j++) ecc[j] = ecc[j + 1] ^ Multiply(factor, generator[j]);
-            ecc[eccCount - 1] = Multiply(factor, generator[eccCount - 1]);
-        }
-
+        Remainder(words, start, dataCount, stride, ecc);
         for (var i = 0; i < eccCount; i++) words[start + (dataCount + i) * stride] = ecc[i];
     }
 }

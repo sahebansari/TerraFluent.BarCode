@@ -285,20 +285,28 @@ internal static partial class Pdf417Encoder
         for (; i < end; i++) result.Add(bytes[i]);
     }
 
+    /// <summary>Generator coefficients per error-correction level, built on first use.</summary>
+    private static readonly int[]?[] Generators = new int[]?[9];
+
     /// <summary>Reed-Solomon over GF(929) with generator roots 3^1..3^k.</summary>
-    internal static int[] ErrorCorrection(IReadOnlyList<int> data, int level)
+    internal static int[] ErrorCorrection(List<int> data, int level)
     {
         var factors = GeneratorFactors(level);
         var count = factors.Length;
         var ecc = new int[count];
-        foreach (var word in data)
+        for (var i = 0; i < data.Count; i++)
         {
-            var t = (word + ecc[count - 1]) % 929;
-            for (var x = count - 1; x >= 0; x--)
+            var t = (data[i] + ecc[count - 1]) % 929;
+            // ecc[x] = (ecc[x - 1] - t * factor) mod 929, with one modulo; the sign mask adds
+            // 929 back to a negative difference without a branch (the sign is data-dependent).
+            for (var x = count - 1; x > 0; x--)
             {
-                var previous = x > 0 ? ecc[x - 1] : 0;
-                ecc[x] = (previous + 929 - t * factors[x] % 929) % 929;
+                var v = ecc[x - 1] - t * factors[x] % 929;
+                ecc[x] = v + (929 & (v >> 31));
             }
+
+            var v0 = t * factors[0] % 929;
+            ecc[0] = v0 > 0 ? 929 - v0 : 0;
         }
 
         var result = new int[count];
@@ -311,13 +319,19 @@ internal static partial class Pdf417Encoder
         return result;
     }
 
-    /// <summary>Coefficients a0..a(k-1) of the generator polynomial prod (x - 3^i), i = 1..k, with k = 2^(level+1).</summary>
+    /// <summary>
+    /// Coefficients a0..a(k-1) of the generator polynomial prod (x - 3^i), i = 1..k, with k = 2^(level+1).
+    /// Built once per level; callers must not change the array.
+    /// </summary>
     internal static int[] GeneratorFactors(int level)
     {
+        var cached = Volatile.Read(ref Generators[level]);
+        if (cached is not null) return cached;
+
         var k = 1 << (level + 1);
-        var g = new long[k + 1];
+        var g = new int[k + 1];
         g[0] = 1; // g[i] is the coefficient of x^i
-        long root = 1;
+        var root = 1;
         for (var i = 1; i <= k; i++)
         {
             root = root * 3 % 929;
@@ -325,11 +339,15 @@ internal static partial class Pdf417Encoder
             for (var j = i; j >= 0; j--)
             {
                 var shifted = j > 0 ? g[j - 1] : 0;
-                g[j] = ((shifted - root * g[j]) % 929 + 929) % 929;
+                var v = shifted - root * g[j] % 929;
+                g[j] = v < 0 ? v + 929 : v;
             }
         }
 
-        return g.Take(k).Select(v => (int)v).ToArray();
+        var factors = new int[k];
+        Array.Copy(g, factors, k);
+        Volatile.Write(ref Generators[level], factors);
+        return factors;
     }
 
     private static BarcodeMatrix Render(List<int> codewords, int rows, int cols, int level)
