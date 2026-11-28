@@ -180,3 +180,6 @@ static TerraFluent.Barcode.BarcodeColor.operator ==(TerraFluent.Barcode.BarcodeC
 static TerraFluent.Barcode.BarcodeImageFormatExtensions.FromFilePath(string! path) -> TerraFluent.Barcode.BarcodeImageFormat
 static TerraFluent.Barcode.BarcodeImageFormatExtensions.ToFileExtension(this TerraFluent.Barcode.BarcodeImageFormat format) -> string!
 static TerraFluent.Barcode.BarcodeImageFormatExtensions.ToMimeType(this TerraFluent.Barcode.BarcodeImageFormat format) -> string!
+TerraFluent.Barcode.BarcodeBuilder.ImageSizeLimit(long maxPixels) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.BarcodeOptions.MaxImagePixels.get -> long?
+TerraFluent.Barcode.BarcodeOptions.MaxImagePixels.set -> void
