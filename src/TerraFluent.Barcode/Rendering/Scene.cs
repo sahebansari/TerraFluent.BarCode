@@ -27,6 +27,33 @@ internal sealed class Scene
 
     /// <summary>Whether any shape has rounded corners (SVG then needs anti-aliasing).</summary>
     public bool HasCurves => Layers.Any(l => l.Paths.Count > 0 || l.Shapes.Any(s => s.HasCurves));
+
+    /// <summary>
+    /// Whether every rendered pixel is grey (R = G = B): the background, all
+    /// paints and every visible logo pixel are grey, and blending greys gives grey.
+    /// </summary>
+    public bool IsGreyscale
+    {
+        get
+        {
+            if (!IsGrey(Background)) return false;
+            foreach (var layer in Layers)
+            {
+                if (!IsGrey(layer.Paint.Start) || !IsGrey(layer.Paint.End)) return false;
+            }
+
+            if (Logo is null) return true;
+            var px = Logo.Image.Pixels;
+            for (var i = 0; i < px.Length; i += 4)
+            {
+                if (px[i + 3] != 0 && (px[i] != px[i + 1] || px[i + 1] != px[i + 2])) return false;
+            }
+
+            return true;
+        }
+    }
+
+    private static bool IsGrey(BarcodeColor color) => color.R == color.G && color.G == color.B;
 }
 
 /// <summary>Shapes filled with one paint. Their union is filled, so touching shapes leave no seams.</summary>

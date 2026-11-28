@@ -123,18 +123,17 @@ internal static class QrCodeEncoder
         {
             mask = 0;
             var best = int.MaxValue;
+            var scorer = new QrMaskPenalty(symbol.Size, symbol.Modules, symbol.IsFunction);
             for (var candidate = 0; candidate < 8; candidate++)
             {
-                symbol.ApplyMask(candidate);
                 symbol.DrawFormatBits(FormatBits[lvl], candidate);
-                var penalty = symbol.Penalty();
+                scorer.RefreshFormatLines(symbol.Modules);
+                var penalty = scorer.Score(candidate);
                 if (penalty < best)
                 {
                     best = penalty;
                     mask = candidate;
                 }
-
-                symbol.ApplyMask(candidate); // XOR again to undo
             }
         }
 
@@ -190,14 +189,18 @@ internal static class QrCodeEncoder
 
     private static int VersionRange(int version) => version <= 9 ? 0 : version <= 26 ? 1 : 2;
 
+    private static readonly int[] NumericCountBits = { 10, 12, 14 };
+    private static readonly int[] AlphanumericCountBits = { 9, 11, 13 };
+    private static readonly int[] ByteCountBits = { 8, 16, 16 };
+
     internal static int CountBits(Mode mode, int version)
     {
         var range = VersionRange(version);
         return mode switch
         {
-            Mode.Numeric => new[] { 10, 12, 14 }[range],
-            Mode.Alphanumeric => new[] { 9, 11, 13 }[range],
-            _ => new[] { 8, 16, 16 }[range],
+            Mode.Numeric => NumericCountBits[range],
+            Mode.Alphanumeric => AlphanumericCountBits[range],
+            _ => ByteCountBits[range],
         };
     }
 
@@ -287,34 +290,51 @@ internal static class QrCodeEncoder
     /// Splits a value into numeric, alphanumeric and byte segments with the
     /// fewest bits in total, by dynamic programming over its code points.
     /// </summary>
+    /// <summary>Whether mask pattern <paramref name="mask"/> inverts the module at (<paramref name="x"/>, <paramref name="y"/>).</summary>
+    internal static bool MaskInverts(int mask, int x, int y) => mask switch
+    {
+        0 => (x + y) % 2 == 0,
+        1 => y % 2 == 0,
+        2 => x % 3 == 0,
+        3 => (x + y) % 3 == 0,
+        4 => (x / 3 + y / 2) % 2 == 0,
+        5 => x * y % 2 + x * y % 3 == 0,
+        6 => (x * y % 2 + x * y % 3) % 2 == 0,
+        _ => ((x + y) % 2 + x * y % 3) % 2 == 0,
+    };
+
     internal static class Segmenter
     {
         private static readonly Mode[] Modes = { Mode.Numeric, Mode.Alphanumeric, Mode.Byte };
 
         public static List<Segment> Split(string value, int version)
         {
-            // Code points, so a surrogate pair is never split between segments.
-            var points = new List<string>(value.Length);
+            // Code points (start index into value), so a surrogate pair is never split between segments.
+            var starts = new List<int>(value.Length + 1);
             for (var i = 0; i < value.Length; i++)
             {
-                if (char.IsHighSurrogate(value[i]) && i + 1 < value.Length && char.IsLowSurrogate(value[i + 1]))
-                {
-                    points.Add(value.Substring(i, 2));
-                    i++;
-                }
-                else
-                {
-                    points.Add(value.Substring(i, 1));
-                }
+                starts.Add(i);
+                if (char.IsHighSurrogate(value[i]) && i + 1 < value.Length && char.IsLowSurrogate(value[i + 1])) i++;
             }
 
+            starts.Add(value.Length);
+            var n = starts.Count - 1;
+
             var utf8 = new UTF8Encoding(false, true);
-            var byteLengths = new int[points.Count];
-            for (var i = 0; i < points.Count; i++)
+            var byteLengths = new int[n];
+            for (var i = 0; i < n; i++)
             {
+                var c = value[starts[i]];
+                var length = starts[i + 1] - starts[i];
+                if (length == 1 && c < 0x80)
+                {
+                    byteLengths[i] = 1;
+                    continue;
+                }
+
                 try
                 {
-                    byteLengths[i] = utf8.GetByteCount(points[i]);
+                    byteLengths[i] = utf8.GetByteCount(value.ToCharArray(starts[i], length));
                 }
                 catch (EncoderFallbackException ex)
                 {
@@ -324,17 +344,16 @@ internal static class QrCodeEncoder
 
             // Costs in sixths of a bit: numeric 10 bits per 3 characters, alphanumeric 11 per 2, byte 8 per byte.
             const int Inf = int.MaxValue / 4;
-            var n = points.Count;
             var cost = new int[3];
+            var next = new int[3];
             var from = new int[n, 3];
             for (var i = 0; i < n; i++)
             {
-                var next = new int[3];
                 for (var m = 0; m < 3; m++)
                 {
                     next[m] = Inf;
                     from[i, m] = -1;
-                    if (!Allowed(Modes[m], points[i])) continue;
+                    if (!Allowed(Modes[m], value, starts[i], starts[i + 1] - starts[i])) continue;
                     var charCost = Modes[m] switch
                     {
                         Mode.Numeric => 20,
@@ -355,7 +374,7 @@ internal static class QrCodeEncoder
                     }
                 }
 
-                cost = next;
+                (cost, next) = (next, cost);
             }
 
             var result = new List<Segment>();
@@ -378,17 +397,17 @@ internal static class QrCodeEncoder
             for (var i = 1; i <= n; i++)
             {
                 if (i < n && modes[i] == modes[start]) continue;
-                result.Add(Build(Modes[modes[start]], string.Concat(points.Skip(start).Take(i - start))));
+                result.Add(Build(Modes[modes[start]], value.Substring(starts[start], starts[i] - starts[start])));
                 start = i;
             }
 
             return result;
         }
 
-        private static bool Allowed(Mode mode, string point) => mode switch
+        private static bool Allowed(Mode mode, string value, int start, int length) => mode switch
         {
-            Mode.Numeric => point.Length == 1 && point[0] >= '0' && point[0] <= '9',
-            Mode.Alphanumeric => point.Length == 1 && AlphanumericCharset.IndexOf(point[0]) >= 0,
+            Mode.Numeric => length == 1 && value[start] >= '0' && value[start] <= '9',
+            Mode.Alphanumeric => length == 1 && AlphanumericCharset.IndexOf(value[start]) >= 0,
             _ => true,
         };
 
@@ -483,17 +502,27 @@ internal static class QrCodeEncoder
             return result;
         }
 
-        private static byte Multiply(int x, int y)
+        // GF(256) with polynomial 0x11D: exp/log tables turn each multiplication into two lookups.
+        private static readonly byte[] Exp = new byte[512];
+        private static readonly int[] Log = BuildTables();
+
+        private static int[] BuildTables()
         {
-            var z = 0;
-            for (var i = 7; i >= 0; i--)
+            var log = new int[256];
+            var x = 1;
+            for (var i = 0; i < 255; i++)
             {
-                z = (z << 1) ^ ((z >> 7) * 0x11D);
-                z ^= ((y >> i) & 1) * x;
+                Exp[i] = (byte)x;
+                log[x] = i;
+                x <<= 1;
+                if (x >= 256) x ^= 0x11D;
             }
 
-            return (byte)z;
+            for (var i = 255; i < 512; i++) Exp[i] = Exp[i - 255];
+            return log;
         }
+
+        private static byte Multiply(int x, int y) => x == 0 || y == 0 ? (byte)0 : Exp[Log[x] + Log[y]];
     }
 
     private sealed class Symbol
@@ -625,89 +654,20 @@ internal static class QrCodeEncoder
             }
         }
 
+        /// <summary>The function-pattern layout: <c>true</c> for modules that masks leave alone.</summary>
+        public bool[] IsFunction => _isFunction;
+
+        /// <summary>XORs the data modules with mask pattern <paramref name="mask"/>.</summary>
         public void ApplyMask(int mask)
         {
             for (var y = 0; y < Size; y++)
             {
                 for (var x = 0; x < Size; x++)
                 {
-                    var invert = mask switch
-                    {
-                        0 => (x + y) % 2 == 0,
-                        1 => y % 2 == 0,
-                        2 => x % 3 == 0,
-                        3 => (x + y) % 3 == 0,
-                        4 => (x / 3 + y / 2) % 2 == 0,
-                        5 => x * y % 2 + x * y % 3 == 0,
-                        6 => (x * y % 2 + x * y % 3) % 2 == 0,
-                        _ => ((x + y) % 2 + x * y % 3) % 2 == 0,
-                    };
-                    if (invert && !_isFunction[y * Size + x]) Modules[y * Size + x] ^= true;
+                    var i = y * Size + x;
+                    if (!_isFunction[i] && MaskInverts(mask, x, y)) Modules[i] = !Modules[i];
                 }
             }
-        }
-
-        /// <summary>ISO/IEC 18004 section 7.8.3 mask penalty (rules N1-N4).</summary>
-        public int Penalty()
-        {
-            var penalty = 0;
-            for (var pass = 0; pass < 2; pass++)
-            {
-                for (var a = 0; a < Size; a++)
-                {
-                    var runColor = false;
-                    var run = 0;
-                    for (var b = 0; b < Size; b++)
-                    {
-                        var dark = pass == 0 ? Get(b, a) : Get(a, b);
-                        if (b == 0 || dark != runColor)
-                        {
-                            runColor = dark;
-                            run = 1;
-                        }
-                        else
-                        {
-                            run++;
-                            if (run == 5) penalty += 3;
-                            else if (run > 5) penalty++;
-                        }
-
-                        // N3: 1:1:3:1:1 finder-like pattern with four light modules on one side.
-                        if (b >= 10 && Matches(pass, a, b - 10)) penalty += 40;
-                    }
-                }
-            }
-
-            for (var y = 0; y < Size - 1; y++)
-            {
-                for (var x = 0; x < Size - 1; x++)
-                {
-                    var c = Get(x, y);
-                    if (c == Get(x + 1, y) && c == Get(x, y + 1) && c == Get(x + 1, y + 1)) penalty += 3;
-                }
-            }
-
-            var darkCount = Modules.Count(m => m);
-            var total = Size * Size;
-            var k = (Math.Abs(darkCount * 20 - total * 10) + total - 1) / total - 1;
-            penalty += k * 10;
-            return penalty;
-        }
-
-        private static readonly bool[] PatternA = { true, false, true, true, true, false, true, false, false, false, false };
-        private static readonly bool[] PatternB = { false, false, false, false, true, false, true, true, true, false, true };
-
-        private bool Matches(int pass, int line, int start)
-        {
-            bool matchA = true, matchB = true;
-            for (var i = 0; i < 11 && (matchA || matchB); i++)
-            {
-                var dark = pass == 0 ? Get(start + i, line) : Get(line, start + i);
-                if (dark != PatternA[i]) matchA = false;
-                if (dark != PatternB[i]) matchB = false;
-            }
-
-            return matchA || matchB;
         }
 
         private static bool Bit(int value, int index) => ((value >> index) & 1) != 0;

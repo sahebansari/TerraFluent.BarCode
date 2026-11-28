@@ -3,8 +3,9 @@ namespace TerraFluent.Barcode.Rendering;
 /// <summary>Resolved layout and colour settings shared by all renderers.</summary>
 internal sealed class RenderOptions
 {
-    public RenderOptions(int moduleSize, int barHeight, int quietZone, BarcodeColor foreground, BarcodeColor background, int fontSize = 0)
+    public RenderOptions(int moduleSize, int barHeight, int quietZone, BarcodeColor foreground, BarcodeColor background, int fontSize = 0, long maxPixels = BarcodeBuilder.MaxImagePixels)
     {
+        MaxPixels = maxPixels;
         ModuleSize = moduleSize;
         BarHeight = barHeight;
         QuietZone = quietZone;
@@ -31,6 +32,9 @@ internal sealed class RenderOptions
     /// <summary>Top of the add-on bars when add-on digits are shown above them.</summary>
     public double AddOnTop => FontSize * 0.95;
 
+    /// <summary>Largest output area allowed, in pixels.</summary>
+    public long MaxPixels { get; }
+
     public int ModuleSize { get; }
     public int BarHeight { get; }
     public int QuietZone { get; }
@@ -48,11 +52,11 @@ internal sealed class RenderOptions
     {
         var width = ((long)matrix.Width + 2L * QuietZone) * ModuleSize;
         var height = matrix.IsLinear ? BarHeight + (long)TextBand : ((long)matrix.Height + 2L * QuietZone) * ModuleSize;
-        if (width > BarcodeBuilder.MaxImageDimension || height > BarcodeBuilder.MaxImageDimension || width * height > BarcodeBuilder.MaxImagePixels)
+        if (width > BarcodeBuilder.MaxImageDimension || height > BarcodeBuilder.MaxImageDimension || width * height > MaxPixels)
         {
             throw new ArgumentException(
                 $"The image would be {width} x {height} pixels, which exceeds the limit of {BarcodeBuilder.MaxImageDimension} pixels per side " +
-                $"and {BarcodeBuilder.MaxImagePixels} pixels in total. Reduce ModuleSize, Height or QuietZone, or encode a shorter value.");
+                $"and {MaxPixels} pixels in total. Reduce ModuleSize, Height or QuietZone, or encode a shorter value.");
         }
 
         return ((int)width, (int)height);
