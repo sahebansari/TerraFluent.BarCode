@@ -220,3 +220,53 @@ static TerraFluent.Barcode.Barcodes.Gs1DataBarLimited(string! gtin) -> TerraFlue
 static TerraFluent.Barcode.Barcodes.IntelligentMail(string! trackingCode, string! routingCode = "") -> TerraFluent.Barcode.BarcodeBuilder!
 static TerraFluent.Barcode.Barcodes.MicroQrCode(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
 static TerraFluent.Barcode.Barcodes.RectangularMicroQrCode(string! value) -> TerraFluent.Barcode.BarcodeBuilder!
+TerraFluent.Barcode.ContactCard
+TerraFluent.Barcode.ContactCard.Birthday.get -> System.DateTime?
+TerraFluent.Barcode.ContactCard.Birthday.set -> void
+TerraFluent.Barcode.ContactCard.City.get -> string?
+TerraFluent.Barcode.ContactCard.City.set -> void
+TerraFluent.Barcode.ContactCard.ContactCard() -> void
+TerraFluent.Barcode.ContactCard.Country.get -> string?
+TerraFluent.Barcode.ContactCard.Country.set -> void
+TerraFluent.Barcode.ContactCard.Email.get -> string?
+TerraFluent.Barcode.ContactCard.Email.set -> void
+TerraFluent.Barcode.ContactCard.FirstName.get -> string?
+TerraFluent.Barcode.ContactCard.FirstName.set -> void
+TerraFluent.Barcode.ContactCard.JobTitle.get -> string?
+TerraFluent.Barcode.ContactCard.JobTitle.set -> void
+TerraFluent.Barcode.ContactCard.LastName.get -> string?
+TerraFluent.Barcode.ContactCard.LastName.set -> void
+TerraFluent.Barcode.ContactCard.MobilePhone.get -> string?
+TerraFluent.Barcode.ContactCard.MobilePhone.set -> void
+TerraFluent.Barcode.ContactCard.Note.get -> string?
+TerraFluent.Barcode.ContactCard.Note.set -> void
+TerraFluent.Barcode.ContactCard.Organization.get -> string?
+TerraFluent.Barcode.ContactCard.Organization.set -> void
+TerraFluent.Barcode.ContactCard.Phone.get -> string?
+TerraFluent.Barcode.ContactCard.Phone.set -> void
+TerraFluent.Barcode.ContactCard.PostalCode.get -> string?
+TerraFluent.Barcode.ContactCard.PostalCode.set -> void
+TerraFluent.Barcode.ContactCard.Region.get -> string?
+TerraFluent.Barcode.ContactCard.Region.set -> void
+TerraFluent.Barcode.ContactCard.Street.get -> string?
+TerraFluent.Barcode.ContactCard.Street.set -> void
+TerraFluent.Barcode.ContactCard.Website.get -> string?
+TerraFluent.Barcode.ContactCard.Website.set -> void
+TerraFluent.Barcode.ContactCard.WorkPhone.get -> string?
+TerraFluent.Barcode.ContactCard.WorkPhone.set -> void
+TerraFluent.Barcode.QrPayload
+TerraFluent.Barcode.WifiSecurity
+TerraFluent.Barcode.WifiSecurity.None = 2 -> TerraFluent.Barcode.WifiSecurity
+TerraFluent.Barcode.WifiSecurity.Wep = 1 -> TerraFluent.Barcode.WifiSecurity
+TerraFluent.Barcode.WifiSecurity.Wpa = 0 -> TerraFluent.Barcode.WifiSecurity
+const TerraFluent.Barcode.QrPayload.Gs1ResolverDomain = "https://id.gs1.org" -> string!
+static TerraFluent.Barcode.QrPayload.Contact(TerraFluent.Barcode.ContactCard! contact) -> string!
+static TerraFluent.Barcode.QrPayload.Email(string! address, string? subject = null, string? body = null) -> string!
+static TerraFluent.Barcode.QrPayload.Gs1DigitalLink(System.Uri! domain, params (string! Ai, string! Data)[]! elements) -> string!
+static TerraFluent.Barcode.QrPayload.Gs1DigitalLink(System.Uri! domain, string! elementString) -> string!
+static TerraFluent.Barcode.QrPayload.Gs1DigitalLink(params (string! Ai, string! Data)[]! elements) -> string!
+static TerraFluent.Barcode.QrPayload.Gs1DigitalLink(string! elementString) -> string!
+static TerraFluent.Barcode.QrPayload.Phone(string! number) -> string!
+static TerraFluent.Barcode.QrPayload.Sms(string! number, string? message = null) -> string!
+static TerraFluent.Barcode.QrPayload.Url(string! url) -> string!
+static TerraFluent.Barcode.QrPayload.Wifi(string! ssid, string? password, TerraFluent.Barcode.WifiSecurity security = TerraFluent.Barcode.WifiSecurity.Wpa, bool hidden = false) -> string!

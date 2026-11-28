@@ -124,7 +124,7 @@ internal static class MicroQrEncoder
 
         // A 4-bit final codeword takes part in Reed-Solomon as its high nibble.
         var data = buffer.ToPaddedBytes();
-        var ecc = ReedSolomon.Remainder(data, ReedSolomon.Generator(info.EccCodewords));
+        var ecc = CompactQrSegmenter.Ecc(data, info.EccCodewords);
         var stream = new BitBuffer();
         stream.AppendBits(buffer);
         foreach (var b in ecc) stream.Append(b, 8);

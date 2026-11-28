@@ -52,6 +52,19 @@ var images = new (string Name, BarcodeBuilder Builder, BarcodeImageFormat[] Form
     ("intelligent-mail", Barcodes.IntelligentMail("01234567094987654321", "01234567891"), [svg, png]),
     ("pdf417-columns", Barcodes.Pdf417("TerraFluent.Barcode PDF417 sample").Pdf417Columns(3).Pdf417ErrorCorrection(4), [svg]),
 
+    // QR payloads
+    ("payload-wifi", Barcodes.QrCode(QrPayload.Wifi("Guest", "welcome123")).ModuleSize(6), [svg]),
+    ("payload-contact", Barcodes.QrCode(QrPayload.Contact(new ContactCard
+    {
+        FirstName = "Ada",
+        LastName = "Lovelace",
+        Organization = "Analytical Engines Ltd",
+        MobilePhone = "+44 7700 900123",
+        Email = "ada@example.com",
+        Website = "https://example.com",
+    })).ModuleSize(4), [svg]),
+    ("payload-gs1-digital-link", Barcodes.QrCode(QrPayload.Gs1DigitalLink("(01)09501101530003(10)ABC123(17)271231")).ModuleSize(5), [svg]),
+
     // Output formats: the same code in each format
     ("format-sample", Barcodes.QrCode(Url).ModuleSize(5), [png, jpeg, svg]),
 

@@ -206,7 +206,6 @@ internal static class RmqrEncoder
         var shortLen = data.Length / blocks;
         var longBlocks = data.Length % blocks;
         var shortBlocks = blocks - longBlocks;
-        var generator = ReedSolomon.Generator(eccLen);
         var dataBlocks = new byte[blocks][];
         var eccBlocks = new byte[blocks][];
         for (int b = 0, k = 0; b < blocks; b++)
@@ -215,7 +214,7 @@ internal static class RmqrEncoder
             dataBlocks[b] = new byte[len];
             Array.Copy(data, k, dataBlocks[b], 0, len);
             k += len;
-            eccBlocks[b] = ReedSolomon.Remainder(dataBlocks[b], generator);
+            eccBlocks[b] = CompactQrSegmenter.Ecc(dataBlocks[b], eccLen);
         }
 
         var result = new List<byte>(total);

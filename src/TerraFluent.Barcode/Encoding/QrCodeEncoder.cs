@@ -240,40 +240,37 @@ internal static class QrCodeEncoder
         return result;
     }
 
+    /// <summary>
+    /// Splits the data into blocks, computes each block's check bytes and interleaves
+    /// both straight into the final codeword sequence: data column by column (long
+    /// blocks have one more data byte at the end), then the check bytes the same way.
+    /// </summary>
     private static byte[] AddEccAndInterleave(byte[] data, int version, int level)
     {
         var numBlocks = ErrorCorrectionBlocks[level][version];
         var eccLen = EccCodewordsPerBlock[level][version];
         var rawCodewords = RawDataModules(version) / 8;
         var numShortBlocks = numBlocks - rawCodewords % numBlocks;
-        var shortBlockLen = rawCodewords / numBlocks;
-        var divisor = ReedSolomon.Generator(eccLen);
+        var shortDataLen = rawCodewords / numBlocks - eccLen;
+        var eccStart = shortDataLen * numBlocks + (numBlocks - numShortBlocks);
 
-        var blocks = new byte[numBlocks][];
-        for (int i = 0, k = 0; i < numBlocks; i++)
+        var words = new int[data.Length];
+        for (var i = 0; i < data.Length; i++) words[i] = data[i];
+
+        var result = new byte[rawCodewords];
+        var ecc = new int[eccLen];
+        for (int j = 0, k = 0; j < numBlocks; j++)
         {
-            var datLen = shortBlockLen - eccLen + (i < numShortBlocks ? 0 : 1);
-            var dat = new byte[datLen];
-            Array.Copy(data, k, dat, 0, datLen);
+            var datLen = shortDataLen + (j < numShortBlocks ? 0 : 1);
+            for (var t = 0; t < shortDataLen; t++) result[t * numBlocks + j] = data[k + t];
+            if (j >= numShortBlocks) result[shortDataLen * numBlocks + j - numShortBlocks] = data[k + shortDataLen];
+
+            GaloisField.QrCode.Remainder(words, k, datLen, 1, ecc);
+            for (var e = 0; e < eccLen; e++) result[eccStart + e * numBlocks + j] = (byte)ecc[e];
             k += datLen;
-            var ecc = ReedSolomon.Remainder(dat, divisor);
-            var block = new byte[shortBlockLen + 1];
-            Array.Copy(dat, block, datLen);
-            Array.Copy(ecc, 0, block, block.Length - eccLen, eccLen);
-            blocks[i] = block;
         }
 
-        var result = new List<byte>(rawCodewords);
-        for (var i = 0; i < shortBlockLen + 1; i++)
-        {
-            for (var j = 0; j < numBlocks; j++)
-            {
-                // Short blocks have a padding slot at the end of their data part; skip it.
-                if (i != shortBlockLen - eccLen || j >= numShortBlocks) result.Add(blocks[j][i]);
-            }
-        }
-
-        return result.ToArray();
+        return result;
     }
 
     /// <summary>One run of the value in a single mode.</summary>
@@ -514,64 +511,6 @@ internal static class QrCodeEncoder
             while (size < needed) size *= 2;
             Array.Resize(ref _bytes, size);
         }
-    }
-
-    internal static class ReedSolomon
-    {
-        public static byte[] Generator(int degree)
-        {
-            var result = new byte[degree];
-            result[degree - 1] = 1;
-            var root = 1;
-            for (var i = 0; i < degree; i++)
-            {
-                for (var j = 0; j < result.Length; j++)
-                {
-                    result[j] = Multiply(result[j], root);
-                    if (j + 1 < result.Length) result[j] ^= result[j + 1];
-                }
-
-                root = Multiply(root, 0x02);
-            }
-
-            return result;
-        }
-
-        public static byte[] Remainder(byte[] data, byte[] divisor)
-        {
-            var result = new byte[divisor.Length];
-            foreach (var b in data)
-            {
-                var factor = b ^ result[0];
-                Array.Copy(result, 1, result, 0, result.Length - 1);
-                result[result.Length - 1] = 0;
-                for (var i = 0; i < result.Length; i++) result[i] ^= Multiply(divisor[i], factor);
-            }
-
-            return result;
-        }
-
-        // GF(256) with polynomial 0x11D: exp/log tables turn each multiplication into two lookups.
-        private static readonly byte[] Exp = new byte[512];
-        private static readonly int[] Log = BuildTables();
-
-        private static int[] BuildTables()
-        {
-            var log = new int[256];
-            var x = 1;
-            for (var i = 0; i < 255; i++)
-            {
-                Exp[i] = (byte)x;
-                log[x] = i;
-                x <<= 1;
-                if (x >= 256) x ^= 0x11D;
-            }
-
-            for (var i = 255; i < 512; i++) Exp[i] = Exp[i - 255];
-            return log;
-        }
-
-        private static byte Multiply(int x, int y) => x == 0 || y == 0 ? (byte)0 : Exp[Log[x] + Log[y]];
     }
 
     private sealed class Symbol

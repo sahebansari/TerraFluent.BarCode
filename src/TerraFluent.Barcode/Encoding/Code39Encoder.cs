@@ -114,11 +114,17 @@ internal static class Code39Encoder
     /// <summary>The modulo 43 check character for <paramref name="value"/>.</summary>
     internal static char ChecksumCharacter(string value)
     {
-        var indices = value.Select(c => Alphabet.IndexOf(c)).ToList();
-        return Alphabet[Checksum(indices)];
+        var sum = 0;
+        foreach (var c in value) sum += Alphabet.IndexOf(c);
+        return Alphabet[sum % 43];
     }
 
-    private static int Checksum(IEnumerable<int> indices) => indices.Sum() % 43;
+    private static int Checksum(List<int> indices)
+    {
+        var sum = 0;
+        foreach (var index in indices) sum += index;
+        return sum % 43;
+    }
 
     private static void AppendCharacter(ModuleWriter writer, int pattern)
     {

@@ -202,4 +202,16 @@ internal static class CompactQrSegmenter
             else buffer.Append(0, capacityBits - buffer.Count);
         }
     }
+
+    /// <summary>QR-family Reed-Solomon check bytes (GF(256), polynomial 0x11D, roots from a^0) for one block.</summary>
+    public static byte[] Ecc(byte[] data, int eccCount)
+    {
+        var words = new int[data.Length];
+        for (var i = 0; i < data.Length; i++) words[i] = data[i];
+        var ecc = new int[eccCount];
+        GaloisField.QrCode.Remainder(words, 0, data.Length, 1, ecc);
+        var result = new byte[eccCount];
+        for (var i = 0; i < eccCount; i++) result[i] = (byte)ecc[i];
+        return result;
+    }
 }
