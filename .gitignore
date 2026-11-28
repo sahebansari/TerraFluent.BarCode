@@ -8,3 +8,6 @@ obj/
 artifacts/
 *.nupkg
 *.snupkg
+
+# BenchmarkDotNet results
+BenchmarkDotNet.Artifacts/

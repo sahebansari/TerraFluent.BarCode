@@ -39,6 +39,7 @@ public sealed class BarcodeGenerator : IBarcodeGenerator
         if (o.Pdf417Columns is { } columns && type == BarcodeType.Pdf417) builder.Pdf417Columns(columns);
         if (o.Pdf417ErrorCorrection is { } pdfLevel && type == BarcodeType.Pdf417) builder.Pdf417ErrorCorrection(pdfLevel);
         if (o.JpegQuality is { } quality) builder.JpegQuality(quality);
+        if (o.MaxImagePixels is { } maxPixels) builder.ImageSizeLimit(maxPixels);
         return builder;
     }
 
