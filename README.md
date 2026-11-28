@@ -10,6 +10,9 @@ on Windows, Linux, macOS, containers and serverless. The library targets
 `netstandard2.0` (.NET Framework 4.6.1+, .NET Core 2.0+, Mono, Unity) and
 `net10.0` (trimming and Native AOT compatible), and the assembly is strong-named.
 
+Documentation: **[terrafluent.dev/barcode](https://terrafluent.dev/barcode/)**, with guides, examples
+for every barcode type and the full API reference (source in [`docs/`](docs/README.md)).
+
 ## Install
 
 ```shell
@@ -229,6 +232,7 @@ Changes are listed in [CHANGELOG.md](https://github.com/sahebansari/TerraFluent.
 
 - `src/TerraFluent.Barcode` – the library.
 - `tests/TerraFluent.Barcode.Tests` – xUnit tests.
+- `docs` – the documentation published at terrafluent.dev; see [docs/README.md](docs/README.md).
 - `samples/TerraFluent.Barcode.Sample` – writes every symbology in every format
   plus an `index.html` preview: `dotnet run --project samples/TerraFluent.Barcode.Sample`.
 

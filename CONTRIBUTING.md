@@ -28,6 +28,10 @@ The build treats warnings as errors and runs the .NET analyzers.
 - Add an entry under `[Unreleased]` in `CHANGELOG.md`.
 - For new symbologies or styles, check that the output scans, for example
   with `zbarimg` from zbar-tools.
+- Update the guides in `docs/` when behaviour or the public API changes (new
+  symbologies get a section in `docs/barcode-types.md` and an example image in
+  `docs/tools/DocImages`), then run `docs/build.sh` to regenerate the images and
+  API reference. See [docs/README.md](docs/README.md).
 
 ## Releasing (maintainers)
 
