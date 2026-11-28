@@ -12,6 +12,8 @@ Markdown, so they also read well right here on GitHub.
 4. [Output formats](output-formats.md): PNG, JPEG, SVG, bytes, streams, base64, data URIs and files
 5. [Options](options.md): size, quiet zone, colours and human-readable text
 6. [Styling](styling.md): module and eye shapes, gradients, logos and rounded bars
+7. [Dependency injection](dependency-injection.md): `IBarcodeGenerator` and `BarcodeOptions`
+8. [ASP.NET Core](aspnetcore.md): a barcode endpoint, `IResult` helpers and a tag helper
 7. [QR payloads](qr-payloads.md): Wi-Fi, contacts, links, email, SMS, calls and GS1 Digital Link
 8. [Dependency injection](dependency-injection.md): `IBarcodeGenerator` and `BarcodeOptions`
 9. [Custom rendering](custom-rendering.md): drawing a `BarcodeMatrix` yourself
