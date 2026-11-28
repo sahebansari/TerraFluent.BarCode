@@ -5,6 +5,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- New package `TerraFluent.Barcode.Mcp`: an MCP server, installed as a .NET tool
+  (`terrafluent-barcode-mcp`), that lets AI assistants generate barcodes and QR
+  codes. Tools: `generate_barcode`, `generate_qr_code` (styled) and
+  `list_barcode_formats`. Returns PNG/JPEG image content, SVG markup, base64 or
+  data URIs; image size is capped at 4 megapixels by default
+  (`TERRAFLUENT_BARCODE_MCP_MAX_PIXELS`). Published with the library from the
+  same release tag.
+
 ### Changed
 
 - NuGet package project URL now points to https://terrafluent.dev/barcode/; added `dotnet` and `csharp` package tags.

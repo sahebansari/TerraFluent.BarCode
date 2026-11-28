@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>TerraFluent.Barcode.Mcp</RootNamespace>
+    <AssemblyName>TerraFluent.Barcode.Mcp</AssemblyName>
+    <PackageId>TerraFluent.Barcode.Mcp</PackageId>
+    <Title>TerraFluent.Barcode.Mcp — MCP server that lets AI assistants generate barcodes and QR codes</Title>
+    <Description>A Model Context Protocol (MCP) server, installed as a .NET tool, that lets AI assistants such as Claude generate barcodes, QR codes, Data Matrix and PDF417 symbols with TerraFluent.Barcode. Returns PNG or JPEG images, SVG markup, base64 or data URIs over stdio.</Description>
+    <PackageTags>mcp;mcp-server;model-context-protocol;ai;llm;claude;dotnet-tool;barcode;qrcode;qr-code;datamatrix;pdf417;png;svg</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <!-- The server is a tool package, not a library: MIT only, the font licence travels with the TerraFluent.Barcode dependency. -->
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>terrafluent-barcode-mcp</ToolCommandName>
+    <!-- Lists the package under "MCP servers" on nuget.org; .mcp/server.json tells clients how to run it. -->
+    <PackageType>DotnetTool;McpServer</PackageType>
+    <RollForward>Major</RollForward>
+
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- CA1515: tool classes are public so the tests can host them; this assembly is never referenced as a library. -->
+    <NoWarn>$(NoWarn);CA1515</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModelContextProtocol" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.15" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="11.0.100" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TerraFluent.Barcode\TerraFluent.Barcode.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TerraFluent.Barcode.Mcp.Tests" Key="00240000048000009400000006020000002400005253413100040000010001008b33e96b27d9881dc277db18054d66ae35874c9515692811a2bceb96475223587a55e278db7054e328e28a11e2a2cef77117972d201803378baa8a35d0e098250e499f8f07a23b69d16ea0f41a8992c1f7ee101a9273262e23027e2c880acbad927f825dcf5aafa39cbd6e0f64b0fd3e2eb27ac4e2a8bfc5b308ad794b356aea" />
+  </ItemGroup>
+
+  <!-- .mcp/server.json carries the package version twice; stamp it from $(Version) so it never drifts. -->
+  <Target Name="StampServerJson" BeforeTargets="_GetPackageFiles">
+    <PropertyGroup>
+      <_ServerJsonOut>$(IntermediateOutputPath)server.json</_ServerJsonOut>
+      <_ServerJson>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/.mcp/server.json').Replace('__VERSION__', '$(PackageVersion)'))</_ServerJson>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_ServerJsonOut)" Lines="$([MSBuild]::Escape($(_ServerJson)))" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <None Include="$(_ServerJsonOut)" Pack="true" PackagePath="/.mcp/" />
+    </ItemGroup>
+  </Target>
+
+</Project>
