@@ -6,12 +6,12 @@ namespace TerraFluent.Barcode;
 /// Entry point. Pick a symbology, configure it fluently, then ask for the
 /// output you need:
 /// <code>
-/// byte[] png = Barcode.Code128("ABC-12345").Height(60).ToPng();
-/// string svg = Barcode.QrCode("https://terrafluent.dev").ErrorCorrection(QrErrorCorrectionLevel.H).ToSvg();
-/// string uri = Barcode.Ean13("590123412345").ToDataUri(BarcodeImageFormat.Png);
+/// byte[] png = Barcodes.Code128("ABC-12345").Height(60).ToPng();
+/// string svg = Barcodes.QrCode("https://terrafluent.dev").ErrorCorrection(QrErrorCorrectionLevel.H).ToSvg();
+/// string uri = Barcodes.Ean13("590123412345").ToDataUri(BarcodeImageFormat.Png);
 /// </code>
 /// </summary>
-public static class Barcode
+public static class Barcodes
 {
     /// <summary>Longest value accepted by <see cref="Code128"/>, in characters.</summary>
     public const int MaxCode128Length = Encoding.Code128Encoder.MaxLength;

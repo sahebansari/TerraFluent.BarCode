@@ -10,6 +10,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Renamed the package, assembly, root namespace, projects and solution from
   `TerraFluent.BarCode` to `TerraFluent.Barcode`, before the first NuGet.org publish.
   Update `using TerraFluent.BarCode;` to `using TerraFluent.Barcode;`.
+- Renamed the static entry class `Barcode` to `Barcodes` (for example
+  `Barcodes.QrCode("...")`), so it no longer shares its namespace's name. Code in
+  other `TerraFluent.*` namespaces can call it without qualifying it.
 - Package description and tags now name QR code and 2D codes (Data Matrix, PDF417).
 
 ## [1.1.0] - 2026-11-27

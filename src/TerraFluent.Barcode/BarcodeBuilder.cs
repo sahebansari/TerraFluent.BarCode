@@ -13,7 +13,7 @@ namespace TerraFluent.Barcode;
 /// <para>
 /// <b>Thread safety:</b> configure a builder on one thread. Once configured, its
 /// output methods may be called from several threads at the same time. The
-/// static <see cref="Barcode"/> methods are thread-safe, so the simplest pattern
+/// static <see cref="Barcodes"/> methods are thread-safe, so the simplest pattern
 /// is one builder per barcode.
 /// </para>
 /// <para>

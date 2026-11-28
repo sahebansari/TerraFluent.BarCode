@@ -5,7 +5,7 @@ namespace TerraFluent.Barcode.Tests;
 /// <summary>Input validation, limits and interoperability fixes made for the 1.0 release.</summary>
 public class ReleaseHardeningTests
 {
-    private static readonly byte[] Logo = Barcode.QrCode("logo").ToPng();
+    private static readonly byte[] Logo = Barcodes.QrCode("logo").ToPng();
 
     [Theory]
     [InlineData("Grüße", true)]
@@ -31,16 +31,16 @@ public class ReleaseHardeningTests
     [Fact]
     public void Unpaired_surrogate_throws_argument_exception()
     {
-        var ex = Assert.Throws<ArgumentException>(() => Barcode.QrCode("a\ud800b").Encode());
+        var ex = Assert.Throws<ArgumentException>(() => Barcodes.QrCode("a\ud800b").Encode());
         Assert.Equal("value", ex.ParamName);
     }
 
     [Fact]
     public void Oversized_images_are_rejected_before_allocating()
     {
-        Assert.Throws<ArgumentException>(() => Barcode.QrCode("hi").ModuleSize(3000).ToPng());
-        Assert.Throws<ArgumentException>(() => Barcode.QrCode("hi").ModuleSize(3000).GetImageSize());
-        Assert.Throws<ArgumentException>(() => Barcode.Code128(new string('A', 256)).ModuleSize(20).ToJpeg());
+        Assert.Throws<ArgumentException>(() => Barcodes.QrCode("hi").ModuleSize(3000).ToPng());
+        Assert.Throws<ArgumentException>(() => Barcodes.QrCode("hi").ModuleSize(3000).GetImageSize());
+        Assert.Throws<ArgumentException>(() => Barcodes.Code128(new string('A', 256)).ModuleSize(20).ToJpeg());
     }
 
     [Theory]
@@ -49,31 +49,31 @@ public class ReleaseHardeningTests
     [InlineData(int.MaxValue)]
     public void Size_settings_are_range_checked(int value)
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => Barcode.QrCode("x").ModuleSize(value));
-        Assert.Throws<ArgumentOutOfRangeException>(() => Barcode.Code128("x").Height(value));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Barcodes.QrCode("x").ModuleSize(value));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Barcodes.Code128("x").Height(value));
     }
 
     [Fact]
     public void Quiet_zone_is_range_checked()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => Barcode.QrCode("x").QuietZone(-1));
-        Assert.Throws<ArgumentOutOfRangeException>(() => Barcode.QrCode("x").QuietZone(int.MaxValue));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Barcodes.QrCode("x").QuietZone(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Barcodes.QrCode("x").QuietZone(int.MaxValue));
     }
 
     [Fact]
     public void Largest_allowed_image_still_renders()
     {
-        var size = Barcode.Code128("ABC").ModuleSize(1).Height(BarcodeBuilder.MaxImageDimension).GetImageSize();
+        var size = Barcodes.Code128("ABC").ModuleSize(1).Height(BarcodeBuilder.MaxImageDimension).GetImageSize();
         Assert.Equal(BarcodeBuilder.MaxImageDimension, size.Height);
     }
 
     [Fact]
     public void Linear_values_have_a_length_limit()
     {
-        Barcode.Code128(new string('A', Barcode.MaxCode128Length)).Encode();
-        Barcode.Code39(new string('A', Barcode.MaxCode39Length)).Encode();
-        Assert.Throws<ArgumentException>(() => Barcode.Code128(new string('A', Barcode.MaxCode128Length + 1)).Encode());
-        Assert.Throws<ArgumentException>(() => Barcode.Code39(new string('A', Barcode.MaxCode39Length + 1)).Encode());
+        Barcodes.Code128(new string('A', Barcodes.MaxCode128Length)).Encode();
+        Barcodes.Code39(new string('A', Barcodes.MaxCode39Length)).Encode();
+        Assert.Throws<ArgumentException>(() => Barcodes.Code128(new string('A', Barcodes.MaxCode128Length + 1)).Encode());
+        Assert.Throws<ArgumentException>(() => Barcodes.Code39(new string('A', Barcodes.MaxCode39Length + 1)).Encode());
     }
 
     [Theory]
@@ -82,7 +82,7 @@ public class ReleaseHardeningTests
     [InlineData(QrErrorCorrectionLevel.Q, 0.3)]
     public void Logo_with_too_little_error_correction_is_rejected(QrErrorCorrectionLevel level, double scale)
     {
-        var builder = Barcode.QrCode("https://example.com").ErrorCorrection(level).Logo(Logo, scale);
+        var builder = Barcodes.QrCode("https://example.com").ErrorCorrection(level).Logo(Logo, scale);
         Assert.Throws<InvalidOperationException>(() => builder.ToPng());
         Assert.Throws<InvalidOperationException>(() => builder.ToSvg());
     }
@@ -92,22 +92,22 @@ public class ReleaseHardeningTests
     [InlineData(QrErrorCorrectionLevel.H, 0.3)]
     public void Logo_with_enough_error_correction_renders(QrErrorCorrectionLevel level, double scale)
     {
-        Assert.NotEmpty(Barcode.QrCode("https://example.com").Logo(Logo, scale).ErrorCorrection(level).ToPng());
+        Assert.NotEmpty(Barcodes.QrCode("https://example.com").Logo(Logo, scale).ErrorCorrection(level).ToPng());
     }
 
     [Fact]
     public void Low_contrast_is_rejected_unless_allowed()
     {
-        Assert.Throws<InvalidOperationException>(() => Barcode.QrCode("x").Foreground("#FFF").ToPng());
-        Assert.Throws<InvalidOperationException>(() => Barcode.Code128("x").Gradient("#000", "#EEE").ToSvg());
-        Assert.Throws<InvalidOperationException>(() => Barcode.QrCode("x").EyeColor("#FFEB3B").ToJpeg());
-        Assert.NotEmpty(Barcode.QrCode("x").Foreground("#FFEB3B").AllowLowContrast().ToPng());
+        Assert.Throws<InvalidOperationException>(() => Barcodes.QrCode("x").Foreground("#FFF").ToPng());
+        Assert.Throws<InvalidOperationException>(() => Barcodes.Code128("x").Gradient("#000", "#EEE").ToSvg());
+        Assert.Throws<InvalidOperationException>(() => Barcodes.QrCode("x").EyeColor("#FFEB3B").ToJpeg());
+        Assert.NotEmpty(Barcodes.QrCode("x").Foreground("#FFEB3B").AllowLowContrast().ToPng());
     }
 
     [Fact]
     public void Inverted_colours_with_strong_contrast_are_allowed()
     {
-        Assert.NotEmpty(Barcode.QrCode("x").Foreground("#FFF").Background("#000").ToPng());
+        Assert.NotEmpty(Barcodes.QrCode("x").Foreground("#FFF").Background("#000").ToPng());
     }
 
     [Theory]
@@ -121,7 +121,7 @@ public class ReleaseHardeningTests
     [Fact]
     public void Builder_output_is_safe_to_call_concurrently()
     {
-        var builder = Barcode.QrCode("shared").ModuleStyle(QrModuleStyle.Dots);
+        var builder = Barcodes.QrCode("shared").ModuleStyle(QrModuleStyle.Dots);
         var expected = builder.ToPng();
         var results = new byte[32][];
         Parallel.For(0, results.Length, i => results[i] = builder.ToPng());
@@ -134,6 +134,6 @@ public class ReleaseHardeningTests
         var png = (byte[])Logo.Clone();
         // Overwrite the IHDR chunk length with 0x7FFFFFF0 so pos + length would overflow a 32-bit int.
         png[8] = 0x7F; png[9] = 0xFF; png[10] = 0xFF; png[11] = 0xF0;
-        Assert.Throws<ArgumentException>(() => Barcode.QrCode("x").Logo(png));
+        Assert.Throws<ArgumentException>(() => Barcodes.QrCode("x").Logo(png));
     }
 }
