@@ -5,6 +5,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `QrPayload` builds the text that phone cameras act on, validated and escaped
+  as each format requires, to pass to `Barcodes.QrCode` (or Data Matrix and Aztec):
+  - `Wifi(ssid, password, security, hidden)` in the `WIFI:` format, with
+    `WifiSecurity.Wpa`, `Wep` and `None`.
+  - `Contact(ContactCard)` as a vCard 3.0, with name, organization, title,
+    phones, email, website, address, birthday and note.
+  - `Url`, `Email` (`mailto:` with subject and body), `Phone` (`tel:`) and
+    `Sms` (`SMSTO:`).
+  - `Gs1DigitalLink` from an element string or AI pairs, on GS1's resolver or
+    your own domain: key qualifiers in the path in standard order, other AIs
+    as query parameters, GTINs padded to 14 digits and every AI validated as
+    for GS1-128.
+
 ## [1.3.0] - 2026-11-28
 
 ### Added
