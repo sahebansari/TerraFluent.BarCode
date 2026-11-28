@@ -1,0 +1,32 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.sahebansari/terrafluent-barcode",
+  "title": "TerraFluent Barcode",
+  "description": "Generate barcodes and QR codes (Code 128, GS1-128, EAN, UPC, QR, Data Matrix, PDF417) as PNG, JPEG or SVG.",
+  "websiteUrl": "https://terrafluent.dev/barcode/",
+  "repository": {
+    "url": "https://github.com/sahebansari/TerraFluent.Barcode",
+    "source": "github",
+    "subfolder": "src/TerraFluent.Barcode.Mcp"
+  },
+  "version": "__VERSION__",
+  "packages": [
+    {
+      "registryType": "nuget",
+      "registryBaseUrl": "https://api.nuget.org",
+      "identifier": "TerraFluent.Barcode.Mcp",
+      "version": "__VERSION__",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "TERRAFLUENT_BARCODE_MCP_MAX_PIXELS",
+          "description": "Largest image area the server renders, in pixels. Default 4194304 (2048 x 2048).",
+          "isRequired": false,
+          "format": "number"
+        }
+      ]
+    }
+  ]
+}

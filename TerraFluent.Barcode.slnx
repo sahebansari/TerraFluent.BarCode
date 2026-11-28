@@ -6,9 +6,11 @@
     <Project Path="samples/TerraFluent.Barcode.Sample/TerraFluent.Barcode.Sample.csproj" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/TerraFluent.Barcode.Mcp/TerraFluent.Barcode.Mcp.csproj" />
     <Project Path="src/TerraFluent.Barcode/TerraFluent.Barcode.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/TerraFluent.Barcode.Mcp.Tests/TerraFluent.Barcode.Mcp.Tests.csproj" />
     <Project Path="tests/TerraFluent.Barcode.Tests/TerraFluent.Barcode.Tests.csproj" />
   </Folder>
 </Solution>
