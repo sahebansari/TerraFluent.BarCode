@@ -156,6 +156,25 @@ two-colour images, so prefer PNG or SVG: JPEG compression softens bar edges.
 | `JpegQuality(1-100)` | 90 | JPEG output only. |
 | `AllowLowContrast()` | off | Skips the contrast check. |
 
+## QR Payloads
+
+`QrPayload` builds correctly escaped text for the formats phone cameras act
+on, ready to pass to `Barcodes.QrCode`:
+
+```csharp
+Barcodes.QrCode(QrPayload.Wifi("Guest", "welcome123")).ToPng();
+Barcodes.QrCode(QrPayload.Contact(new ContactCard { FirstName = "Ada", LastName = "Lovelace", Email = "ada@example.com" })).ToSvg();
+Barcodes.QrCode(QrPayload.Url("terrafluent.dev/barcode")).ToPng();          // https:// added
+Barcodes.QrCode(QrPayload.Email("hello@example.com", "Order 1042")).ToPng(); // mailto:, percent-encoded
+Barcodes.QrCode(QrPayload.Sms("+1 555 123 4567", "Running late")).ToPng();  // also QrPayload.Phone
+Barcodes.QrCode(QrPayload.Gs1DigitalLink("(01)09501101530003(10)ABC123(17)271231")).ToPng();
+// https://id.gs1.org/01/09501101530003/10/ABC123?17=271231
+```
+
+Each helper validates its input (WPA password length, email address, phone
+digits, GS1 AIs and check digits) and throws `ArgumentException` for anything
+the format cannot express. See [QR payloads](docs/qr-payloads.md).
+
 ## Fancy Styles
 
 Rounded and dotted modules, shaped eyes, gradients, logos and rounded bars
@@ -224,6 +243,27 @@ ignored, so one `BarcodeOptions` serves every type. Options passed to a call
 replace the defaults. `Create(type, value)` returns a `BarcodeBuilder` with
 the options applied, for gradients, logos and other styles.
 
+## ASP.NET Core
+
+`TerraFluent.Barcode.AspNetCore` is a separate package for web apps (.NET 10):
+an endpoint that serves any barcode from a URL, with size limits, ETags and
+caching headers; `IResult` helpers; and a Razor tag helper.
+
+```csharp
+builder.Services.AddBarcodes(o => o.MaxImagePixels = 1024 * 1024);
+app.MapBarcodes();   // <img src="/barcodes/qr.svg?data=hello">
+
+app.MapGet("/labels/{sku}.png", (string sku) =>
+    Results.Extensions.Barcode(BarcodeType.Code128, sku));
+```
+
+```cshtml
+@addTagHelper *, TerraFluent.Barcode.AspNetCore
+<barcode type="QrCode" value="@Model.Url" module-size="6" />
+```
+
+See [the ASP.NET Core guide](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/docs/aspnetcore.md).
+
 ## MCP Server for AI Assistants
 
 `TerraFluent.Barcode.Mcp` is a separate package: a
@@ -262,9 +302,11 @@ Changes are listed in [CHANGELOG.md](https://github.com/sahebansari/TerraFluent.
 
 - `src/TerraFluent.Barcode` – the library.
 - `src/TerraFluent.Barcode.Mcp` – the MCP server (.NET tool).
+- `src/TerraFluent.Barcode.AspNetCore` – ASP.NET Core endpoint, results and tag helper.
 - `tests/TerraFluent.Barcode.Tests` – xUnit tests.
 - `docs` – the documentation published at terrafluent.dev; see [docs/README.md](docs/README.md).
 - `tests/TerraFluent.Barcode.Mcp.Tests` – MCP server tests, run against an in-process client.
+- `tests/TerraFluent.Barcode.AspNetCore.Tests` – ASP.NET Core tests, run on the in-memory test server.
 - `samples/TerraFluent.Barcode.Sample` – writes every symbology in every format
   plus an `index.html` preview: `dotnet run --project samples/TerraFluent.Barcode.Sample`.
 

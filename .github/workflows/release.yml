@@ -1,6 +1,7 @@
 name: Release
 
-# Publishes TerraFluent.Barcode and TerraFluent.Barcode.Mcp (the MCP server tool) to NuGet.org when a version tag such as v1.2.0 is pushed.
+# Publishes TerraFluent.Barcode, TerraFluent.Barcode.Mcp (the MCP server tool) and
+# TerraFluent.Barcode.AspNetCore (ASP.NET Core integration) to NuGet.org when a version tag such as v1.2.0 is pushed.
 #
 # The tag must match <Version> in Directory.Build.props and have a "## [x.y.z]" section in
 # CHANGELOG.md. Tags with a suffix (v1.3.0-beta.1) publish a prerelease package.
@@ -14,7 +15,7 @@ name: Release
 #     repository and workflow file "release.yml", then set the repository variable NUGET_USER
 #     to your nuget.org user name (not your email).
 #   - API key: add a NUGET_API_KEY secret to the "nuget" environment, scoped to push
-#     TerraFluent.Barcode and TerraFluent.Barcode.Mcp (or the glob TerraFluent.*). Used when NUGET_USER is not set.
+#     TerraFluent.Barcode, TerraFluent.Barcode.Mcp and TerraFluent.Barcode.AspNetCore (or the glob TerraFluent.*). Used when NUGET_USER is not set.
 
 on:
   push:
@@ -74,11 +75,13 @@ jobs:
         run: |
           dotnet test tests/TerraFluent.Barcode.Tests/TerraFluent.Barcode.Tests.csproj --configuration Release --no-build
           dotnet test tests/TerraFluent.Barcode.Mcp.Tests/TerraFluent.Barcode.Mcp.Tests.csproj --configuration Release --no-build
+          dotnet test tests/TerraFluent.Barcode.AspNetCore.Tests/TerraFluent.Barcode.AspNetCore.Tests.csproj --configuration Release --no-build
 
       - name: Pack
         run: |
           dotnet pack src/TerraFluent.Barcode/TerraFluent.Barcode.csproj --configuration Release --no-build --output artifacts
           dotnet pack src/TerraFluent.Barcode.Mcp/TerraFluent.Barcode.Mcp.csproj --configuration Release --no-build --output artifacts
+          dotnet pack src/TerraFluent.Barcode.AspNetCore/TerraFluent.Barcode.AspNetCore.csproj --configuration Release --no-build --output artifacts
 
       - name: Extract release notes from CHANGELOG.md
         shell: bash
@@ -141,7 +144,7 @@ jobs:
             echo "::error::No NuGet credentials. Set the NUGET_USER variable (trusted publishing) or the NUGET_API_KEY secret."
             exit 1
           fi
-          # Pushes both packages; each .nupkg also pushes the matching .snupkg next to it.
+          # Pushes every package; each .nupkg also pushes the matching .snupkg next to it.
           dotnet nuget push "artifacts/*.nupkg" --api-key "$NUGET_KEY" --source https://api.nuget.org/v3/index.json --skip-duplicate
 
       - name: Create GitHub release

@@ -40,7 +40,10 @@ internal static class Gs1
     }
 
     /// <summary>Parses an element string written as <c>(AI)data(AI)data</c>.</summary>
-    public static Result Parse(string value, string paramName)
+    public static Result Parse(string value, string paramName) => Build(Split(value, paramName), paramName);
+
+    /// <summary>Splits an element string written as <c>(AI)data(AI)data</c> into AI and data pairs, without validating them.</summary>
+    public static List<(string Ai, string Data)> Split(string value, string paramName)
     {
         var elements = new List<(string Ai, string Data)>();
         var pos = 0;
@@ -56,7 +59,7 @@ internal static class Gs1
             pos = next;
         }
 
-        return Build(elements, paramName);
+        return elements;
     }
 
     /// <summary>
@@ -67,19 +70,7 @@ internal static class Gs1
     {
         foreach (var (ai, data) in elements)
         {
-            if (ai is null || ai.Length < 2 || ai.Length > 4 || ai.Any(c => c < '0' || c > '9'))
-            {
-                throw Error($"'{ai}' is not an application identifier (2 to 4 digits)", paramName);
-            }
-
-            var format = Gs1Ai.Find(ai) ?? throw Error($"({ai}) is not a GS1 application identifier", paramName);
-            if (string.IsNullOrEmpty(data)) throw Error($"AI ({ai}) has no data", paramName);
-            foreach (var c in data)
-            {
-                if (Charset82.IndexOf(c) < 0) throw Error($"'{c}' in AI ({ai}) is not in the GS1 character set", paramName);
-            }
-
-            if (Gs1Ai.Validate(ai, format, data) is { } problem) throw Error(problem, paramName);
+            Validate(ai, data, paramName);
         }
 
         if (elements.Count == 0) throw Error("no application identifiers found", paramName);
@@ -109,6 +100,24 @@ internal static class Gs1
         }
 
         return new Result(encoded.ToString(), readable.ToString());
+    }
+
+    /// <summary>Checks that <paramref name="ai"/> is a GS1 application identifier and <paramref name="data"/> matches its format.</summary>
+    public static void Validate(string ai, string data, string paramName)
+    {
+        if (ai is null || ai.Length < 2 || ai.Length > 4 || ai.Any(c => c < '0' || c > '9'))
+        {
+            throw Error($"'{ai}' is not an application identifier (2 to 4 digits)", paramName);
+        }
+
+        var format = Gs1Ai.Find(ai) ?? throw Error($"({ai}) is not a GS1 application identifier", paramName);
+        if (string.IsNullOrEmpty(data)) throw Error($"AI ({ai}) has no data", paramName);
+        foreach (var c in data)
+        {
+            if (Charset82.IndexOf(c) < 0) throw Error($"'{c}' in AI ({ai}) is not in the GS1 character set", paramName);
+        }
+
+        if (Gs1Ai.Validate(ai, format, data) is { } problem) throw Error(problem, paramName);
     }
 
     private static ArgumentException Error(string detail, string paramName) =>
