@@ -57,6 +57,25 @@ output you need:
 string svg = Barcodes.QrCode("https://terrafluent.dev").ErrorCorrection(QrErrorCorrectionLevel.H).ToSvg();
 string uri = Barcodes.Ean13("590123412345").ToDataUri(BarcodeImageFormat.Png);</code></pre>
 
+ [ContactCard](contactcard.md)
+
+The details of a person or business, written as a vCard by
+<a href="qrpayload.md#TerraFluent_Barcode_QrPayload_Contact_TerraFluent_Barcode_ContactCard_">QrPayload.Contact</a> so that a phone's camera offers to save the
+contact. Set at least <a href="contactcard.md#TerraFluent_Barcode_ContactCard_FirstName">ContactCard.FirstName</a>, <a href="contactcard.md#TerraFluent_Barcode_ContactCard_LastName">ContactCard.LastName</a> or
+<a href="contactcard.md#TerraFluent_Barcode_ContactCard_Organization">ContactCard.Organization</a>; every other property is optional.
+
+ [QrPayload](qrpayload.md)
+
+Builds the text that phone cameras and scanner apps act on: a contact to
+save, a Wi-Fi network to join, a link, an email, a text message, a call or
+a GS1 Digital Link. Each helper validates its input and escapes it the way
+the format requires, then returns a string to pass to
+<a href="barcodes.md#TerraFluent_Barcode_Barcodes_QrCode_System_String_">Barcodes.QrCode</a> (or any other 2D symbology):
+
+<pre><code class="lang-csharp">byte[] png = Barcodes.QrCode(QrPayload.Wifi("Home", "correct horse battery")).ToPng();
+string svg = Barcodes.QrCode(QrPayload.Email("hello@example.com", subject: "Hi")).ToSvg();
+string url = QrPayload.Gs1DigitalLink(("01", "09501101530003"), ("10", "ABC123"));</code></pre>
+
 ### Structs
 
  [BarcodeColor](barcodecolor.md)
@@ -103,3 +122,7 @@ How the three large corner squares (finder patterns, or "eyes") of a QR code are
  [QrModuleStyle](qrmodulestyle.md)
 
 How the data modules (the small squares) of a QR code are drawn.
+
+ [WifiSecurity](wifisecurity.md)
+
+How a Wi-Fi network is secured, for <a href="qrpayload.md#TerraFluent_Barcode_QrPayload_Wifi_System_String_System_String_TerraFluent_Barcode_WifiSecurity_System_Boolean_">QrPayload.Wifi</a>.
