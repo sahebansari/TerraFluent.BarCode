@@ -55,7 +55,11 @@ public sealed class BarcodeBuilder
     /// </summary>
     public const int MaxImageDimension = 32_768;
 
-    /// <summary>Largest allowed output area (width times height), in pixels: 64 megapixels.</summary>
+    /// <summary>
+    /// Largest allowed output area (width times height), in pixels: 64 megapixels.
+    /// Use <see cref="ImageSizeLimit"/> to set a lower limit, for example when
+    /// sizes come from untrusted input on a server.
+    /// </summary>
     public const long MaxImagePixels = 64L * 1024 * 1024;
 
     /// <summary>
@@ -73,6 +77,7 @@ public sealed class BarcodeBuilder
     private BarcodeColor _foreground = BarcodeColor.Black;
     private BarcodeColor _background = BarcodeColor.White;
     private int _jpegQuality = DefaultJpegQuality;
+    private long _maxPixels = MaxImagePixels;
     private QrErrorCorrectionLevel _errorCorrection = QrErrorCorrectionLevel.M;
     private bool _errorCorrectionSet;
     private bool _code39Checksum;
@@ -392,6 +397,25 @@ public sealed class BarcodeBuilder
     }
 
     /// <summary>
+    /// Lowers the largest output area this builder renders, in pixels (default and
+    /// maximum <see cref="MaxImagePixels"/>). Rendering a bigger image throws
+    /// <see cref="ArgumentException"/> before any work is done. Styled output
+    /// renders in bands, so memory use grows with the image width, but CPU time
+    /// and the size of the result grow with the area: set a limit when module size,
+    /// height or the value come from untrusted input.
+    /// </summary>
+    public BarcodeBuilder ImageSizeLimit(long maxPixels)
+    {
+        if (maxPixels < 1 || maxPixels > MaxImagePixels)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxPixels), maxPixels, FormattableString.Invariant($"The limit must be between 1 and {MaxImagePixels} pixels."));
+        }
+
+        _maxPixels = maxPixels;
+        return this;
+    }
+
+    /// <summary>
     /// Encodes the value into its module matrix without rendering it. The
     /// result is cached until an encoding option changes.
     /// </summary>
@@ -441,18 +465,10 @@ public sealed class BarcodeBuilder
     /// Renders a PNG: 1-bit indexed for plain barcodes, 8-bit RGB with
     /// anti-aliasing when a style (gradient, rounded shapes, logo) is set.
     /// </summary>
-    public byte[] ToPng() => CreateScene() is { } scene
-        ? PngEncoder.Encode(Rasterizer.Render(scene))
-        : PngEncoder.Encode(Encode(), CreateRenderOptions(), _transparent);
+    public byte[] ToPng() => ToBytes(BarcodeImageFormat.Png);
 
     /// <summary>Renders a baseline JPEG at the configured <see cref="JpegQuality"/>.</summary>
-    public byte[] ToJpeg()
-    {
-        if (_transparent) throw new InvalidOperationException("JPEG has no transparency; use PNG or SVG, or remove TransparentBackground().");
-        return CreateScene() is { } scene
-            ? JpegEncoder.Encode(Rasterizer.Render(scene), _jpegQuality)
-            : JpegEncoder.Encode(Encode(), CreateRenderOptions(), _jpegQuality);
-    }
+    public byte[] ToJpeg() => ToBytes(BarcodeImageFormat.Jpeg);
 
     /// <summary>Renders an SVG document.</summary>
     public string ToSvg() => CreateScene() is { } scene
@@ -460,35 +476,48 @@ public sealed class BarcodeBuilder
         : SvgRenderer.Render(Encode(), CreateRenderOptions(), _transparent);
 
     /// <summary>Renders the image in <paramref name="format"/> as bytes (SVG as UTF-8 without BOM).</summary>
-    public byte[] ToBytes(BarcodeImageFormat format = BarcodeImageFormat.Png) => format switch
+    public byte[] ToBytes(BarcodeImageFormat format = BarcodeImageFormat.Png)
     {
-        BarcodeImageFormat.Png => ToPng(),
-        BarcodeImageFormat.Jpeg => ToJpeg(),
-        BarcodeImageFormat.Svg => new System.Text.UTF8Encoding(false).GetBytes(ToSvg()),
-        _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Unknown image format."),
-    };
+        if (format == BarcodeImageFormat.Svg) return Utf8.GetBytes(ToSvg());
+        using var buffer = RenderToMemory(format, CancellationToken.None);
+        return buffer.ToArray();
+    }
 
     /// <summary>Renders the image into a new <see cref="MemoryStream"/> positioned at the start. The caller disposes it.</summary>
-    public Stream ToStream(BarcodeImageFormat format = BarcodeImageFormat.Png) => new MemoryStream(ToBytes(format), writable: false);
+    public Stream ToStream(BarcodeImageFormat format = BarcodeImageFormat.Png)
+    {
+        var buffer = RenderToMemory(format, CancellationToken.None);
+        return new MemoryStream(buffer.GetBuffer(), 0, (int)buffer.Length, writable: false, publiclyVisible: true);
+    }
 
-    /// <summary>Writes the image to <paramref name="destination"/>. The stream is left open.</summary>
+    /// <summary>
+    /// Writes the image to <paramref name="destination"/>, encoding straight into
+    /// the stream without an intermediate copy. The stream is left open.
+    /// </summary>
     public void WriteTo(Stream destination, BarcodeImageFormat format = BarcodeImageFormat.Png)
     {
         if (destination is null) throw new ArgumentNullException(nameof(destination));
-        var bytes = ToBytes(format);
-        destination.Write(bytes, 0, bytes.Length);
+        Render(format, destination, CancellationToken.None);
     }
 
-    /// <summary>Writes the image to <paramref name="destination"/> asynchronously. The stream is left open.</summary>
-    public Task WriteToAsync(Stream destination, BarcodeImageFormat format = BarcodeImageFormat.Png, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Writes the image to <paramref name="destination"/> asynchronously. The stream is left open.
+    /// Encoding is CPU-bound and runs on the calling thread before the write is
+    /// awaited; <paramref name="cancellationToken"/> is checked while encoding too.
+    /// </summary>
+    public async Task WriteToAsync(Stream destination, BarcodeImageFormat format = BarcodeImageFormat.Png, CancellationToken cancellationToken = default)
     {
         if (destination is null) throw new ArgumentNullException(nameof(destination));
-        var bytes = ToBytes(format);
-        return destination.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
+        using var buffer = RenderToMemory(format, cancellationToken);
+        await destination.WriteAsync(buffer.GetBuffer(), 0, (int)buffer.Length, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>Renders the image as a base64 string.</summary>
-    public string ToBase64(BarcodeImageFormat format = BarcodeImageFormat.Png) => Convert.ToBase64String(ToBytes(format));
+    public string ToBase64(BarcodeImageFormat format = BarcodeImageFormat.Png)
+    {
+        using var buffer = RenderToMemory(format, CancellationToken.None);
+        return Convert.ToBase64String(buffer.GetBuffer(), 0, (int)buffer.Length);
+    }
 
     /// <summary>Renders the image as a <c>data:</c> URI, ready for an HTML <c>img src</c> or CSS <c>url()</c>.</summary>
     public string ToDataUri(BarcodeImageFormat format = BarcodeImageFormat.Png) => $"data:{format.ToMimeType()};base64,{ToBase64(format)}";
@@ -500,7 +529,9 @@ public sealed class BarcodeBuilder
     public void Save(string path, BarcodeImageFormat format)
     {
         if (path is null) throw new ArgumentNullException(nameof(path));
-        File.WriteAllBytes(path, ToBytes(format));
+        using var buffer = RenderToMemory(format, CancellationToken.None);
+        using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+        stream.Write(buffer.GetBuffer(), 0, (int)buffer.Length);
     }
 
     /// <summary>
@@ -510,13 +541,67 @@ public sealed class BarcodeBuilder
     public Task SaveAsync(string path, CancellationToken cancellationToken = default) =>
         SaveAsync(path, BarcodeImageFormatExtensions.FromFilePath(path), cancellationToken);
 
-    /// <summary>Saves the image to <paramref name="path"/> in <paramref name="format"/> asynchronously.</summary>
+    /// <summary>
+    /// Saves the image to <paramref name="path"/> in <paramref name="format"/> asynchronously.
+    /// Encoding is CPU-bound and runs on the calling thread before the file is
+    /// written; <paramref name="cancellationToken"/> is checked while encoding too.
+    /// </summary>
     public async Task SaveAsync(string path, BarcodeImageFormat format, CancellationToken cancellationToken = default)
     {
         if (path is null) throw new ArgumentNullException(nameof(path));
-        var bytes = ToBytes(format);
+        using var buffer = RenderToMemory(format, cancellationToken);
         using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
-        await stream.WriteAsync(bytes, 0, bytes.Length, cancellationToken).ConfigureAwait(false);
+        await stream.WriteAsync(buffer.GetBuffer(), 0, (int)buffer.Length, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static readonly System.Text.UTF8Encoding Utf8 = new(false);
+
+    private MemoryStream RenderToMemory(BarcodeImageFormat format, CancellationToken cancellationToken)
+    {
+        var buffer = new MemoryStream();
+        try
+        {
+            Render(format, buffer, cancellationToken);
+            return buffer;
+        }
+        catch
+        {
+            buffer.Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>Encodes into <paramref name="output"/>. All validation happens before the first byte is written.</summary>
+    private void Render(BarcodeImageFormat format, Stream output, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        switch (format)
+        {
+            case BarcodeImageFormat.Png:
+            {
+                if (CreateScene() is { } scene) PngEncoder.Write(scene, output, cancellationToken);
+                else PngEncoder.Write(Encode(), CreateRenderOptions(), _transparent, output, cancellationToken);
+                break;
+            }
+
+            case BarcodeImageFormat.Jpeg:
+            {
+                if (_transparent) throw new InvalidOperationException("JPEG has no transparency; use PNG or SVG, or remove TransparentBackground().");
+                if (CreateScene() is { } scene) JpegEncoder.Write(scene, _jpegQuality, output, cancellationToken);
+                else JpegEncoder.Write(Encode(), CreateRenderOptions(), _jpegQuality, output, cancellationToken);
+                break;
+            }
+
+            case BarcodeImageFormat.Svg:
+            {
+                var bytes = Utf8.GetBytes(ToSvg());
+                output.Write(bytes, 0, bytes.Length);
+                break;
+            }
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(format), format, "Unknown image format.");
+        }
     }
 
     private QrErrorCorrectionLevel EffectiveErrorCorrection =>
@@ -602,6 +687,7 @@ public sealed class BarcodeBuilder
             _quietZone ?? matrix.RecommendedQuietZone,
             _foreground,
             _background,
-            fontSize);
+            fontSize,
+            _maxPixels);
     }
 }

@@ -5,7 +5,29 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- `BarcodeBuilder.ImageSizeLimit(maxPixels)` and `BarcodeOptions.MaxImagePixels`
+  lower the largest image a builder renders, for servers that take sizes from
+  untrusted input.
+- `benchmarks/` project (BenchmarkDotNet) for every output format.
+
 ### Changed
+
+- QR codes encode 10 to 13 times faster: mask selection scores rows and columns
+  with bit-parallel operations, and segmentation and Reed-Solomon no longer
+  allocate per character. The chosen mask, and so every QR code, is unchanged.
+- JPEG encoding is 7 to 19 times faster (separable DCT, shortcuts for flat
+  blocks and for blocks of vertical bars). Output may differ from 1.1.0 by one
+  level on a few pixels.
+- Styled output (rounded modules, gradients, logos, human-readable text) renders
+  2 to 3 times faster and in bands of 64 rows, so memory grows with the image
+  width instead of its area: a 41-megapixel styled PNG now allocates about 7 MB
+  instead of 325 MB. Pixels are unchanged.
+- PNG data is compressed as it is produced and written in IDAT chunks of up to
+  64 KB. `WriteTo` encodes straight into the destination stream, and `ToStream`,
+  `ToBase64`, `WriteToAsync`, `Save` and `SaveAsync` no longer copy the image.
+- `WriteToAsync` and `SaveAsync` check their cancellation token while encoding.
 
 - Renamed the package, assembly, root namespace, projects and solution from
   `TerraFluent.BarCode` to `TerraFluent.Barcode`, before the first NuGet.org publish.

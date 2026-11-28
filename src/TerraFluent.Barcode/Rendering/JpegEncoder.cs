@@ -58,11 +58,19 @@ internal static class JpegEncoder
         0xF9, 0xFA,
     };
 
-    private static readonly double[,] Cosine = BuildCosine();
+    // Basis[u * 8 + x] = c(u) / 2 * cos((2x + 1) u pi / 16), with c(0) = 1 / sqrt(2): the orthonormal 1D DCT-II.
+    private static readonly double[] Basis = BuildBasis();
     private static readonly (int Code, int Length)[] DcTable = BuildHuffman(DcBits, DcValues);
     private static readonly (int Code, int Length)[] AcTable = BuildHuffman(AcBits, AcValues);
 
-    public static byte[] Encode(BarcodeMatrix matrix, RenderOptions options, int quality)
+    public static byte[] Encode(BarcodeMatrix matrix, RenderOptions options, int quality, CancellationToken cancellationToken = default)
+    {
+        using var output = new MemoryStream();
+        Write(matrix, options, quality, output, cancellationToken);
+        return output.ToArray();
+    }
+
+    public static void Write(BarcodeMatrix matrix, RenderOptions options, int quality, Stream output, CancellationToken cancellationToken = default)
     {
         var (width, height) = options.ImageSize(matrix);
         var fg = options.Foreground;
@@ -72,30 +80,85 @@ internal static class JpegEncoder
         // Per-component sample value for a dark and a light pixel.
         var darkSample = ToComponents(fg, greyscale);
         var lightSample = ToComponents(bg, greyscale);
-        return Encode(width, height, greyscale, quality, (x, y, c) => options.IsDark(matrix, x, y) ? darkSample[c] : lightSample[c]);
+        var dark = new bool[width];
+        var lastModuleRow = -1;
+        Write(output, width, height, greyscale, quality, (y, planes) =>
+        {
+            // Rows repeat within a module row (and everywhere for linear codes), so compute each distinct row once.
+            var moduleRow = matrix.IsLinear ? 0 : y / options.ModuleSize;
+            if (moduleRow != lastModuleRow)
+            {
+                for (var x = 0; x < width; x++) dark[x] = options.IsDark(matrix, x, y);
+                lastModuleRow = moduleRow;
+            }
+
+            for (var c = 0; c < planes.Length; c++)
+            {
+                var plane = planes[c];
+                double d = darkSample[c] - 128.0, l = lightSample[c] - 128.0;
+                for (var x = 0; x < width; x++) plane[x] = dark[x] ? d : l;
+            }
+        }, cancellationToken);
     }
 
     /// <summary>Encodes a full-colour image (styled barcodes).</summary>
     public static byte[] Encode(RgbImage image, int quality)
     {
-        var greyscale = image.IsGreyscale();
-        var px = image.Pixels;
-        return Encode(image.Width, image.Height, greyscale, quality, (x, y, c) =>
-        {
-            var i = (y * image.Width + x) * 3;
-            double r = px[i], g = px[i + 1], b = px[i + 2];
-            if (greyscale) return r;
-            return c switch
-            {
-                0 => 0.299 * r + 0.587 * g + 0.114 * b,
-                1 => -0.168736 * r - 0.331264 * g + 0.5 * b + 128,
-                _ => 0.5 * r - 0.418688 * g - 0.081312 * b + 128,
-            };
-        });
+        using var output = new MemoryStream();
+        var width = image.Width;
+        Write(output, width, image.Height, image.IsGreyscale(), quality, (y, planes) => FillRow(image, y, planes), default);
+        return output.ToArray();
     }
 
-    // sample(x, y, c): component c (Y, Cb, Cr; or grey) of pixel (x, y), 0-255.
-    private static byte[] Encode(int width, int height, bool greyscale, int quality, Func<int, int, int, double> sample)
+    /// <summary>Rasterises a styled scene band by band and encodes it.</summary>
+    public static byte[] Encode(Scene scene, int quality, CancellationToken cancellationToken = default)
+    {
+        using var output = new MemoryStream();
+        Write(scene, quality, output, cancellationToken);
+        return output.ToArray();
+    }
+
+    /// <inheritdoc cref="Encode(Scene, int, CancellationToken)"/>
+    public static void Write(Scene scene, int quality, Stream output, CancellationToken cancellationToken = default)
+    {
+        var rasterizer = new Rasterizer(scene);
+        var band = rasterizer.CreateBand();
+        var bandStart = -1;
+        Write(output, scene.Width, scene.Height, scene.IsGreyscale, quality, (y, planes) =>
+        {
+            if (bandStart < 0 || y < bandStart || y >= bandStart + rasterizer.BandRows)
+            {
+                bandStart = y - y % rasterizer.BandRows;
+                rasterizer.RenderBand(bandStart, band);
+            }
+
+            FillRow(band, y - bandStart, planes);
+        }, cancellationToken);
+    }
+
+    private static void FillRow(RgbImage image, int y, double[][] planes)
+    {
+        var px = image.Pixels;
+        var width = image.Width;
+        var greyscale = planes.Length == 1;
+        var i = y * width * 3;
+        for (var x = 0; x < width; x++, i += 3)
+        {
+            double r = px[i], g = px[i + 1], b = px[i + 2];
+            if (greyscale)
+            {
+                planes[0][x] = r - 128.0;
+                continue;
+            }
+
+            planes[0][x] = 0.299 * r + 0.587 * g + 0.114 * b - 128.0;
+            planes[1][x] = -0.168736 * r - 0.331264 * g + 0.5 * b + 128 - 128.0;
+            planes[2][x] = 0.5 * r - 0.418688 * g - 0.081312 * b + 128 - 128.0;
+        }
+    }
+
+    // fillRow(y, planes): writes row y of each component (Y, Cb, Cr; or grey), level-shifted to -128..127, into planes[c][0..width).
+    private static void Write(Stream output, int width, int height, bool greyscale, int quality, Action<int, double[][]> fillRow, CancellationToken cancellationToken)
     {
         // The frame header stores 16-bit dimensions.
         if (width > ushort.MaxValue || height > ushort.MaxValue)
@@ -106,7 +169,6 @@ internal static class JpegEncoder
         var componentCount = greyscale ? 1 : 3;
         var quant = new[] { Scale(LuminanceQuant, quality), Scale(ChrominanceQuant, quality) };
 
-        using var output = new MemoryStream();
         WriteMarker(output, 0xD8); // SOI
         WriteSegment(output, 0xE0, new byte[] { (byte)'J', (byte)'F', (byte)'I', (byte)'F', 0, 1, 1, 0, 0, 1, 0, 1, 0, 0 });
 
@@ -139,24 +201,81 @@ internal static class JpegEncoder
         var bits = new BitWriter(output);
         var previousDc = new int[componentCount];
         var block = new double[64];
+        var temp = new double[64];
         var coefficients = new int[64];
+
+        // One band of eight rows per component: memory grows with the width, not the image area.
+        var paddedWidth = (width + 7) & ~7;
+        var bands = new double[componentCount][][];
+        for (var c = 0; c < componentCount; c++)
+        {
+            bands[c] = new double[8][];
+            for (var y = 0; y < 8; y++) bands[c][y] = new double[paddedWidth];
+        }
+
+        var rowPlanes = new double[componentCount][];
         for (var by = 0; by < height; by += 8)
         {
+            if ((by & 255) == 0) cancellationToken.ThrowIfCancellationRequested();
+            for (var y = 0; y < 8; y++)
+            {
+                // Edge rows and columns repeat the last pixel, as before.
+                var py = Math.Min(by + y, height - 1);
+                for (var c = 0; c < componentCount; c++) rowPlanes[c] = bands[c][y];
+                if (by + y < height || y == 0)
+                {
+                    fillRow(py, rowPlanes);
+                }
+                else
+                {
+                    for (var c = 0; c < componentCount; c++) Array.Copy(bands[c][y - 1], bands[c][y], paddedWidth);
+                }
+
+                for (var c = 0; c < componentCount; c++)
+                {
+                    var row = bands[c][y];
+                    for (var x = width; x < paddedWidth; x++) row[x] = row[width - 1];
+                }
+            }
+
             for (var bx = 0; bx < width; bx += 8)
             {
                 for (var c = 0; c < componentCount; c++)
                 {
+                    var band = bands[c];
+                    var top = band[0];
+                    var first = top[bx];
+                    var flat = true;     // every sample equal
+                    var columns = true;  // every row equal to the first (vertical bars)
                     for (var y = 0; y < 8; y++)
                     {
-                        var py = Math.Min(by + y, height - 1);
+                        var row = band[y];
                         for (var x = 0; x < 8; x++)
                         {
-                            var px = Math.Min(bx + x, width - 1);
-                            block[y * 8 + x] = sample(px, py, c) - 128.0;
+                            var v = row[bx + x];
+                            block[y * 8 + x] = v;
+                            flat &= v == first;
+                            columns &= v == top[bx + x];
                         }
                     }
 
-                    ForwardDct(block, quant[c == 0 ? 0 : 1], coefficients);
+                    var q = quant[c == 0 ? 0 : 1];
+                    if (flat)
+                    {
+                        // A flat block has only a DC term (8 x the level-shifted sample); most 2D-code blocks are flat.
+                        Array.Clear(coefficients, 0, 64);
+                        coefficients[0] = (int)Math.Round(8.0 * first / q[0]);
+                    }
+                    else if (columns)
+                    {
+                        // Identical rows (linear barcodes): only the first row of coefficients is non-zero.
+                        RowDct(block, q, coefficients);
+                    }
+                    else
+                    {
+                        ForwardDct(block, temp, q, coefficients);
+                    }
+
                     EncodeBlock(bits, coefficients, ref previousDc[c]);
                 }
             }
@@ -164,7 +283,6 @@ internal static class JpegEncoder
 
         bits.Flush();
         WriteMarker(output, 0xD9); // EOI
-        return output.ToArray();
     }
 
     private static double[] ToComponents(BarcodeColor color, bool greyscale)
@@ -187,24 +305,52 @@ internal static class JpegEncoder
         return result;
     }
 
-    private static void ForwardDct(double[] block, int[] quant, int[] output)
+    /// <summary>
+    /// Separable 8x8 forward DCT (rows, then columns) with quantisation:
+    /// 1,024 multiply-adds per block instead of 4,096 for the direct 2D sum.
+    /// </summary>
+    private static void ForwardDct(double[] block, double[] temp, int[] quant, int[] output)
     {
-        for (var v = 0; v < 8; v++)
+        var basis = Basis;
+        for (var y = 0; y < 8; y++)
         {
+            var row = y * 8;
             for (var u = 0; u < 8; u++)
             {
-                var sum = 0.0;
-                for (var y = 0; y < 8; y++)
-                {
-                    var cy = Cosine[v, y];
-                    for (var x = 0; x < 8; x++) sum += block[y * 8 + x] * Cosine[u, x] * cy;
-                }
-
-                var cu = u == 0 ? 1 / Math.Sqrt(2) : 1.0;
-                var cv = v == 0 ? 1 / Math.Sqrt(2) : 1.0;
-                var index = v * 8 + u;
-                output[index] = (int)Math.Round(0.25 * cu * cv * sum / quant[index]);
+                var b = u * 8;
+                temp[row + u] =
+                    block[row] * basis[b] + block[row + 1] * basis[b + 1] + block[row + 2] * basis[b + 2] + block[row + 3] * basis[b + 3] +
+                    block[row + 4] * basis[b + 4] + block[row + 5] * basis[b + 5] + block[row + 6] * basis[b + 6] + block[row + 7] * basis[b + 7];
             }
+        }
+
+        for (var u = 0; u < 8; u++)
+        {
+            for (var v = 0; v < 8; v++)
+            {
+                var b = v * 8;
+                var sum =
+                    temp[u] * basis[b] + temp[8 + u] * basis[b + 1] + temp[16 + u] * basis[b + 2] + temp[24 + u] * basis[b + 3] +
+                    temp[32 + u] * basis[b + 4] + temp[40 + u] * basis[b + 5] + temp[48 + u] * basis[b + 6] + temp[56 + u] * basis[b + 7];
+                var index = v * 8 + u;
+                output[index] = (int)Math.Round(sum / quant[index]);
+            }
+        }
+    }
+
+    /// <summary>DCT of a block whose eight rows are equal: a 1D DCT of the first row, scaled by the v = 0 column basis (8 x c(0) / 2).</summary>
+    private static void RowDct(double[] block, int[] quant, int[] output)
+    {
+        var basis = Basis;
+        var scale = 8 * basis[0];
+        Array.Clear(output, 0, 64);
+        for (var u = 0; u < 8; u++)
+        {
+            var b = u * 8;
+            var sum =
+                block[0] * basis[b] + block[1] * basis[b + 1] + block[2] * basis[b + 2] + block[3] * basis[b + 3] +
+                block[4] * basis[b + 4] + block[5] * basis[b + 5] + block[6] * basis[b + 6] + block[7] * basis[b + 7];
+            output[u] = (int)Math.Round(sum * scale / quant[u]);
         }
     }
 
@@ -271,12 +417,13 @@ internal static class JpegEncoder
         return table;
     }
 
-    private static double[,] BuildCosine()
+    private static double[] BuildBasis()
     {
-        var table = new double[8, 8];
+        var table = new double[64];
         for (var u = 0; u < 8; u++)
         {
-            for (var x = 0; x < 8; x++) table[u, x] = Math.Cos((2 * x + 1) * u * Math.PI / 16);
+            var scale = (u == 0 ? 1 / Math.Sqrt(2) : 1.0) / 2;
+            for (var x = 0; x < 8; x++) table[u * 8 + x] = scale * Math.Cos((2 * x + 1) * u * Math.PI / 16);
         }
 
         return table;
@@ -297,9 +444,12 @@ internal static class JpegEncoder
         output.Write(payload, 0, payload.Length);
     }
 
+    /// <summary>Huffman bit packer with byte stuffing; collects output bytes and writes them in blocks.</summary>
     private sealed class BitWriter
     {
         private readonly Stream _output;
+        private readonly byte[] _bytes = new byte[4096];
+        private int _byteCount;
         private int _buffer;
         private int _count;
 
@@ -313,29 +463,37 @@ internal static class JpegEncoder
 
         public void Write(int value, int length)
         {
-            for (var i = length - 1; i >= 0; i--)
+            // Up to 16 bits per call, so with at most 7 pending bits the buffer never exceeds 23 bits.
+            _buffer = (_buffer << length) | (value & ((1 << length) - 1));
+            _count += length;
+            while (_count >= 8)
             {
-                _buffer = (_buffer << 1) | ((value >> i) & 1);
-                if (++_count == 8) EmitByte();
+                _count -= 8;
+                var b = (byte)(_buffer >> _count);
+                Emit(b);
+                if (b == 0xFF) Emit(0x00); // byte stuffing
             }
+
+            _buffer &= (1 << _count) - 1;
         }
 
+        /// <summary>Pads the last byte with 1-bits and writes out everything collected.</summary>
         public void Flush()
         {
-            while (_count != 0)
-            {
-                _buffer = (_buffer << 1) | 1; // pad with 1-bits
-                if (++_count == 8) EmitByte();
-            }
+            if (_count > 0) Write((1 << (8 - _count)) - 1, 8 - _count);
+            _output.Write(_bytes, 0, _byteCount);
+            _byteCount = 0;
         }
 
-        private void EmitByte()
+        private void Emit(byte b)
         {
-            var b = (byte)_buffer;
-            _output.WriteByte(b);
-            if (b == 0xFF) _output.WriteByte(0x00); // byte stuffing
-            _buffer = 0;
-            _count = 0;
+            if (_byteCount == _bytes.Length)
+            {
+                _output.Write(_bytes, 0, _byteCount);
+                _byteCount = 0;
+            }
+
+            _bytes[_byteCount++] = b;
         }
     }
 }

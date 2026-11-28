@@ -76,13 +76,34 @@ encodes all 128 ASCII characters with `.FullAscii()`.
   logo with too little error correction or colours with too little contrast
   when rendering.
 - Images are limited to 32,768 pixels per side and 64 megapixels in total
-  (`BarcodeBuilder.MaxImageDimension`, `BarcodeBuilder.MaxImagePixels`), so
-  size settings taken from user input cannot exhaust memory.
+  (`BarcodeBuilder.MaxImageDimension`, `BarcodeBuilder.MaxImagePixels`). Call
+  `ImageSizeLimit(pixels)` (or set `BarcodeOptions.MaxImagePixels`) to lower the
+  area limit when module size, height or the value come from untrusted input.
+  Images are rendered a band of rows at a time, so memory grows with the width,
+  not the area; CPU time and output size still grow with the area.
 - Foreground, gradient and eye colours need a WCAG contrast ratio of at least
   3:1 against the background. Light-on-dark is allowed. Call
   `AllowLowContrast()` to turn the check off for codes you have tested.
 - The static `Barcodes` methods are thread-safe. Configure a `BarcodeBuilder`
   on one thread; after that, its output methods can be called concurrently.
+- `WriteToAsync` and `SaveAsync` encode on the calling thread (encoding is
+  CPU-bound) and then write asynchronously. Their cancellation token is also
+  checked while encoding. `WriteTo` encodes straight into your stream.
+
+## Performance
+
+Typical timings on one core (.NET 10, 2.3 GHz Xeon; per call, from a new builder):
+
+| Output | Time | Allocated |
+| --- | --- | --- |
+| Code 128 / EAN-13 PNG | about 25 µs | about 70 KB |
+| QR code (URL) PNG | about 0.1 ms | about 80 KB |
+| QR code (URL) JPEG | about 0.3 ms | about 55 KB |
+| Code 128 with human-readable text, PNG | about 1 ms | about 250 KB |
+| Styled QR code (rounded, gradient) PNG | about 1.5 ms | about 150 KB |
+
+The `benchmarks/` project measures these with BenchmarkDotNet:
+`dotnet run -c Release --project benchmarks/TerraFluent.Barcode.Benchmarks -- --filter '*'`.
 
 ## Outputs
 

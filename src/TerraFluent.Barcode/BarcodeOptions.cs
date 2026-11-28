@@ -53,4 +53,7 @@ public sealed class BarcodeOptions
 
     /// <summary>JPEG quality, 1 to 100. See <see cref="BarcodeBuilder.JpegQuality"/>.</summary>
     public int? JpegQuality { get; set; }
+
+    /// <summary>Largest output area in pixels. See <see cref="BarcodeBuilder.ImageSizeLimit"/>.</summary>
+    public long? MaxImagePixels { get; set; }
 }

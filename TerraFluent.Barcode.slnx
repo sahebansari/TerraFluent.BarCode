@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/TerraFluent.Barcode.Benchmarks/TerraFluent.Barcode.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/TerraFluent.Barcode.Sample/TerraFluent.Barcode.Sample.csproj" />
   </Folder>
