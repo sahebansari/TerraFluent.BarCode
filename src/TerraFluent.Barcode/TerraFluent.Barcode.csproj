@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
+    <RootNamespace>TerraFluent.Barcode</RootNamespace>
+    <AssemblyName>TerraFluent.Barcode</AssemblyName>
+    <PackageId>TerraFluent.Barcode</PackageId>
+    <Title>TerraFluent.Barcode — Dependency-free barcode, QR, Data Matrix and PDF417 generation for .NET</Title>
+    <Description>A fluent, zero-dependency .NET library that generates linear (1D) barcodes and 2D codes: Code 128, GS1-128, Code 39, EAN-13, EAN-8, UPC-A (with EAN-2/EAN-5 add-ons), QR codes, Data Matrix and PDF417, with human-readable text, styled QR codes (rounded modules, gradients, logos) and a DI-friendly IBarcodeGenerator. Outputs PNG, JPEG, SVG, byte arrays, streams, base64 and data URIs.</Description>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!--
+      CA1510, CA1835, CA1845, CA1846, CA1865, CA2249: suggest APIs (ArgumentNullException.ThrowIfNull,
+      span overloads, char overloads of string methods) that netstandard2.0 lacks.
+      RS0026: Gradient has colour and hex overloads that both default the direction;
+      they cannot be confused because the first two parameter types differ.
+    -->
+    <NoWarn>$(NoWarn);CA1510;CA1835;CA1845;CA1846;CA1865;CA2249;RS0026</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <IsTrimmable>true</IsTrimmable>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TerraFluent.Barcode.Tests" Key="00240000048000009400000006020000002400005253413100040000010001008b33e96b27d9881dc277db18054d66ae35874c9515692811a2bceb96475223587a55e278db7054e328e28a11e2a2cef77117972d201803378baa8a35d0e098250e499f8f07a23b69d16ea0f41a8992c1f7ee101a9273262e23027e2c880acbad927f825dcf5aafa39cbd6e0f64b0fd3e2eb27ac4e2a8bfc5b308ad794b356aea" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="11.0.100" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="5.6.0" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

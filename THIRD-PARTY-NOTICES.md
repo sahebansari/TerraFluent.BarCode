@@ -1,11 +1,11 @@
 # Third-Party Notices
 
-TerraFluent.BarCode is licensed under the MIT License (see LICENSE). It
+TerraFluent.Barcode is licensed under the MIT License (see LICENSE). It
 includes data derived from the following third-party works.
 
 ## JetBrains Mono
 
-The glyph outlines in `src/TerraFluent.BarCode/Rendering/TextFont.Glyphs.cs`,
+The glyph outlines in `src/TerraFluent.Barcode/Rendering/TextFont.Glyphs.cs`,
 used to draw human-readable text, were extracted from JetBrains Mono Medium.
 They are licensed under the SIL Open Font License, Version 1.1. They are only
 used to draw text into generated images and are not distributed as a font.
@@ -109,7 +109,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 ## pdf417gen
 
 The PDF417 codeword patterns in
-`src/TerraFluent.BarCode/Encoding/Pdf417Encoder.Patterns.cs` are the ISO/IEC
+`src/TerraFluent.Barcode/Encoding/Pdf417Encoder.Patterns.cs` are the ISO/IEC
 15438 tables as published in pdf417gen
 (https://github.com/ihabunek/pdf417-py), licensed under the MIT License.
 

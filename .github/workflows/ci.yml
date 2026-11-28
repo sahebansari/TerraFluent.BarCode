@@ -45,11 +45,11 @@ jobs:
       # their strong-name signature, and .NET Framework (net48, Windows) refuses to load them.
       - name: Test
         if: matrix.os != 'ubuntu-latest'
-        run: dotnet test tests/TerraFluent.BarCode.Tests/TerraFluent.BarCode.Tests.csproj --configuration Release --no-build
+        run: dotnet test tests/TerraFluent.Barcode.Tests/TerraFluent.Barcode.Tests.csproj --configuration Release --no-build
 
       - name: Test with coverage
         if: matrix.os == 'ubuntu-latest'
-        run: dotnet test tests/TerraFluent.BarCode.Tests/TerraFluent.BarCode.Tests.csproj --configuration Release --no-build --collect "XPlat Code Coverage" --results-directory test-results
+        run: dotnet test tests/TerraFluent.Barcode.Tests/TerraFluent.Barcode.Tests.csproj --configuration Release --no-build --collect "XPlat Code Coverage" --results-directory test-results
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest'
@@ -73,7 +73,7 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Pack
-        run: dotnet pack src/TerraFluent.BarCode/TerraFluent.BarCode.csproj --configuration Release --output artifacts
+        run: dotnet pack src/TerraFluent.Barcode/TerraFluent.Barcode.csproj --configuration Release --output artifacts
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

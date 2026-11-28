@@ -11,7 +11,7 @@
 
 Please do not open a public issue for security problems. Report them
 privately through GitHub's
-[private vulnerability reporting](https://github.com/sahebansari/TerraFluent.BarCode/security/advisories/new)
+[private vulnerability reporting](https://github.com/sahebansari/TerraFluent.Barcode/security/advisories/new)
 with a description, the affected version and, if possible, a minimal
 reproduction.
 
