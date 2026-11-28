@@ -1,0 +1,46 @@
+name: Docs
+
+# The example images (docs/images) and the API reference (docs/api) are generated from the code.
+# This checks that the committed copies are up to date, so the published docs always match the
+# library. Run docs/build.sh locally and commit the result when it fails.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  generated-docs:
+    name: Generated docs are up to date
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Regenerate images and API reference
+        run: docs/build.sh
+
+      # PNG bytes vary with the zlib build behind .NET, so PNGs are compared by their pixels;
+      # everything else (SVG, JPEG, Markdown) must match byte for byte.
+      - name: Check for differences
+        run: |
+          git add --intent-to-add docs
+          if ! git diff --exit-code --stat -- docs ':(exclude)docs/images/*.png'; then
+            echo "::error::docs/images or docs/api is out of date. Run docs/build.sh and commit the result."
+            exit 1
+          fi
+          python3 docs/tools/png-pixels-equal.py
