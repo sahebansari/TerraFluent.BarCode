@@ -10,7 +10,7 @@
     <Authors>Saheb Ansari</Authors>
     <Company>Saheb Ansari</Company>
     <Product>TerraFluent.Barcode</Product>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
     <!-- Strong-named assemblies keep AssemblyVersion at major.0.0.0 so minor and patch upgrades need no binding redirects. -->
     <AssemblyVersion>$([System.Version]::Parse($(Version.Split('-')[0])).Major).0.0.0</AssemblyVersion>
     <Copyright>Copyright (c) 2026 Saheb Ansari</Copyright>
