@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-28
+
 ### Added
 
 - `BarcodeBuilder.ImageSizeLimit(maxPixels)` and `BarcodeOptions.MaxImagePixels`
@@ -137,5 +139,6 @@ never published; their changes are included in this release.
 - `Encode()` returns the raw `BarcodeMatrix` for custom renderers.
 - Targets `netstandard2.0` and `net10.0` (trimming and Native AOT compatible).
 
-[Unreleased]: https://github.com/sahebansari/TerraFluent.Barcode/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/sahebansari/TerraFluent.Barcode/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/sahebansari/TerraFluent.Barcode/releases/tag/v1.2.0
 [1.1.0]: https://github.com/sahebansari/TerraFluent.Barcode/releases/tag/v1.1.0
