@@ -31,7 +31,7 @@ internal static class SceneBuilder
         var originX = options.QuietZone * m;
         var originY = matrix.IsLinear ? 0 : options.QuietZone * m;
         var symbolWidth = matrix.Width * m;
-        var symbolHeight = matrix.IsLinear ? options.BarHeight : matrix.Height * m;
+        var symbolHeight = matrix.IsLinear ? options.BarHeight : matrix.IsHexagonal ? MaxiCodeGeometry.SymbolHeight * m : matrix.Height * m;
 
         var paint = style.Gradient is { } g
             ? Paint.Gradient(g.Start, g.End, g.Direction, originX, originY, symbolWidth, symbolHeight)
@@ -45,6 +45,10 @@ internal static class SceneBuilder
         {
             AddBars(matrix, main, originX, m, options, style.RoundedBars);
             if (options.FontSize > 0) AddText(matrix, main, originX, m, options);
+        }
+        else if (matrix.IsHexagonal)
+        {
+            MaxiCodeGeometry.AddSymbol(matrix, main, originX, originY, m);
         }
         else if (style.IsQr)
         {

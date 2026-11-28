@@ -21,6 +21,18 @@ public static class Barcodes
 
 ## Fields
 
+### <a id="TerraFluent_Barcode_Barcodes_MaxCodabarLength"></a> MaxCodabarLength
+
+Longest value accepted by <a href="barcodes.md#TerraFluent_Barcode_Barcodes_Codabar_System_String_">Barcodes.Codabar</a>, in characters (including start and stop characters).
+
+```csharp
+public const int MaxCodabarLength = 60
+```
+
+#### Field Value
+
+ [int](https://learn.microsoft.com/dotnet/api/system.int32)
+
 ### <a id="TerraFluent_Barcode_Barcodes_MaxCode128Length"></a> MaxCode128Length
 
 Longest value accepted by <a href="barcodes.md#TerraFluent_Barcode_Barcodes_Code128_System_String_">Barcodes.Code128</a>, in characters.
@@ -45,7 +57,54 @@ public const int MaxCode39Length = 128
 
  [int](https://learn.microsoft.com/dotnet/api/system.int32)
 
+### <a id="TerraFluent_Barcode_Barcodes_MaxItfLength"></a> MaxItfLength
+
+Longest value accepted by <a href="barcodes.md#TerraFluent_Barcode_Barcodes_Itf_System_String_">Barcodes.Itf</a>, in digits (including a check digit added by <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_WithChecksum_System_Boolean_">BarcodeBuilder.WithChecksum</a>).
+
+```csharp
+public const int MaxItfLength = 80
+```
+
+#### Field Value
+
+ [int](https://learn.microsoft.com/dotnet/api/system.int32)
+
 ## Methods
+
+### <a id="TerraFluent_Barcode_Barcodes_Aztec_System_String_"></a> Aztec\(string\)
+
+Aztec code for any text (UTF-8). The smallest compact or full-range symbol
+that fits is picked automatically; see <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_AztecErrorCorrection_System_Int32_">BarcodeBuilder.AztecErrorCorrection</a>.
+
+```csharp
+public static BarcodeBuilder Aztec(string value)
+```
+
+#### Parameters
+
+`value` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_Barcodes_Codabar_System_String_"></a> Codabar\(string\)
+
+Codabar for digits and <code>- $ : / . +</code>, up to <a href="barcodes.md#TerraFluent_Barcode_Barcodes_MaxCodabarLength">Barcodes.MaxCodabarLength</a> characters.
+Start and end the value with A, B, C or D (or T, N, * and E) to choose the start
+and stop characters, for example <code>A40156B</code>; otherwise A is used for both.
+
+```csharp
+public static BarcodeBuilder Codabar(string value)
+```
+
+#### Parameters
+
+`value` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
 
 ### <a id="TerraFluent_Barcode_Barcodes_Code128_System_String_"></a> Code128\(string\)
 
@@ -182,6 +241,84 @@ public static BarcodeBuilder Gs1Code128(params (string Ai, string Data)[] elemen
 #### Parameters
 
 `elements` \([string](https://learn.microsoft.com/dotnet/api/system.string) [Ai](https://learn.microsoft.com/dotnet/api/system.valuetuple-system.string,system.string-.ai), [string](https://learn.microsoft.com/dotnet/api/system.string) [Data](https://learn.microsoft.com/dotnet/api/system.valuetuple\-system.string,system.string\-.data)\)\[\]
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_Barcodes_Itf_System_String_"></a> Itf\(string\)
+
+Interleaved 2 of 5 (ITF) for an even number of digits, up to <a href="barcodes.md#TerraFluent_Barcode_Barcodes_MaxItfLength">Barcodes.MaxItfLength</a>.
+Call <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_WithChecksum_System_Boolean_">BarcodeBuilder.WithChecksum</a> to append the modulo 10 check digit;
+the value then needs an odd number of digits.
+
+```csharp
+public static BarcodeBuilder Itf(string value)
+```
+
+#### Parameters
+
+`value` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_Barcodes_Itf14_System_String_"></a> Itf14\(string\)
+
+ITF-14 from 13 digits (check digit added) or 14 digits (check digit validated), for GTIN-14 on cartons.
+
+```csharp
+public static BarcodeBuilder Itf14(string value)
+```
+
+#### Parameters
+
+`value` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_Barcodes_MaxiCode_System_String_"></a> MaxiCode\(string\)
+
+MaxiCode in mode 4 for ISO-8859-1 (Latin-1) text of up to 93 characters
+(138 digits). Use <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_MaxiCodeMode_System_Int32_">BarcodeBuilder.MaxiCodeMode</a> for mode 5 or 6.
+
+```csharp
+public static BarcodeBuilder MaxiCode(string value)
+```
+
+#### Parameters
+
+`value` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_Barcodes_MaxiCode_System_String_System_Int32_System_Int32_System_String_"></a> MaxiCode\(string, int, int, string\)
+
+MaxiCode with a structured carrier message, as parcel carriers use: mode 2
+for a numeric postal code of up to 9 digits, or mode 3 for up to 6 letters,
+digits and spaces. <code class="paramref">countryCode</code> (ISO 3166 numeric) and
+<code class="paramref">serviceClass</code> are 0 to 999. <code class="paramref">message</code> is the
+secondary message of up to 84 codewords (Latin-1), for example a
+<code>[)&gt;</code> ISO/IEC 15434 transport message; <a href="barcodebuilder.md#TerraFluent_Barcode_BarcodeBuilder_Value">BarcodeBuilder.Value</a> returns it.
+
+```csharp
+public static BarcodeBuilder MaxiCode(string postalCode, int countryCode, int serviceClass, string message)
+```
+
+#### Parameters
+
+`postalCode` [string](https://learn.microsoft.com/dotnet/api/system.string)
+
+`countryCode` [int](https://learn.microsoft.com/dotnet/api/system.int32)
+
+`serviceClass` [int](https://learn.microsoft.com/dotnet/api/system.int32)
+
+`message` [string](https://learn.microsoft.com/dotnet/api/system.string)
 
 #### Returns
 

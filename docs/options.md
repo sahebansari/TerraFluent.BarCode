@@ -5,7 +5,7 @@ default that follows the symbology's standard, so set only what you need.
 
 | Option | Default | Applies to | Notes |
 | --- | --- | --- | --- |
-| `ModuleSize(px)` | 2 (linear, PDF417), 4 (QR, Data Matrix) | all | Width of the narrowest bar, or one 2D square. |
+| `ModuleSize(px)` | 2 (linear, PDF417), 4 (QR, Data Matrix, Aztec), 6 (MaxiCode) | all | Width of the narrowest bar, one 2D square, or one MaxiCode hexagon. |
 | `Height(px)` | 80 | linear | Bar height, not counting the text line. |
 | `QuietZone(modules)` | per standard | all | Blank margin, in modules. |
 | `Foreground(color)` | black | all | `BarcodeColor`, `"#RRGGBB"` or `"#RGB"`. |
@@ -14,10 +14,12 @@ default that follows the symbology's standard, so set only what you need.
 | `HumanReadableText()` | off | linear | The value printed under the bars. |
 | `TextSize(px)` | 10 modules (EAN/UPC), 9 modules (others) | linear | Long text shrinks to fit. |
 | `ErrorCorrection(level)` | `M` | QR | `L`, `M`, `Q` or `H`. |
-| `WithChecksum()` | off | Code 39 | Modulo 43 check character. |
+| `WithChecksum()` | off | Code 39, Interleaved 2 of 5 | Modulo 43 (Code 39) or modulo 10 (ITF) check character. |
 | `FullAscii()` | off | Code 39 | All 128 ASCII characters. |
 | `AddOn(digits)` | none | EAN-13, UPC-A | 2 or 5 digits. |
 | `DataMatrixShape(shape)` | `Square` | Data Matrix | `Square`, `Rectangle` or `Any`. |
+| `AztecErrorCorrection(percent)` | 23 | Aztec | 5-90% of the symbol, plus 3 check words. |
+| `MaxiCodeMode(mode)` | 4 | MaxiCode | 4 (standard), 5 (enhanced error correction) or 6 (reader programming). |
 | `Pdf417Columns(n)` | automatic | PDF417 | 1 to 30. |
 | `Pdf417ErrorCorrection(n)` | automatic | PDF417 | 0 to 8. |
 | `JpegQuality(1-100)` | 90 | JPEG output | |

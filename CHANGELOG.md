@@ -7,6 +7,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- New symbologies, each read back by ZXing in the tests:
+  - `Barcodes.Itf` (Interleaved 2 of 5) with an optional modulo 10 check digit
+    through `WithChecksum()`, and `Barcodes.Itf14` for GTIN-14 on cartons.
+  - `Barcodes.Codabar`, with start/stop characters A to D.
+  - `Barcodes.Aztec`: compact and full-range symbols, UTF-8 through ECI, and
+    `AztecErrorCorrection(percent)` (default 23% plus 3 check words, as
+    ISO/IEC 24778 recommends).
+  - `Barcodes.MaxiCode`: modes 4, 5 and 6 through `MaxiCodeMode(mode)`, and
+    modes 2 and 3 (structured carrier message with postal code, country and
+    service class) through `Barcodes.MaxiCode(postalCode, countryCode, serviceClass, message)`.
+    MaxiCode is drawn as hexagons around its bullseye in every output format.
+- `BarcodeType.Itf`, `Itf14`, `Codabar`, `Aztec` and `MaxiCode`, and
+  `BarcodeOptions.ItfChecksum`, `AztecErrorCorrection` and `MaxiCodeMode` for
+  `IBarcodeGenerator`.
+- `BarcodeMatrix.IsHexagonal`, `BarcodeBuilder.DefaultMaxiCodeModuleSize`,
+  `Barcodes.MaxItfLength` and `Barcodes.MaxCodabarLength`.
+- Human-readable text under ITF, ITF-14 and Codabar.
 - New package `TerraFluent.Barcode.Mcp`: an MCP server, installed as a .NET tool
   (`terrafluent-barcode-mcp`), that lets AI assistants generate barcodes and QR
   codes. Tools: `generate_barcode`, `generate_qr_code` (styled) and

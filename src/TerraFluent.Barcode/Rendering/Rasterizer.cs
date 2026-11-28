@@ -75,6 +75,9 @@ internal sealed class Rasterizer
     // of a styled QR code are the same few shapes repeated, so each is sampled once and then copied.
     private readonly Dictionary<ShapeKey, ushort[]> _shapeMasks = new();
 
+    // The same for outlines that share a mask key (MaxiCode hexagons), keyed by key and sub-pixel offset.
+    private readonly Dictionary<(object Key, double FracX, double FracY), (ushort[] Mask, int Width, int Height)> _pathMasks = new();
+
     public Rasterizer(Scene scene, int bandHeight = BandHeight)
     {
         _scene = scene;
@@ -252,6 +255,45 @@ internal sealed class Rasterizer
     /// crossings to its right do not cancel out, as in <see cref="PathShape.Contains"/>.
     /// </summary>
     private void Cover(PathShape path, ushort[] coverage, int width, int bandY0, int bandY1)
+    {
+        if (path.MaskKey is { } maskKey && _pathMasks.Count < 256)
+        {
+            CoverCached(path, maskKey, coverage, width, bandY0, bandY1);
+            return;
+        }
+
+        CoverSampled(path, coverage, width, bandY0, bandY1);
+    }
+
+    private void CoverCached(PathShape path, object maskKey, ushort[] coverage, int width, int bandY0, int bandY1)
+    {
+        var left = (int)Math.Floor(path.MinX);
+        var top = (int)Math.Floor(path.MinY);
+        var key = (maskKey, path.MinX - left, path.MinY - top);
+        if (!_pathMasks.TryGetValue(key, out var entry))
+        {
+            // Sample the outline once, moved so its bounding box starts in pixel (0, 0), then reuse the mask.
+            var local = path.Translate(-left, -top);
+            var maskWidth = (int)Math.Ceiling(local.MaxX) + 1;
+            var maskHeight = (int)Math.Ceiling(local.MaxY) + 1;
+            entry = (new ushort[maskWidth * maskHeight], maskWidth, maskHeight);
+            CoverSampled(local, entry.Mask, maskWidth, 0, maskHeight);
+            _pathMasks.Add(key, entry);
+        }
+
+        var y0 = Math.Max(bandY0, top);
+        var y1 = Math.Min(bandY1, top + entry.Height);
+        var x0 = Math.Max(0, left);
+        var x1 = Math.Min(width, left + entry.Width);
+        for (var y = y0; y < y1; y++)
+        {
+            var source = (y - top) * entry.Width - left;
+            var target = (y - bandY0) * width;
+            for (var x = x0; x < x1; x++) coverage[target + x] |= entry.Mask[source + x];
+        }
+    }
+
+    private void CoverSampled(PathShape path, ushort[] coverage, int width, int bandY0, int bandY1)
     {
         var x0 = Math.Max(0, (int)Math.Floor(path.MinX));
         var y0 = Math.Max(bandY0, (int)Math.Floor(path.MinY));

@@ -15,9 +15,12 @@ same for a type chosen at run time.
 | [`UpcA`](#upc-a) | Linear | ISO/IEC 15420 | Retail products in North America |
 | [`QrCode`](#qr-code) | 2D | ISO/IEC 18004 | URLs, Wi-Fi, payments, tickets |
 | [`DataMatrix`](#data-matrix) | 2D | ISO/IEC 16022 | Small parts marking, healthcare, electronics |
+| [`Itf`](#interleaved-2-of-5) | Linear | ISO/IEC 16390 | Warehousing, distribution, numeric IDs |
+| [`Itf14`](#itf-14) | Linear | GS1 General Specifications | Outer cartons and cases (GTIN-14) |
+| [`Codabar`](#codabar) | Linear | ANSI/AIM BC3 | Libraries, blood banks, courier forms |
 | [`Pdf417`](#pdf417) | Stacked 2D | ISO/IEC 15438 | ID cards, boarding passes, shipping documents |
-
-Aztec, ITF-14, Codabar and MaxiCode are on the way; see the [Roadmap](roadmap.md).
+| [`Aztec`](#aztec) | 2D | ISO/IEC 24778 | Transport tickets, boarding passes |
+| [`MaxiCode`](#maxicode) | 2D | ISO/IEC 16023 | Parcel sorting |
 
 ## Code 128
 
@@ -160,6 +163,41 @@ Barcodes.DataMatrix("TF-2026").DataMatrixShape(DataMatrixShape.Rectangle);
 
 ![Rectangular Data Matrix code](images/datamatrix-rect.svg)
 
+## Interleaved 2 of 5
+
+```csharp
+Barcodes.Itf("12345678").HumanReadableText();
+```
+
+![Interleaved 2 of 5 barcode for 12345678](images/itf.svg)
+
+- **Input:** digits only, up to 80 (`Barcodes.MaxItfLength`). Digits are encoded in pairs, so the
+  count must be even, or odd with `WithChecksum()`, which adds a modulo 10 check digit.
+
+## ITF-14
+
+```csharp
+Barcodes.Itf14("1540014128876").HumanReadableText();
+```
+
+![ITF-14 barcode](images/itf14.svg)
+
+- **Input:** 13 digits (the check digit is added) or 14 digits (the check digit is validated).
+- Bearer bars are not drawn.
+
+## Codabar
+
+```csharp
+Barcodes.Codabar("A40156B").HumanReadableText();
+```
+
+![Codabar barcode for A40156B](images/codabar.svg)
+
+- **Input:** digits and `- $ : / . +`, up to 60 characters (`Barcodes.MaxCodabarLength`), including
+  the start and stop characters.
+- Start and stop characters are `A`, `B`, `C` or `D` (or `T`, `N`, `*`, `E`). When the value has
+  none, `A` is used at both ends.
+
 ## PDF417
 
 ```csharp
@@ -179,8 +217,50 @@ Barcodes.Pdf417("TerraFluent.Barcode PDF417 sample").Pdf417Columns(3).Pdf417Erro
 
 ![PDF417 code with 3 columns](images/pdf417-columns.svg)
 
+## Aztec
+
+```csharp
+Barcodes.Aztec("TerraFluent.Barcode Aztec sample");
+```
+
+![Aztec code](images/aztec.svg)
+
+- **Input:** any text; non-ASCII text is sent as UTF-8 with an ECI. Upper, lower, mixed,
+  punctuation, digit and byte modes are chosen automatically for the shortest symbol.
+- The smallest compact (1-4 layers) or full-range (up to 32 layers) symbol that fits is used.
+- `AztecErrorCorrection(5-90)` sets the share of the symbol used for error correction, plus 3 check
+  words. The default is 23%:
+
+```csharp
+Barcodes.Aztec("TerraFluent.Barcode Aztec sample").AztecErrorCorrection(50);
+```
+
+![Aztec code with 50% error correction](images/aztec-ecc-50.svg)
+
+## MaxiCode
+
+```csharp
+Barcodes.MaxiCode("152382802", 840, 1, "TerraFluent.Barcode MaxiCode");
+```
+
+![MaxiCode](images/maxicode.svg)
+
+- A fixed-size symbol of 33 rows of hexagons around a bullseye, about 1 inch square at the default
+  module size of 6 px.
+- `MaxiCode(postalCode, countryCode, serviceClass, message)` writes a structured carrier message:
+  mode 2 for a numeric postal code of up to 9 digits, mode 3 for an alphanumeric one of up to 6
+  characters. The country (ISO 3166 numeric) and service class are numbers from 0 to 999.
+- `MaxiCode(value)` uses mode 4 for Latin-1 text of up to 93 characters (138 digits).
+  `MaxiCodeMode(5)` uses enhanced error correction (up to 77 characters) and `MaxiCodeMode(6)` marks
+  a reader programming symbol:
+
+```csharp
+Barcodes.MaxiCode("TerraFluent.Barcode").MaxiCodeMode(5);
+```
+
 ## Not yet supported
 
 QR Kanji mode, structured append, and Data Matrix C40, Text and EDIFACT compaction (Data Matrix
-uses ASCII encodation, which still packs digit pairs). New symbologies are listed in the
+uses ASCII encodation, which still packs digit pairs). ITF-14 bearer bars, Aztec runes and
+structured append, and MaxiCode ECI and structured append. Planned work is listed in the
 [Roadmap](roadmap.md).

@@ -1,26 +1,13 @@
 # Roadmap
 
-These are planned or in progress. The pages for each will appear here once they ship.
-
-## New symbologies
-
-| Symbology | Kind | Typical use | Status |
-| --- | --- | --- | --- |
-| Aztec | 2D | Transport tickets, boarding passes | In progress |
-| ITF-14 | Linear | Outer cartons and cases (GTIN-14) | In progress |
-| Codabar | Linear | Libraries, blood banks, courier forms | In progress |
-| MaxiCode | 2D | Parcel sorting (UPS) | In progress |
-
-## MCP server
-
-`TerraFluent.Barcode.Mcp`, a separate package, will expose barcode generation as a
-[Model Context Protocol](https://modelcontextprotocol.io) server, so AI assistants and agents can
-create barcodes and QR codes as tools. Planned.
+These are planned. Aztec, ITF-14, Codabar, MaxiCode and the [MCP server](https://github.com/sahebansari/TerraFluent.Barcode/tree/main/src/TerraFluent.Barcode.Mcp) have shipped; see [Barcode types](barcode-types.md).
 
 ## Smaller items
 
 - QR code Kanji mode and structured append.
 - Data Matrix C40, Text and EDIFACT compaction.
+- ITF-14 bearer bars.
+- Aztec runes and structured append; MaxiCode ECI and structured append.
 
 Changes in each release are listed in the
 [changelog](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/CHANGELOG.md). Ideas and

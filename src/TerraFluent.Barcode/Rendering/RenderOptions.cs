@@ -51,7 +51,9 @@ internal sealed class RenderOptions
     public (int Width, int Height) ImageSize(BarcodeMatrix matrix)
     {
         var width = ((long)matrix.Width + 2L * QuietZone) * ModuleSize;
-        var height = matrix.IsLinear ? BarHeight + (long)TextBand : ((long)matrix.Height + 2L * QuietZone) * ModuleSize;
+        var height = matrix.IsLinear ? BarHeight + (long)TextBand
+            : matrix.IsHexagonal ? (long)Math.Ceiling((MaxiCodeGeometry.SymbolHeight + 2.0 * QuietZone) * ModuleSize)
+            : ((long)matrix.Height + 2L * QuietZone) * ModuleSize;
         if (width > BarcodeBuilder.MaxImageDimension || height > BarcodeBuilder.MaxImageDimension || width * height > MaxPixels)
         {
             throw new ArgumentException(

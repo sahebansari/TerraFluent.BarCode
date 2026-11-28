@@ -5,8 +5,8 @@
     <RootNamespace>TerraFluent.Barcode</RootNamespace>
     <AssemblyName>TerraFluent.Barcode</AssemblyName>
     <PackageId>TerraFluent.Barcode</PackageId>
-    <Title>TerraFluent.Barcode — Dependency-free barcode, QR, Data Matrix and PDF417 generation for .NET</Title>
-    <Description>A fluent, zero-dependency .NET library that generates linear (1D) barcodes and 2D codes: Code 128, GS1-128, Code 39, EAN-13, EAN-8, UPC-A (with EAN-2/EAN-5 add-ons), QR codes, Data Matrix and PDF417, with human-readable text, styled QR codes (rounded modules, gradients, logos) and a DI-friendly IBarcodeGenerator. Outputs PNG, JPEG, SVG, byte arrays, streams, base64 and data URIs.</Description>
+    <Title>TerraFluent.Barcode — Dependency-free barcode, QR, Data Matrix, PDF417, Aztec and MaxiCode generation for .NET</Title>
+    <Description>A fluent, zero-dependency .NET library that generates linear (1D) barcodes and 2D codes: Code 128, GS1-128, Code 39, EAN-13, EAN-8, UPC-A (with EAN-2/EAN-5 add-ons), ITF, ITF-14, Codabar, QR codes, Data Matrix, PDF417, Aztec and MaxiCode, with human-readable text, styled QR codes (rounded modules, gradients, logos) and a DI-friendly IBarcodeGenerator. Outputs PNG, JPEG, SVG, byte arrays, streams, base64 and data URIs.</Description>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageReadmeFile>README.md</PackageReadmeFile>

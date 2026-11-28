@@ -83,6 +83,18 @@ public const double DefaultLogoScale = 0.2
 
  [double](https://learn.microsoft.com/dotnet/api/system.double)
 
+### <a id="TerraFluent_Barcode_BarcodeBuilder_DefaultMaxiCodeModuleSize"></a> DefaultMaxiCodeModuleSize
+
+Default width of one MaxiCode hexagon, in pixels.
+
+```csharp
+public const int DefaultMaxiCodeModuleSize = 6
+```
+
+#### Field Value
+
+ [int](https://learn.microsoft.com/dotnet/api/system.int32)
+
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_DefaultPdf417ModuleSize"></a> DefaultPdf417ModuleSize
 
 Default width of one PDF417 module, in pixels (rows are three modules high).
@@ -238,6 +250,25 @@ public BarcodeBuilder AllowLowContrast(bool allow = true)
 #### Parameters
 
 `allow` [bool](https://learn.microsoft.com/dotnet/api/system.boolean)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_BarcodeBuilder_AztecErrorCorrection_System_Int32_"></a> AztecErrorCorrection\(int\)
+
+Minimum share of the symbol's codewords used for error correction, in percent,
+5 to 90; three more check words are always added (default 23, as ISO/IEC 24778
+recommends). More error correction makes a bigger symbol that survives more damage.
+Aztec only.
+
+```csharp
+public BarcodeBuilder AztecErrorCorrection(int percent)
+```
+
+#### Parameters
+
+`percent` [int](https://learn.microsoft.com/dotnet/api/system.int32)
 
 #### Returns
 
@@ -499,7 +530,8 @@ public BarcodeBuilder Height(int pixels)
 
 Prints the human-readable text under a linear barcode: EAN/UPC digits in
 their standard positions with extended guard bars, or the value centred
-under Code 128, Code 39 and GS1-128 (with AIs in parentheses). The image
+under Code 128, Code 39, GS1-128 (with AIs in parentheses), Interleaved
+2 of 5 and ITF-14 (with the check digit) and Codabar. The image
 grows by about one text line. Linear barcodes only.
 
 ```csharp
@@ -583,11 +615,31 @@ public BarcodeBuilder Logo(byte[] png, double scale = 0.2)
 
 <code class="paramref">png</code> is not a readable PNG file.
 
+### <a id="TerraFluent_Barcode_BarcodeBuilder_MaxiCodeMode_System_Int32_"></a> MaxiCodeMode\(int\)
+
+MaxiCode mode: 4 (default, standard error correction, 93 codewords of data),
+5 (enhanced error correction, 77 codewords) or 6 (reader programming). Modes 2
+and 3 are chosen by the <a href="barcodes.md#TerraFluent_Barcode_Barcodes_MaxiCode_System_String_System_Int32_System_Int32_System_String_">Barcodes.MaxiCode</a>
+overload that takes a postal code. MaxiCode only.
+
+```csharp
+public BarcodeBuilder MaxiCodeMode(int mode)
+```
+
+#### Parameters
+
+`mode` [int](https://learn.microsoft.com/dotnet/api/system.int32)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_ModuleSize_System_Int32_"></a> ModuleSize\(int\)
 
 Size of one module in pixels: the narrowest bar of a linear barcode, or
-one square of a 2D code. Defaults to 2 for linear barcodes and PDF417,
-and 4 for QR codes and Data Matrix.
+one square of a 2D code (for MaxiCode, the width of one hexagon). Defaults
+to 2 for linear barcodes and PDF417, 4 for QR codes, Data Matrix and Aztec,
+and 6 for MaxiCode.
 
 ```csharp
 public BarcodeBuilder ModuleSize(int pixels)
@@ -656,8 +708,9 @@ public BarcodeBuilder Pdf417ErrorCorrection(int level)
 
 Blank margin in modules on each side (linear barcodes: left and right only).
 Defaults to what the symbology's specification asks for: 10 for Code 128/39,
-11 for EAN-13, 9 for UPC-A, 7 for EAN-8, 4 for QR codes and 2 for Data
-Matrix and PDF417. Scanners may fail with a smaller value.
+Interleaved 2 of 5, ITF-14 and Codabar, 11 for EAN-13, 9 for UPC-A, 7 for
+EAN-8, 4 for QR codes, 2 for Data Matrix, PDF417 and Aztec, and 1 for
+MaxiCode. Scanners may fail with a smaller value.
 
 ```csharp
 public BarcodeBuilder QuietZone(int modules)
@@ -894,7 +947,9 @@ public BarcodeBuilder TransparentBackground(bool transparent = true)
 
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_WithChecksum_System_Boolean_"></a> WithChecksum\(bool\)
 
-Adds the optional modulo 43 check character. Code 39 only.
+Adds the optional check character: modulo 43 for Code 39, or the modulo 10
+check digit (weights 3 and 1, as GS1 uses) for Interleaved 2 of 5, which then
+needs an odd number of digits. Code 39 and Interleaved 2 of 5 only.
 
 ```csharp
 public BarcodeBuilder WithChecksum(bool include = true)

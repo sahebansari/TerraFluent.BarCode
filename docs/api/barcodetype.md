@@ -46,3 +46,23 @@ Data Matrix ECC 200 (ISO/IEC 16022): compact 2D code, square or rectangular.
 <a id="TerraFluent_Barcode_BarcodeType_Pdf417"></a>`Pdf417 = 8` 
 
 PDF417 (ISO/IEC 15438): stacked 2D code used on ID cards, boarding passes and shipping labels.
+
+<a id="TerraFluent_Barcode_BarcodeType_Itf"></a>`Itf = 9` 
+
+Interleaved 2 of 5 (ISO/IEC 16390): an even number of digits, with an optional modulo 10 check digit.
+
+<a id="TerraFluent_Barcode_BarcodeType_Itf14"></a>`Itf14 = 10` 
+
+ITF-14 (GS1): Interleaved 2 of 5 for a 14-digit GTIN on cartons and outer packaging.
+
+<a id="TerraFluent_Barcode_BarcodeType_Codabar"></a>`Codabar = 11` 
+
+Codabar (NW-7): digits and <code>- $ : / . +</code> framed by start/stop characters A to D; used by libraries and blood banks.
+
+<a id="TerraFluent_Barcode_BarcodeType_Aztec"></a>`Aztec = 12` 
+
+Aztec Code (ISO/IEC 24778): compact 2D code with a central bullseye that needs no quiet zone; used on transport tickets.
+
+<a id="TerraFluent_Barcode_BarcodeType_MaxiCode"></a>`MaxiCode = 13` 
+
+MaxiCode (ISO/IEC 16023): fixed-size 2D code of hexagons around a bullseye, used for parcel sorting.

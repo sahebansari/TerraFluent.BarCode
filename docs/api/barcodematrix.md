@@ -30,6 +30,20 @@ public int Height { get; }
 
  [int](https://learn.microsoft.com/dotnet/api/system.int32)
 
+### <a id="TerraFluent_Barcode_BarcodeMatrix_IsHexagonal"></a> IsHexagonal
+
+<code>true</code> for MaxiCode, whose modules are hexagons: odd rows are offset
+half a module to the right, rows are <code>sqrt(3)/2</code> modules apart, and
+the bullseye in the centre is not part of the matrix.
+
+```csharp
+public bool IsHexagonal { get; }
+```
+
+#### Property Value
+
+ [bool](https://learn.microsoft.com/dotnet/api/system.boolean)
+
 ### <a id="TerraFluent_Barcode_BarcodeMatrix_IsLinear"></a> IsLinear
 
 <code>true</code> for 1D barcodes, whose single row is stretched to the bar height when rendered.

@@ -42,6 +42,15 @@ public sealed class BarcodeOptions
     /// <summary>Uses the Code 39 full ASCII extension. See <see cref="BarcodeBuilder.FullAscii"/>.</summary>
     public bool Code39FullAscii { get; set; }
 
+    /// <summary>Appends the Interleaved 2 of 5 check digit. See <see cref="BarcodeBuilder.WithChecksum"/>.</summary>
+    public bool ItfChecksum { get; set; }
+
+    /// <summary>Aztec minimum error correction in percent. See <see cref="BarcodeBuilder.AztecErrorCorrection"/>.</summary>
+    public int? AztecErrorCorrection { get; set; }
+
+    /// <summary>MaxiCode mode 4, 5 or 6. See <see cref="BarcodeBuilder.MaxiCodeMode"/>.</summary>
+    public int? MaxiCodeMode { get; set; }
+
     /// <summary>Data Matrix symbol shapes. See <see cref="BarcodeBuilder.DataMatrixShape"/>.</summary>
     public DataMatrixShape? DataMatrixShape { get; set; }
 

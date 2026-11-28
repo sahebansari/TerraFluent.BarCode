@@ -41,6 +41,10 @@ var samples = new (string Name, BarcodeBuilder Builder)[]
     ("datamatrix", Barcodes.DataMatrix("TerraFluent.Barcode Data Matrix")),
     ("datamatrix-rect", Barcodes.DataMatrix("TF-2026").DataMatrixShape(DataMatrixShape.Rectangle)),
     ("pdf417", Barcodes.Pdf417("TerraFluent.Barcode PDF417 sample: https://github.com/sahebansari/TerraFluent.Barcode")),
+    ("itf14", Barcodes.Itf14("1540014128876").HumanReadableText()),
+    ("codabar", Barcodes.Codabar("A40156B").HumanReadableText()),
+    ("aztec", Barcodes.Aztec("TerraFluent.Barcode Aztec: https://github.com/sahebansari/TerraFluent.Barcode")),
+    ("maxicode", Barcodes.MaxiCode("152382802", 840, 1, "TerraFluent.Barcode MaxiCode")),
     ("qr-mixed", Barcodes.QrCode("https://example.com/track/" + "123456789012345678901234567890")),
     ("qr-transparent", Barcodes.QrCode(RepoUrl).TransparentBackground()),
 };
