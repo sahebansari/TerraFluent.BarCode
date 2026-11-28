@@ -48,12 +48,14 @@ jobs:
         run: |
           dotnet test tests/TerraFluent.Barcode.Tests/TerraFluent.Barcode.Tests.csproj --configuration Release --no-build
           dotnet test tests/TerraFluent.Barcode.Mcp.Tests/TerraFluent.Barcode.Mcp.Tests.csproj --configuration Release --no-build
+          dotnet test tests/TerraFluent.Barcode.AspNetCore.Tests/TerraFluent.Barcode.AspNetCore.Tests.csproj --configuration Release --no-build
 
       - name: Test with coverage
         if: matrix.os == 'ubuntu-latest'
         run: |
           dotnet test tests/TerraFluent.Barcode.Tests/TerraFluent.Barcode.Tests.csproj --configuration Release --no-build --collect "XPlat Code Coverage" --results-directory test-results
           dotnet test tests/TerraFluent.Barcode.Mcp.Tests/TerraFluent.Barcode.Mcp.Tests.csproj --configuration Release --no-build --collect "XPlat Code Coverage" --results-directory test-results
+          dotnet test tests/TerraFluent.Barcode.AspNetCore.Tests/TerraFluent.Barcode.AspNetCore.Tests.csproj --configuration Release --no-build --collect "XPlat Code Coverage" --results-directory test-results
 
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest'
@@ -80,6 +82,7 @@ jobs:
         run: |
           dotnet pack src/TerraFluent.Barcode/TerraFluent.Barcode.csproj --configuration Release --output artifacts
           dotnet pack src/TerraFluent.Barcode.Mcp/TerraFluent.Barcode.Mcp.csproj --configuration Release --output artifacts
+          dotnet pack src/TerraFluent.Barcode.AspNetCore/TerraFluent.Barcode.AspNetCore.csproj --configuration Release --output artifacts
 
       - name: Upload package artifacts
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

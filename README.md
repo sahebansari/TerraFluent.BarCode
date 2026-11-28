@@ -224,6 +224,27 @@ ignored, so one `BarcodeOptions` serves every type. Options passed to a call
 replace the defaults. `Create(type, value)` returns a `BarcodeBuilder` with
 the options applied, for gradients, logos and other styles.
 
+## ASP.NET Core
+
+`TerraFluent.Barcode.AspNetCore` is a separate package for web apps (.NET 10):
+an endpoint that serves any barcode from a URL, with size limits, ETags and
+caching headers; `IResult` helpers; and a Razor tag helper.
+
+```csharp
+builder.Services.AddBarcodes(o => o.MaxImagePixels = 1024 * 1024);
+app.MapBarcodes();   // <img src="/barcodes/qr.svg?data=hello">
+
+app.MapGet("/labels/{sku}.png", (string sku) =>
+    Results.Extensions.Barcode(BarcodeType.Code128, sku));
+```
+
+```cshtml
+@addTagHelper *, TerraFluent.Barcode.AspNetCore
+<barcode type="QrCode" value="@Model.Url" module-size="6" />
+```
+
+See [the ASP.NET Core guide](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/docs/aspnetcore.md).
+
 ## MCP Server for AI Assistants
 
 `TerraFluent.Barcode.Mcp` is a separate package: a
@@ -262,9 +283,11 @@ Changes are listed in [CHANGELOG.md](https://github.com/sahebansari/TerraFluent.
 
 - `src/TerraFluent.Barcode` – the library.
 - `src/TerraFluent.Barcode.Mcp` – the MCP server (.NET tool).
+- `src/TerraFluent.Barcode.AspNetCore` – ASP.NET Core endpoint, results and tag helper.
 - `tests/TerraFluent.Barcode.Tests` – xUnit tests.
 - `docs` – the documentation published at terrafluent.dev; see [docs/README.md](docs/README.md).
 - `tests/TerraFluent.Barcode.Mcp.Tests` – MCP server tests, run against an in-process client.
+- `tests/TerraFluent.Barcode.AspNetCore.Tests` – ASP.NET Core tests, run on the in-memory test server.
 - `samples/TerraFluent.Barcode.Sample` – writes every symbology in every format
   plus an `index.html` preview: `dotnet run --project samples/TerraFluent.Barcode.Sample`.
 

@@ -13,10 +13,11 @@ Markdown, so they also read well right here on GitHub.
 5. [Options](options.md): size, quiet zone, colours and human-readable text
 6. [Styling](styling.md): module and eye shapes, gradients, logos and rounded bars
 7. [Dependency injection](dependency-injection.md): `IBarcodeGenerator` and `BarcodeOptions`
-8. [Custom rendering](custom-rendering.md): drawing a `BarcodeMatrix` yourself
-9. [Errors, limits and thread safety](errors-and-limits.md)
-10. [Performance](performance.md)
-11. [Roadmap](roadmap.md)
+8. [ASP.NET Core](aspnetcore.md): a barcode endpoint, `IResult` helpers and a tag helper
+9. [Custom rendering](custom-rendering.md): drawing a `BarcodeMatrix` yourself
+10. [Errors, limits and thread safety](errors-and-limits.md)
+11. [Performance](performance.md)
+12. [Roadmap](roadmap.md)
 
 [API reference](api/index.md): every public type and member, generated from the XML documentation
 comments.

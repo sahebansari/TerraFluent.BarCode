@@ -5,6 +5,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- New package `TerraFluent.Barcode.AspNetCore` (.NET 10) for web apps:
+  - `AddBarcodes(options)` registers `BarcodeEndpointOptions` and a singleton `IBarcodeGenerator`.
+  - `MapBarcodes(pattern)` serves `GET`/`HEAD` `/barcodes/{type}.{format?}?data=...` as PNG, JPEG
+    or SVG, with query options (module size, height, quiet zone, colours, text, QR error correction,
+    checksum), limits on data length, option ranges and image area (4 MP by default), an allow-list
+    of types, strong ETags with 304 Not Modified before rendering, configurable `Cache-Control`,
+    `nosniff` and a script-blocking CSP on SVG, and 400/404 problem details for bad input.
+  - `Results.Extensions.Barcode(...)` and `BarcodeBuilder.ToHttpResult(...)` return a
+    `BarcodeHttpResult` for minimal APIs and MVC controllers, with an optional download file name
+    and OpenAPI metadata.
+  - `<barcode>` tag helper: an `img` with a `data:` URI, or inline SVG with the page's attributes
+    and an accessible label.
+
 ## [1.3.0] - 2026-11-28
 
 ### Added

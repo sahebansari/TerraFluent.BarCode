@@ -60,9 +60,13 @@ app.MapGet("/qr", async (HttpResponse response, string text) =>
 });
 ```
 
+For a ready-made barcode endpoint with caching and limits, result helpers and a Razor tag helper,
+add the `TerraFluent.Barcode.AspNetCore` package: see [ASP.NET Core](aspnetcore.md).
+
 ## Next steps
 
 - [Barcode types](barcode-types.md) for the rules of each symbology.
 - [Options](options.md) for size, quiet zone, colours and text.
 - [Styling](styling.md) for rounded modules, gradients and logos.
 - [Dependency injection](dependency-injection.md) to inject `IBarcodeGenerator` into your services.
+- [ASP.NET Core](aspnetcore.md) for the endpoint, result helpers and tag helper.

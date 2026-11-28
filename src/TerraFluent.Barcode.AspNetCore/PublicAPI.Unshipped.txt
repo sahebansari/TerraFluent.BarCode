@@ -1,0 +1,66 @@
+#nullable enable
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.AllowedTypes.get -> System.Collections.Generic.ISet<TerraFluent.Barcode.BarcodeType>!
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.BarcodeEndpointOptions() -> void
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.CacheMaxAge.get -> System.TimeSpan
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.CacheMaxAge.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.DefaultFormat.get -> TerraFluent.Barcode.BarcodeImageFormat
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.DefaultFormat.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.Defaults.get -> TerraFluent.Barcode.BarcodeOptions!
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.Defaults.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.MaxBarHeight.get -> int
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.MaxBarHeight.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.MaxDataLength.get -> int
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.MaxDataLength.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.MaxImagePixels.get -> long
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.MaxImagePixels.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.MaxModuleSize.get -> int
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.MaxModuleSize.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.MaxQuietZone.get -> int
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.MaxQuietZone.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.PublicCache.get -> bool
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.PublicCache.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeEndpointRouteBuilderExtensions
+TerraFluent.Barcode.AspNetCore.BarcodeHttpResult
+TerraFluent.Barcode.AspNetCore.BarcodeHttpResult.ContentType.get -> string!
+TerraFluent.Barcode.AspNetCore.BarcodeHttpResult.ExecuteAsync(Microsoft.AspNetCore.Http.HttpContext! httpContext) -> System.Threading.Tasks.Task!
+TerraFluent.Barcode.AspNetCore.BarcodeHttpResult.FileDownloadName.get -> string?
+TerraFluent.Barcode.AspNetCore.BarcodeHttpResult.Format.get -> TerraFluent.Barcode.BarcodeImageFormat
+TerraFluent.Barcode.AspNetCore.BarcodeResultExtensions
+TerraFluent.Barcode.AspNetCore.BarcodeServiceCollectionExtensions
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Background.get -> string?
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Background.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.BarcodeTagHelper(System.Text.Encodings.Web.HtmlEncoder! encoder) -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.ErrorCorrection.get -> TerraFluent.Barcode.QrErrorCorrectionLevel?
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.ErrorCorrection.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Foreground.get -> string?
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Foreground.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Format.get -> TerraFluent.Barcode.BarcodeImageFormat
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Format.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Height.get -> int?
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Height.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.HumanReadableText.get -> bool?
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.HumanReadableText.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.InlineSvg.get -> bool
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.InlineSvg.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.ModuleSize.get -> int?
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.ModuleSize.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.QuietZone.get -> int?
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.QuietZone.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.TransparentBackground.get -> bool
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.TransparentBackground.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Type.get -> TerraFluent.Barcode.BarcodeType
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Type.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Value.get -> string?
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Value.set -> void
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.ViewContext.get -> Microsoft.AspNetCore.Mvc.Rendering.ViewContext?
+TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.ViewContext.set -> void
+const TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions.DefaultMaxImagePixels = 4194304 -> long
+override TerraFluent.Barcode.AspNetCore.BarcodeTagHelper.Process(Microsoft.AspNetCore.Razor.TagHelpers.TagHelperContext! context, Microsoft.AspNetCore.Razor.TagHelpers.TagHelperOutput! output) -> void
+static TerraFluent.Barcode.AspNetCore.BarcodeEndpointRouteBuilderExtensions.MapBarcodes(this Microsoft.AspNetCore.Routing.IEndpointRouteBuilder! endpoints, string! pattern = "/barcodes") -> Microsoft.AspNetCore.Builder.IEndpointConventionBuilder!
+static TerraFluent.Barcode.AspNetCore.BarcodeHttpResult.PopulateMetadata(System.Reflection.MethodInfo! method, Microsoft.AspNetCore.Builder.EndpointBuilder! builder) -> void
+static TerraFluent.Barcode.AspNetCore.BarcodeResultExtensions.Barcode(this Microsoft.AspNetCore.Http.IResultExtensions! resultExtensions, TerraFluent.Barcode.BarcodeBuilder! builder, TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png, string? fileDownloadName = null) -> TerraFluent.Barcode.AspNetCore.BarcodeHttpResult!
+static TerraFluent.Barcode.AspNetCore.BarcodeResultExtensions.Barcode(this Microsoft.AspNetCore.Http.IResultExtensions! resultExtensions, TerraFluent.Barcode.BarcodeType type, string! value, TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png, TerraFluent.Barcode.BarcodeOptions? options = null, string? fileDownloadName = null) -> TerraFluent.Barcode.AspNetCore.BarcodeHttpResult!
+static TerraFluent.Barcode.AspNetCore.BarcodeResultExtensions.ToHttpResult(this TerraFluent.Barcode.BarcodeBuilder! builder, TerraFluent.Barcode.BarcodeImageFormat format = TerraFluent.Barcode.BarcodeImageFormat.Png, string? fileDownloadName = null) -> TerraFluent.Barcode.AspNetCore.BarcodeHttpResult!
+static TerraFluent.Barcode.AspNetCore.BarcodeServiceCollectionExtensions.AddBarcodes(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<TerraFluent.Barcode.AspNetCore.BarcodeEndpointOptions!>? configure = null) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
