@@ -61,7 +61,7 @@ internal static class Gs1Ai
             switch (part.Check)
             {
                 case "check":
-                    var expected = EanUpcEncoder.CheckDigit(field.Substring(0, field.Length - 1));
+                    var expected = EanUpcEncoder.CheckDigit(field, field.Length - 1);
                     if (field[field.Length - 1] != expected)
                     {
                         return $"AI ({ai}) check digit '{field[field.Length - 1]}' should be '{expected}'";

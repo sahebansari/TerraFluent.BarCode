@@ -61,7 +61,7 @@ internal static class ItfEncoder
         }
         else if (value.Length == 14)
         {
-            var expected = EanUpcEncoder.CheckDigit(value.Substring(0, 13));
+            var expected = EanUpcEncoder.CheckDigit(value, 13);
             if (value[13] != expected)
             {
                 throw new ArgumentException($"Invalid ITF-14 check digit: '{value[13]}' should be '{expected}'.", nameof(value));

@@ -147,17 +147,16 @@ internal static class DataMatrixEncoder
     private static byte[] AddErrorCorrection(int[] data, SymbolInfo symbol)
     {
         var blocks = symbol.Blocks;
-        var eccPerBlock = symbol.EccCodewords / blocks;
-        var generator = Gf256.Generator(eccPerBlock);
         var result = new byte[symbol.DataCodewords + symbol.EccCodewords];
         for (var i = 0; i < data.Length; i++) result[i] = (byte)data[i];
 
+        // Block b holds every blocks-th codeword from b, data and check words alike.
+        var ecc = new int[symbol.EccCodewords / blocks];
         for (var b = 0; b < blocks; b++)
         {
-            var blockData = new List<byte>();
-            for (var i = b; i < data.Length; i += blocks) blockData.Add((byte)data[i]);
-            var ecc = Gf256.Remainder(blockData, generator);
-            for (var j = 0; j < eccPerBlock; j++) result[data.Length + b + j * blocks] = ecc[j];
+            var count = (data.Length - b + blocks - 1) / blocks;
+            GaloisField.DataMatrix.Remainder(data, b, count, blocks, ecc);
+            for (var j = 0; j < ecc.Length; j++) result[data.Length + b + j * blocks] = (byte)ecc[j];
         }
 
         return result;
@@ -347,57 +346,6 @@ internal static class DataMatrixEncoder
             Module(1, _cols - 3, pos, 6);
             Module(1, _cols - 2, pos, 7);
             Module(1, _cols - 1, pos, 8);
-        }
-    }
-
-    /// <summary>Reed-Solomon over GF(256) with the Data Matrix polynomial x^8 + x^5 + x^3 + x^2 + 1 and generator roots a^1..a^n.</summary>
-    private static class Gf256
-    {
-        private static readonly int[] Exp = new int[512];
-        private static readonly int[] Log = new int[256];
-
-        static Gf256()
-        {
-            var x = 1;
-            for (var i = 0; i < 255; i++)
-            {
-                Exp[i] = x;
-                Log[x] = i;
-                x <<= 1;
-                if (x >= 256) x ^= 0x12D;
-            }
-
-            for (var i = 255; i < 512; i++) Exp[i] = Exp[i - 255];
-        }
-
-        private static int Multiply(int a, int b) => a == 0 || b == 0 ? 0 : Exp[Log[a] + Log[b]];
-
-        /// <summary>Coefficients of prod (x + a^i), i = 1..degree, highest power first (leading 1 omitted).</summary>
-        public static int[] Generator(int degree)
-        {
-            var g = new int[degree + 1];
-            g[0] = 1;
-            for (var i = 1; i <= degree; i++)
-            {
-                var root = Exp[i];
-                for (var j = i; j >= 1; j--) g[j] = g[j] ^ Multiply(g[j - 1], root);
-            }
-
-            return g.Skip(1).ToArray();
-        }
-
-        public static byte[] Remainder(IReadOnlyList<byte> data, int[] generator)
-        {
-            var n = generator.Length;
-            var ecc = new int[n];
-            foreach (var d in data)
-            {
-                var factor = d ^ ecc[0];
-                for (var j = 0; j < n - 1; j++) ecc[j] = ecc[j + 1] ^ Multiply(factor, generator[j]);
-                ecc[n - 1] = Multiply(factor, generator[n - 1]);
-            }
-
-            return ecc.Select(e => (byte)e).ToArray();
         }
     }
 }

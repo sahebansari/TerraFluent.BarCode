@@ -141,7 +141,7 @@ internal static class EanUpcEncoder
                 nameof(value));
         }
 
-        var expected = CheckDigit(value.Substring(0, length - 1));
+        var expected = CheckDigit(value, length - 1);
         if (value[length - 1] != expected)
         {
             throw new ArgumentException(
@@ -153,16 +153,21 @@ internal static class EanUpcEncoder
     }
 
     /// <summary>GS1 modulo 10 check digit: weights 3,1,3,... from the rightmost data digit.</summary>
-    internal static char CheckDigit(string data)
+    internal static char CheckDigit(string data) => CheckDigit(data, data.Length);
+
+    /// <summary>The GS1 check digit for the first <paramref name="length"/> digits of <paramref name="data"/>.</summary>
+    internal static char CheckDigit(string data, int length)
     {
-        var sum = 0;
-        for (var i = 0; i < data.Length; i++)
+        int odd = 0, even = 0; // odd: rightmost data digit and every second one left of it (weight 3)
+        var i = length - 1;
+        for (; i > 0; i -= 2)
         {
-            var digit = data[data.Length - 1 - i] - '0';
-            sum += i % 2 == 0 ? digit * 3 : digit;
+            odd += data[i] - '0';
+            even += data[i - 1] - '0';
         }
 
-        return (char)('0' + (10 - sum % 10) % 10);
+        if (i == 0) odd += data[0] - '0';
+        return (char)('0' + (10 - (3 * odd + even) % 10) % 10);
     }
 
     private static BarcodeMatrix EncodeEan13Digits(string digits, int quietZone, LinearLayout layout, string? addOn)
