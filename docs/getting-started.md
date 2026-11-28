@@ -65,4 +65,5 @@ app.MapGet("/qr", async (HttpResponse response, string text) =>
 - [Barcode types](barcode-types.md) for the rules of each symbology.
 - [Options](options.md) for size, quiet zone, colours and text.
 - [Styling](styling.md) for rounded modules, gradients and logos.
+- [QR payloads](qr-payloads.md) for Wi-Fi, contact, email, SMS and GS1 Digital Link codes.
 - [Dependency injection](dependency-injection.md) to inject `IBarcodeGenerator` into your services.

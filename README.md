@@ -156,6 +156,25 @@ two-colour images, so prefer PNG or SVG: JPEG compression softens bar edges.
 | `JpegQuality(1-100)` | 90 | JPEG output only. |
 | `AllowLowContrast()` | off | Skips the contrast check. |
 
+## QR Payloads
+
+`QrPayload` builds correctly escaped text for the formats phone cameras act
+on, ready to pass to `Barcodes.QrCode`:
+
+```csharp
+Barcodes.QrCode(QrPayload.Wifi("Guest", "welcome123")).ToPng();
+Barcodes.QrCode(QrPayload.Contact(new ContactCard { FirstName = "Ada", LastName = "Lovelace", Email = "ada@example.com" })).ToSvg();
+Barcodes.QrCode(QrPayload.Url("terrafluent.dev/barcode")).ToPng();          // https:// added
+Barcodes.QrCode(QrPayload.Email("hello@example.com", "Order 1042")).ToPng(); // mailto:, percent-encoded
+Barcodes.QrCode(QrPayload.Sms("+1 555 123 4567", "Running late")).ToPng();  // also QrPayload.Phone
+Barcodes.QrCode(QrPayload.Gs1DigitalLink("(01)09501101530003(10)ABC123(17)271231")).ToPng();
+// https://id.gs1.org/01/09501101530003/10/ABC123?17=271231
+```
+
+Each helper validates its input (WPA password length, email address, phone
+digits, GS1 AIs and check digits) and throws `ArgumentException` for anything
+the format cannot express. See [QR payloads](docs/qr-payloads.md).
+
 ## Fancy Styles
 
 Rounded and dotted modules, shaped eyes, gradients, logos and rounded bars
