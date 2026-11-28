@@ -105,6 +105,7 @@ public sealed class BarcodeBuilder
     private bool _itfChecksum;
     private int _aztecErrorCorrection = AztecEncoder.DefaultErrorCorrectionPercent;
     private int _maxiCodeMode = 4;
+    private int? _rmqrHeight;
     private readonly (string PostalCode, int CountryCode, int ServiceClass)? _maxiCodePrimary;
     private readonly IReadOnlyList<(string Ai, string Data)>? _gs1Elements;
 
@@ -114,9 +115,9 @@ public sealed class BarcodeBuilder
         Value = value;
     }
 
-    internal BarcodeBuilder(IReadOnlyList<(string Ai, string Data)> gs1Elements)
+    internal BarcodeBuilder(BarcodeType type, IReadOnlyList<(string Ai, string Data)> gs1Elements)
     {
-        Type = BarcodeType.Gs1Code128;
+        Type = type;
         _gs1Elements = gs1Elements;
         Value = string.Concat(gs1Elements.Select(e => "(" + e.Ai + ")" + e.Data));
     }
@@ -137,7 +138,8 @@ public sealed class BarcodeBuilder
     private bool IsLinear => IsLinearType(Type);
 
     internal static bool IsLinearType(BarcodeType type) =>
-        type is not (BarcodeType.QrCode or BarcodeType.DataMatrix or BarcodeType.Pdf417 or BarcodeType.Aztec or BarcodeType.MaxiCode);
+        type is not (BarcodeType.QrCode or BarcodeType.DataMatrix or BarcodeType.Pdf417 or BarcodeType.Aztec or BarcodeType.MaxiCode
+            or BarcodeType.MicroQrCode or BarcodeType.RectangularMicroQrCode or BarcodeType.IntelligentMail);
 
     private bool IsEanUpc => Type is BarcodeType.Ean13 or BarcodeType.Ean8 or BarcodeType.UpcA;
 
@@ -197,13 +199,49 @@ public sealed class BarcodeBuilder
     /// <summary>Background and quiet-zone colour as <c>#RRGGBB</c> or <c>#RGB</c>.</summary>
     public BarcodeBuilder Background(string hex) => Background(BarcodeColor.FromHex(hex));
 
-    /// <summary>QR error-correction level (default <see cref="QrErrorCorrectionLevel.M"/>). QR codes only.</summary>
+    /// <summary>
+    /// Error-correction level (default <see cref="QrErrorCorrectionLevel.M"/>) for QR codes,
+    /// Micro QR (L, M or Q; at L the smallest version, M1, can be used, which only detects
+    /// errors) and rMQR (M or H).
+    /// </summary>
     public BarcodeBuilder ErrorCorrection(QrErrorCorrectionLevel level)
     {
-        if (Type != BarcodeType.QrCode) throw new InvalidOperationException("ErrorCorrection applies to QR codes only.");
+        if (Type is not (BarcodeType.QrCode or BarcodeType.MicroQrCode or BarcodeType.RectangularMicroQrCode))
+        {
+            throw new InvalidOperationException("ErrorCorrection applies to QR codes, Micro QR and rMQR only.");
+        }
+
         if (level < QrErrorCorrectionLevel.L || level > QrErrorCorrectionLevel.H) throw new ArgumentOutOfRangeException(nameof(level));
+        if (Type == BarcodeType.MicroQrCode && level == QrErrorCorrectionLevel.H)
+        {
+            throw new ArgumentException("Micro QR has error-correction levels L, M and Q only. Use a QR code for level H.", nameof(level));
+        }
+
+        if (Type == BarcodeType.RectangularMicroQrCode && level is not (QrErrorCorrectionLevel.M or QrErrorCorrectionLevel.H))
+        {
+            throw new ArgumentException("rMQR has error-correction levels M and H only.", nameof(level));
+        }
+
         _errorCorrection = level;
         _errorCorrectionSet = true;
+        _matrix = null;
+        return this;
+    }
+
+    /// <summary>
+    /// Fixes the height of an rMQR symbol: 7, 9, 11, 13, 15 or 17 modules. The
+    /// narrowest symbol of that height that holds the value is used. By default
+    /// the symbol with the smallest area is picked. rMQR only.
+    /// </summary>
+    public BarcodeBuilder RectangularMicroQrHeight(int modules)
+    {
+        if (Type != BarcodeType.RectangularMicroQrCode) throw new InvalidOperationException("RectangularMicroQrHeight applies to rMQR only.");
+        if (Array.IndexOf(RmqrEncoder.Heights, modules) < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(modules), modules, "rMQR symbols are 7, 9, 11, 13, 15 or 17 modules high.");
+        }
+
+        _rmqrHeight = modules;
         _matrix = null;
         return this;
     }
@@ -520,6 +558,19 @@ public sealed class BarcodeBuilder
                 return _maxiCodePrimary is { } p
                     ? MaxiCodeEncoder.EncodeStructured(p.PostalCode, p.CountryCode, p.ServiceClass, Value)
                     : MaxiCodeEncoder.Encode(Value, _maxiCodeMode);
+            case BarcodeType.MicroQrCode: return MicroQrEncoder.Encode(Value, EffectiveErrorCorrection);
+            case BarcodeType.RectangularMicroQrCode: return RmqrEncoder.Encode(Value, EffectiveErrorCorrection, _rmqrHeight);
+            case BarcodeType.Gs1DataBar: return DataBarEncoder.EncodeOmnidirectional(Value);
+            case BarcodeType.Gs1DataBarLimited: return DataBarEncoder.EncodeLimited(Value);
+            case BarcodeType.Gs1DataBarExpanded:
+            {
+                var gs1 = _gs1Elements is null ? Gs1.Parse(Value, "value", Gs1.Symbology.DataBarExpanded) : Gs1.Build(_gs1Elements, "elements", Gs1.Symbology.DataBarExpanded);
+                var matrix = DataBarExpandedEncoder.Encode(gs1.Encoded);
+                matrix.Layout!.CentredText = gs1.HumanReadable;
+                return matrix;
+            }
+
+            case BarcodeType.IntelligentMail: return IntelligentMailEncoder.Encode(Value);
             default: throw new InvalidOperationException($"Unsupported barcode type {Type}.");
         }
     }
@@ -743,7 +794,7 @@ public sealed class BarcodeBuilder
         var matrix = Encode();
         var moduleSize = _moduleSize ?? Type switch
         {
-            BarcodeType.QrCode or BarcodeType.DataMatrix or BarcodeType.Aztec => DefaultQrModuleSize,
+            BarcodeType.QrCode or BarcodeType.DataMatrix or BarcodeType.Aztec or BarcodeType.MicroQrCode or BarcodeType.RectangularMicroQrCode => DefaultQrModuleSize,
             BarcodeType.MaxiCode => DefaultMaxiCodeModuleSize,
             BarcodeType.Pdf417 => DefaultPdf417ModuleSize,
             _ => DefaultLinearModuleSize,

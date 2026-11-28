@@ -59,7 +59,8 @@ internal static class BarcodeParsing
     }
 
     public static bool IsLinear(BarcodeType type) =>
-        type is not (BarcodeType.QrCode or BarcodeType.DataMatrix or BarcodeType.Pdf417 or BarcodeType.Aztec or BarcodeType.MaxiCode);
+        type is not (BarcodeType.QrCode or BarcodeType.DataMatrix or BarcodeType.Pdf417 or BarcodeType.Aztec or BarcodeType.MaxiCode
+            or BarcodeType.MicroQrCode or BarcodeType.RectangularMicroQrCode or BarcodeType.IntelligentMail);
 
     public static string Normalize(string? value)
     {

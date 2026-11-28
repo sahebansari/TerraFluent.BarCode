@@ -58,6 +58,12 @@ public sealed class McpServerTests(McpServerFixture server) : IClassFixture<McpS
     [InlineData("codabar", "A40156B")]
     [InlineData("aztec", "hello")]
     [InlineData("maxicode", "hello")]
+    [InlineData("microqr", "12345")]
+    [InlineData("rmqr", "hello")]
+    [InlineData("databar", "0950110153000")]
+    [InlineData("databar-limited", "0950110153000")]
+    [InlineData("databar-expanded", "(01)09501101530003(3103)000450")]
+    [InlineData("imb", "0123456709498765432101234567891")]
     public async Task Generate_barcode_returns_a_png_image(string type, string data)
     {
         var result = await server.CallAsync("generate_barcode", new() { ["type"] = type, ["data"] = data });
@@ -204,6 +210,22 @@ public sealed class McpServerTests(McpServerFixture server) : IClassFixture<McpS
 
         Assert.True(result.IsError);
         Assert.Contains("1000000", Assert.IsType<TextContentBlock>(Assert.Single(result.Content)).Text.Replace(",", "", StringComparison.Ordinal), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Generate_barcode_applies_micro_qr_and_rmqr_options()
+    {
+        var micro = await server.CallAsync("generate_barcode", new() { ["type"] = "microqr", ["data"] = "ABC", ["errorCorrection"] = "Q" });
+        Assert.NotEqual(true, micro.IsError);
+
+        var rmqr = await server.CallAsync("generate_barcode", new() { ["type"] = "rmqr", ["data"] = "hello", ["errorCorrection"] = "H", ["rmqrHeight"] = 9 });
+        Assert.NotEqual(true, rmqr.IsError);
+
+        var badLevel = await server.CallAsync("generate_barcode", new() { ["type"] = "rmqr", ["data"] = "hello", ["errorCorrection"] = "L" });
+        Assert.True(badLevel.IsError);
+
+        var wrongType = await server.CallAsync("generate_barcode", new() { ["type"] = "qr", ["data"] = "x", ["rmqrHeight"] = 7 });
+        Assert.True(wrongType.IsError);
     }
 
     [Fact]

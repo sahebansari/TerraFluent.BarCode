@@ -177,7 +177,7 @@ public class EndpointTests
     [InlineData("/barcodes/qr.png?data=x&data=y", "given 2 times")]
     [InlineData("/barcodes/ean13.png?data=ABC", "EAN-13")]
     [InlineData("/barcodes/qr.png?data=x&height=40", "Height applies to linear barcodes only")]
-    [InlineData("/barcodes/code128.png?data=x&errorCorrection=H", "ErrorCorrection applies to QR codes only")]
+    [InlineData("/barcodes/code128.png?data=x&errorCorrection=H", "ErrorCorrection applies to QR codes, Micro QR and rMQR only")]
     [InlineData("/barcodes/qr.png?data=x&text=true", "HumanReadableText applies to linear barcodes only")]
     public async Task Rejects_bad_input_with_problem_details(string url, string message)
     {

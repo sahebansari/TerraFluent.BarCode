@@ -32,7 +32,7 @@ public sealed class BarcodeGenerator : IBarcodeGenerator
         if (o.TransparentBackground) builder.TransparentBackground();
         if (o.HumanReadableText && linear) builder.HumanReadableText();
         if (o.TextSize is { } textSize && linear) builder.TextSize(textSize);
-        if (o.QrErrorCorrection is { } level && type == BarcodeType.QrCode) builder.ErrorCorrection(level);
+        if (o.QrErrorCorrection is { } level && SupportsLevel(type, level)) builder.ErrorCorrection(level);
         if (o.Code39Checksum && type == BarcodeType.Code39) builder.WithChecksum();
         if (o.Code39FullAscii && type == BarcodeType.Code39) builder.FullAscii();
         if (o.ItfChecksum && type == BarcodeType.Itf) builder.WithChecksum();
@@ -45,6 +45,15 @@ public sealed class BarcodeGenerator : IBarcodeGenerator
         if (o.MaxImagePixels is { } maxPixels) builder.ImageSizeLimit(maxPixels);
         return builder;
     }
+
+    // Micro QR has no level H and rMQR only M and H; a shared options instance skips levels a type lacks.
+    private static bool SupportsLevel(BarcodeType type, QrErrorCorrectionLevel level) => type switch
+    {
+        BarcodeType.QrCode => true,
+        BarcodeType.MicroQrCode => level != QrErrorCorrectionLevel.H,
+        BarcodeType.RectangularMicroQrCode => level is QrErrorCorrectionLevel.M or QrErrorCorrectionLevel.H,
+        _ => false,
+    };
 
     /// <inheritdoc/>
     public byte[] Generate(BarcodeType type, string value, BarcodeImageFormat format = BarcodeImageFormat.Png, BarcodeOptions? options = null) =>

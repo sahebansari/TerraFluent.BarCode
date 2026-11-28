@@ -72,7 +72,7 @@ public static class Barcodes
     {
         if (elements is null) throw new ArgumentNullException(nameof(elements));
         if (elements.Length == 0) throw new ArgumentException("At least one application identifier is needed.", nameof(elements));
-        return new BarcodeBuilder(((string Ai, string Data)[])elements.Clone());
+        return new BarcodeBuilder(BarcodeType.Gs1Code128, ((string Ai, string Data)[])elements.Clone());
     }
 
     /// <summary>Data Matrix ECC 200 for any text (UTF-8). The smallest symbol that fits is picked automatically.</summary>
@@ -125,5 +125,78 @@ public static class Barcodes
         Guard.InRange(countryCode, 0, 999, nameof(countryCode));
         Guard.InRange(serviceClass, 0, 999, nameof(serviceClass));
         return new BarcodeBuilder(postalCode, countryCode, serviceClass, message);
+    }
+
+    /// <summary>
+    /// Micro QR code for short text: up to 35 digits, 21 alphanumeric characters
+    /// (<c>0-9 A-Z</c>, space and <c>$ % * + - . / :</c>) or 15 ISO-8859-1 (Latin-1)
+    /// characters at level L. The smallest of versions M1 to M4 that fits is
+    /// picked; see <see cref="BarcodeBuilder.ErrorCorrection"/> for levels L, M and Q.
+    /// </summary>
+    public static BarcodeBuilder MicroQrCode(string value) => Create(BarcodeType.MicroQrCode, value);
+
+    /// <summary>
+    /// Rectangular Micro QR code (rMQR) for any text (UTF-8), up to 361 digits or
+    /// 150 bytes. The symbol with the smallest area that fits is picked; use
+    /// <see cref="BarcodeBuilder.RectangularMicroQrHeight"/> to fix the height, and
+    /// <see cref="BarcodeBuilder.ErrorCorrection"/> for level M (default) or H.
+    /// </summary>
+    public static BarcodeBuilder RectangularMicroQrCode(string value) => Create(BarcodeType.RectangularMicroQrCode, value);
+
+    /// <summary>
+    /// GS1 DataBar Omnidirectional for a GTIN: 13 digits (check digit added),
+    /// 14 digits (check digit validated), or either written as <c>(01)</c> and the
+    /// digits. Printed with the human-readable text <c>(01)</c> and the 14 digits.
+    /// </summary>
+    public static BarcodeBuilder Gs1DataBar(string gtin) => Create(BarcodeType.Gs1DataBar, gtin);
+
+    /// <summary>
+    /// GS1 DataBar Limited for a GTIN whose first digit (the indicator) is 0 or 1:
+    /// 13 digits (check digit added) or 14 digits (validated), optionally after <c>(01)</c>.
+    /// </summary>
+    public static BarcodeBuilder Gs1DataBarLimited(string gtin) => Create(BarcodeType.Gs1DataBarLimited, gtin);
+
+    /// <summary>
+    /// GS1 DataBar Expanded from an element string with application identifiers in
+    /// parentheses, for example <c>(01)09501101530003(3103)000450(15)261231</c>,
+    /// validated as for <see cref="Gs1Code128(string)"/>. Holds up to 74 digits or
+    /// 41 letters.
+    /// </summary>
+    public static BarcodeBuilder Gs1DataBarExpanded(string value) => Create(BarcodeType.Gs1DataBarExpanded, value);
+
+    /// <summary>
+    /// GS1 DataBar Expanded from application identifier and data pairs; use it when
+    /// the data contains parentheses. <see cref="BarcodeBuilder.Value"/> is the element
+    /// string with AIs in parentheses.
+    /// </summary>
+    public static BarcodeBuilder Gs1DataBarExpanded(params (string Ai, string Data)[] elements)
+    {
+        if (elements is null) throw new ArgumentNullException(nameof(elements));
+        if (elements.Length == 0) throw new ArgumentException("At least one application identifier is needed.", nameof(elements));
+        return new BarcodeBuilder(BarcodeType.Gs1DataBarExpanded, ((string Ai, string Data)[])elements.Clone());
+    }
+
+    /// <summary>
+    /// USPS Intelligent Mail barcode. <paramref name="trackingCode"/> is 20 digits:
+    /// barcode identifier (2 digits, the second 0 to 4), service type (3), mailer ID
+    /// and serial number (15). <paramref name="routingCode"/> is the delivery point
+    /// ZIP code: empty, 5, 9 or 11 digits. <see cref="BarcodeBuilder.Value"/> is the
+    /// two run together, the form <see cref="Create"/> also accepts.
+    /// </summary>
+    public static BarcodeBuilder IntelligentMail(string trackingCode, string routingCode = "")
+    {
+        if (trackingCode is null) throw new ArgumentNullException(nameof(trackingCode));
+        if (routingCode is null) throw new ArgumentNullException(nameof(routingCode));
+        if (trackingCode.Length != Encoding.IntelligentMailEncoder.TrackingLength)
+        {
+            throw new ArgumentException($"The tracking code must be {Encoding.IntelligentMailEncoder.TrackingLength} digits; it has {trackingCode.Length} characters.", nameof(trackingCode));
+        }
+
+        if (routingCode.Length is not (0 or 5 or 9 or 11))
+        {
+            throw new ArgumentException($"The routing code must be empty or 5, 9 or 11 digits; it has {routingCode.Length} characters.", nameof(routingCode));
+        }
+
+        return Create(BarcodeType.IntelligentMail, trackingCode + routingCode);
     }
 }

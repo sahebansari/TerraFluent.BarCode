@@ -488,6 +488,14 @@ internal static class QrCodeEncoder
             }
         }
 
+        /// <summary>The bits as bytes, with a final partial byte padded with zero bits.</summary>
+        public byte[] ToPaddedBytes()
+        {
+            var bytes = new byte[(Count + 7) / 8];
+            Buffer.BlockCopy(_bytes, 0, bytes, 0, bytes.Length);
+            return bytes;
+        }
+
         public byte[] ToBytes()
         {
             var bytes = new byte[Count / 8];

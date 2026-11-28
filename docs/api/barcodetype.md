@@ -66,3 +66,27 @@ Aztec Code (ISO/IEC 24778): compact 2D code with a central bullseye that needs n
 <a id="TerraFluent_Barcode_BarcodeType_MaxiCode"></a>`MaxiCode = 13` 
 
 MaxiCode (ISO/IEC 16023): fixed-size 2D code of hexagons around a bullseye, used for parcel sorting.
+
+<a id="TerraFluent_Barcode_BarcodeType_MicroQrCode"></a>`MicroQrCode = 14` 
+
+Micro QR code (ISO/IEC 18004), versions M1 to M4: one finder pattern, 11 to 17 modules square, for small items.
+
+<a id="TerraFluent_Barcode_BarcodeType_RectangularMicroQrCode"></a>`RectangularMicroQrCode = 15` 
+
+Rectangular Micro QR code (rMQR, ISO/IEC 23941): 7 to 17 modules high and up to 139 wide, for narrow print areas.
+
+<a id="TerraFluent_Barcode_BarcodeType_Gs1DataBar"></a>`Gs1DataBar = 16` 
+
+GS1 DataBar Omnidirectional (ISO/IEC 24724): a GTIN-14 in a short symbol, read in any direction at retail checkouts.
+
+<a id="TerraFluent_Barcode_BarcodeType_Gs1DataBarLimited"></a>`Gs1DataBarLimited = 17` 
+
+GS1 DataBar Limited (ISO/IEC 24724): a GTIN-14 starting with 0 or 1 in the narrowest DataBar, for small items.
+
+<a id="TerraFluent_Barcode_BarcodeType_Gs1DataBarExpanded"></a>`Gs1DataBarExpanded = 18` 
+
+GS1 DataBar Expanded (ISO/IEC 24724): GS1 application identifiers and data, such as weight, price and dates, for fresh foods and coupons.
+
+<a id="TerraFluent_Barcode_BarcodeType_IntelligentMail"></a>`IntelligentMail = 19` 
+
+USPS Intelligent Mail barcode (USPS-B-3200): 65 four-state bars carrying a 20-digit tracking code and a ZIP code routing code.

@@ -39,8 +39,12 @@ internal static class Gs1
         public string HumanReadable { get; }
     }
 
+    /// <summary>Which symbology the element string is for; it sets the length limit.</summary>
+    public enum Symbology { Gs1Code128, DataBarExpanded }
+
     /// <summary>Parses an element string written as <c>(AI)data(AI)data</c>.</summary>
-    public static Result Parse(string value, string paramName) => Build(Split(value, paramName), paramName);
+    public static Result Parse(string value, string paramName, Symbology symbology = Symbology.Gs1Code128) =>
+        Build(Split(value, paramName), paramName, symbology);
 
     /// <summary>Splits an element string written as <c>(AI)data(AI)data</c> into AI and data pairs, without validating them.</summary>
     public static List<(string Ai, string Data)> Split(string value, string paramName)
@@ -66,7 +70,7 @@ internal static class Gs1
     /// Validates AI and data pairs and builds the encoded and printed forms. Data
     /// may contain parentheses here, which the element-string syntax cannot express.
     /// </summary>
-    public static Result Build(IReadOnlyList<(string Ai, string Data)> elements, string paramName)
+    public static Result Build(IReadOnlyList<(string Ai, string Data)> elements, string paramName, Symbology symbology = Symbology.Gs1Code128)
     {
         foreach (var (ai, data) in elements)
         {
@@ -92,7 +96,8 @@ internal static class Gs1
             }
         }
 
-        if (dataLength > MaxDataLength)
+        // DataBar Expanded's limit depends on the data's mix of digits and letters; its encoder checks it.
+        if (symbology == Symbology.Gs1Code128 && dataLength > MaxDataLength)
         {
             throw new ArgumentException(
                 string.Format(CultureInfo.InvariantCulture, "GS1-128 holds at most {0} data characters; this value needs {1}. Split it over two symbols.", MaxDataLength, dataLength),

@@ -5,21 +5,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Changed
-
-- Faster check-word and checksum code, with byte-identical output:
-  - QR Code, Data Matrix, Aztec and MaxiCode share one Reed-Solomon encoder whose
-    generator polynomials are built once per degree and kept as logarithms, so each
-    step is one table lookup; check words are written straight into their
-    interleaved positions instead of through per-block arrays and LINQ.
-  - PDF417 builds its GF(929) generator once per level and does one modulo per step
-    instead of two.
-  - Adler-32 for PNG output is unrolled, and on .NET 10 sums 16 bytes at a time with SIMD.
-  - The GS1 modulo 10 and Code 39 modulo 43 check characters are computed without
-    substrings or LINQ.
-- New `ChecksumBenchmarks` in `benchmarks/` for symbols with heavy error correction.
 ### Added
 
+- New symbologies, written from their specifications and read back by an
+  independent decoder in the tests (zxing-cpp; ZXing.Net as well for DataBar
+  Omnidirectional and Expanded):
+  - `Barcodes.MicroQrCode`: Micro QR versions M1 to M4, numeric, alphanumeric
+    and Latin-1 byte segments mixed for the smallest symbol, levels L, M and Q.
+  - `Barcodes.RectangularMicroQrCode`: rMQR (ISO/IEC 23941), all 32 sizes from
+    7 x 43 to 17 x 139, levels M and H, UTF-8 through ECI, and
+    `RectangularMicroQrHeight(rows)` to fix the height.
+  - `Barcodes.Gs1DataBar` (Omnidirectional), `Barcodes.Gs1DataBarLimited` and
+    `Barcodes.Gs1DataBarExpanded` (element string or AI and data pairs),
+    with `(01)` human-readable text.
+  - `Barcodes.IntelligentMail`: the USPS four-state barcode from a tracking
+    code and routing code, checked against the USPS-B-3200 sample encoding.
+- `BarcodeType.MicroQrCode`, `RectangularMicroQrCode`, `Gs1DataBar`,
+  `Gs1DataBarLimited`, `Gs1DataBarExpanded` and `IntelligentMail`.
+- MCP server: the new types (`microqr`, `rmqr`, `databar`, `databar-limited`,
+  `databar-expanded`, `imb`) and an `rmqrHeight` option for `generate_barcode`.
 - New package `TerraFluent.Barcode.AspNetCore` (.NET 10) for web apps:
   - `AddBarcodes(options)` registers `BarcodeEndpointOptions` and a singleton `IBarcodeGenerator`.
   - `MapBarcodes(pattern)` serves `GET`/`HEAD` `/barcodes/{type}.{format?}?data=...` as PNG, JPEG
@@ -44,6 +48,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     your own domain: key qualifiers in the path in standard order, other AIs
     as query parameters, GTINs padded to 14 digits and every AI validated as
     for GS1-128.
+
+### Changed
+
+- `ErrorCorrection` applies to Micro QR and rMQR as well as QR codes, and
+  `BarcodeOptions.QrErrorCorrection` is used for them where the type has that level.
+- Faster check-word and checksum code, with byte-identical output:
+  - QR Code, Data Matrix, Aztec and MaxiCode share one Reed-Solomon encoder whose
+    generator polynomials are built once per degree and kept as logarithms, so each
+    step is one table lookup; check words are written straight into their
+    interleaved positions instead of through per-block arrays and LINQ.
+  - PDF417 builds its GF(929) generator once per level and does one modulo per step
+    instead of two.
+  - Adler-32 for PNG output is unrolled, and on .NET 10 sums 16 bytes at a time with SIMD.
+  - The GS1 modulo 10 and Code 39 modulo 43 check characters are computed without
+    substrings or LINQ.
+- New `ChecksumBenchmarks` in `benchmarks/` for symbols with heavy error correction.
 
 ## [1.3.0] - 2026-11-28
 

@@ -343,7 +343,9 @@ The value cannot be encoded in this symbology.
 
 ### <a id="TerraFluent_Barcode_BarcodeBuilder_ErrorCorrection_TerraFluent_Barcode_QrErrorCorrectionLevel_"></a> ErrorCorrection\(QrErrorCorrectionLevel\)
 
-QR error-correction level (default <a href="qrerrorcorrectionlevel.md#TerraFluent_Barcode_QrErrorCorrectionLevel_M">QrErrorCorrectionLevel.M</a>). QR codes only.
+Error-correction level (default <a href="qrerrorcorrectionlevel.md#TerraFluent_Barcode_QrErrorCorrectionLevel_M">QrErrorCorrectionLevel.M</a>) for QR codes,
+Micro QR (L, M or Q; at L the smallest version, M1, can be used, which only detects
+errors) and rMQR (M or H).
 
 ```csharp
 public BarcodeBuilder ErrorCorrection(QrErrorCorrectionLevel level)
@@ -714,6 +716,24 @@ MaxiCode. Scanners may fail with a smaller value.
 
 ```csharp
 public BarcodeBuilder QuietZone(int modules)
+```
+
+#### Parameters
+
+`modules` [int](https://learn.microsoft.com/dotnet/api/system.int32)
+
+#### Returns
+
+ [BarcodeBuilder](barcodebuilder.md)
+
+### <a id="TerraFluent_Barcode_BarcodeBuilder_RectangularMicroQrHeight_System_Int32_"></a> RectangularMicroQrHeight\(int\)
+
+Fixes the height of an rMQR symbol: 7, 9, 11, 13, 15 or 17 modules. The
+narrowest symbol of that height that holds the value is used. By default
+the symbol with the smallest area is picked. rMQR only.
+
+```csharp
+public BarcodeBuilder RectangularMicroQrHeight(int modules)
 ```
 
 #### Parameters
