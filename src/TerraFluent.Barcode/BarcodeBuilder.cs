@@ -323,8 +323,10 @@ public sealed class BarcodeBuilder
     }
 
     /// <summary>
-    /// Minimum error correction as a percentage of the data, 5 to 95 (default 33).
-    /// More error correction makes a bigger symbol that survives more damage. Aztec only.
+    /// Minimum share of the symbol's codewords used for error correction, in percent,
+    /// 5 to 90; three more check words are always added (default 23, as ISO/IEC 24778
+    /// recommends). More error correction makes a bigger symbol that survives more damage.
+    /// Aztec only.
     /// </summary>
     public BarcodeBuilder AztecErrorCorrection(int percent)
     {

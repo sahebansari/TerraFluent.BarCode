@@ -27,7 +27,15 @@ internal static class DecoderHelper
         };
         configure?.Invoke(options);
         var reader = new BarcodeReaderGeneric { AutoRotate = false, Options = options };
-        return reader.Decode(new RGBLuminanceSource(luminance, image.Width, image.Height, RGBLuminanceSource.BitmapFormat.Gray8));
+        var result = reader.Decode(new RGBLuminanceSource(luminance, image.Width, image.Height, RGBLuminanceSource.BitmapFormat.Gray8));
+
+        // A clean image must decode without leaning on error correction, or the encoder misplaced bits.
+        if (result?.ResultMetadata is { } metadata && metadata.TryGetValue(ResultMetadataType.ERRORS_CORRECTED, out var corrected))
+        {
+            Assert.Equal(0, Convert.ToInt32(corrected, System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        return result;
     }
 
     public static string DecodeText(byte[] png, BarcodeFormat format, Action<DecodingOptions>? configure = null)

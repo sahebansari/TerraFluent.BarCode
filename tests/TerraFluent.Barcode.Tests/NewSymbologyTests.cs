@@ -158,13 +158,9 @@ public class NewSymbologyTests
     public void Aztec_bit_stuffing_avoids_all_zero_and_all_one_words()
     {
         var bits = Enumerable.Repeat(false, 12).Concat(Enumerable.Repeat(true, 6)).ToList();
-        var stuffed = AztecEncoder.StuffBits(bits, 6);
-        for (var i = 0; i < stuffed.Count; i += 6)
-        {
-            var word = stuffed.Skip(i).Take(6).ToList();
-            Assert.Contains(true, word);
-            Assert.Contains(false, word);
-        }
+        var words = AztecEncoder.Stuff(bits, 6);
+        Assert.Equal(new[] { 0b000001, 0b000001, 0b001111, 0b111110 }, words);
+        Assert.All(words, w => Assert.True(w != 0 && w != 0b111111));
     }
 
     // ---- MaxiCode ----

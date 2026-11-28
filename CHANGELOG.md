@@ -12,7 +12,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
     through `WithChecksum()`, and `Barcodes.Itf14` for GTIN-14 on cartons.
   - `Barcodes.Codabar`, with start/stop characters A to D.
   - `Barcodes.Aztec`: compact and full-range symbols, UTF-8 through ECI, and
-    `AztecErrorCorrection(percent)`.
+    `AztecErrorCorrection(percent)` (default 23% plus 3 check words, as
+    ISO/IEC 24778 recommends).
   - `Barcodes.MaxiCode`: modes 4, 5 and 6 through `MaxiCodeMode(mode)`, and
     modes 2 and 3 (structured carrier message with postal code, country and
     service class) through `Barcodes.MaxiCode(postalCode, countryCode, serviceClass, message)`.

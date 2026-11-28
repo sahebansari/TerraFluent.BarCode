@@ -64,7 +64,7 @@ await Barcodes.Code128("X1").WriteToAsync(response.Body, BarcodeImageFormat.Png)
 | `Barcodes.Itf(value)` | ISO/IEC 16390 | Interleaved 2 of 5: an even number of digits, up to 80. `.WithChecksum()` appends the modulo 10 check digit (then pass an odd number). |
 | `Barcodes.Itf14(value)` | GS1 General Specifications | 13 digits (check digit added) or 14 (validated), for GTIN-14 on cartons. |
 | `Barcodes.Codabar(value)` | ANSI/AIM BC3 | `0-9` and `- $ : / . +`, up to 60 characters. Start and end with `A`-`D` (or `T N * E`) to pick the start/stop characters, otherwise `A` is used. |
-| `Barcodes.Aztec(value)` | ISO/IEC 24778 | Any text (UTF-8 via ECI when needed). Compact and full-range symbols, smallest that fits; `.AztecErrorCorrection(5-95)` percent (default 33). |
+| `Barcodes.Aztec(value)` | ISO/IEC 24778 | Any text (UTF-8 via ECI when needed). Compact and full-range symbols, smallest that fits; `.AztecErrorCorrection(5-90)`: percent of the symbol used for error correction, plus 3 words (default 23, as the standard recommends). |
 | `Barcodes.MaxiCode(value)` | ISO/IEC 16023 | Latin-1 text, up to 93 characters (138 digits). Mode 4 by default; `.MaxiCodeMode(5)` for enhanced error correction, `6` for reader programming. Drawn as hexagons around the bullseye. |
 | `Barcodes.MaxiCode(postalCode, country, service, message)` | ISO/IEC 16023 | Structured carrier message for parcels: mode 2 for a numeric postal code (up to 9 digits), mode 3 for an alphanumeric one (up to 6 characters). |
 
@@ -145,7 +145,7 @@ two-colour images, so prefer PNG or SVG: JPEG compression softens bar edges.
 | `ErrorCorrection(level)` | `M` | QR codes only. |
 | `WithChecksum()` | off | Code 39 (modulo 43) and Interleaved 2 of 5 (modulo 10). |
 | `FullAscii()` | off | Code 39 only. |
-| `AztecErrorCorrection(percent)` | 33 | Aztec only: 5 to 95. |
+| `AztecErrorCorrection(percent)` | 23 | Aztec only: 5 to 90 percent of the symbol, plus 3 check words. |
 | `MaxiCodeMode(mode)` | 4 | MaxiCode only: 4, 5 or 6. |
 | `AddOn(digits)` | none | EAN-13 and UPC-A: 2 or 5 digits. |
 | `DataMatrixShape(shape)` | `Square` | Data Matrix only: `Square`, `Rectangle` or `Any`. |
@@ -250,6 +250,5 @@ as described in [SECURITY.md](https://github.com/sahebansari/TerraFluent.Barcode
 ## License
 
 MIT. See [LICENSE](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/LICENSE). The human-readable text uses glyph outlines from
-JetBrains Mono (SIL Open Font License 1.1), the PDF417 tables come from
-pdf417gen (MIT), and the Aztec encoder and MaxiCode tables are derived from
-ZXing (Apache License 2.0); see [THIRD-PARTY-NOTICES.md](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/THIRD-PARTY-NOTICES.md).
+JetBrains Mono (SIL Open Font License 1.1) and the PDF417 tables come from
+pdf417gen (MIT); see [THIRD-PARTY-NOTICES.md](https://github.com/sahebansari/TerraFluent.Barcode/blob/main/THIRD-PARTY-NOTICES.md).
