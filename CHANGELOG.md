@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-28
+
 ### Added
 
 - New symbologies, each read back by ZXing in the tests:
@@ -176,6 +178,7 @@ never published; their changes are included in this release.
 - `Encode()` returns the raw `BarcodeMatrix` for custom renderers.
 - Targets `netstandard2.0` and `net10.0` (trimming and Native AOT compatible).
 
-[Unreleased]: https://github.com/sahebansari/TerraFluent.Barcode/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/sahebansari/TerraFluent.Barcode/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sahebansari/TerraFluent.Barcode/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/sahebansari/TerraFluent.Barcode/releases/tag/v1.2.0
 [1.1.0]: https://github.com/sahebansari/TerraFluent.Barcode/releases/tag/v1.1.0
